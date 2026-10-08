@@ -15,7 +15,14 @@ let searches = [];
 function hitNode(h, fresh) {
   const node = $("hit-tpl").content.firstElementChild.cloneNode(true);
   if (fresh) node.classList.add("fresh");
-  if (h.photoUrl) node.querySelector(".thumb").style.backgroundImage = `url("${encodeURI(h.photoUrl)}")`;
+  const thumbs = node.querySelector(".thumbs");
+  const photos = (h.photoUrls || []).slice(0, 3);
+  if (!photos.length) thumbs.append(Object.assign(document.createElement("div"), { className: "thumb empty" }));
+  for (const src of photos) {
+    const a = Object.assign(document.createElement("a"), { href: h.url, target: "_blank", rel: "noopener" });
+    a.append(Object.assign(document.createElement("img"), { src, alt: "", loading: "lazy", referrerPolicy: "no-referrer", className: "thumb" }));
+    thumbs.append(a);
+  }
   const title = node.querySelector(".title");
   title.textContent = h.title;
   title.href = h.url;
@@ -112,7 +119,7 @@ function notify(h) {
   if (!("Notification" in window) || Notification.permission !== "granted" || document.hasFocus()) return;
   const n = new Notification(`watchr · Neuer Treffer: ${h.title}`, {
     body: [fmtPrice(h.price, h.currency), h.size && `Größe ${h.size}`].filter(Boolean).join(" — "),
-    icon: h.photoUrl || "logo.svg",
+    icon: (h.photoUrls && h.photoUrls[0]) || "logo.svg",
   });
   n.onclick = () => window.open(h.url, "_blank");
 }

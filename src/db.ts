@@ -32,6 +32,9 @@ export function openDb(path: string) {
     );
     CREATE INDEX IF NOT EXISTS hits_detected_at ON hits(detected_at DESC);
   `);
+  // Ältere Datenbanken: Spalte für mehrere Bilder nachrüsten
+  const cols = db.prepare("PRAGMA table_info(hits)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "photo_urls")) db.exec("ALTER TABLE hits ADD COLUMN photo_urls TEXT");
 
   const toSearch = (r: any): Search => ({
     id: r.id,
@@ -53,7 +56,7 @@ export function openDb(path: string) {
     size: r.size,
     brand: r.brand,
     url: r.url,
-    photoUrl: r.photo_url,
+    photoUrls: r.photo_urls ? JSON.parse(r.photo_urls) : r.photo_url ? [r.photo_url] : [],
     detectedAt: r.detected_at,
   });
 
@@ -94,10 +97,10 @@ export function openDb(path: string) {
       const res = db
         .prepare(
           `INSERT OR IGNORE INTO hits
-             (vinted_id, search_id, title, price, currency, size, brand, url, photo_url, detected_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (vinted_id, search_id, title, price, currency, size, brand, url, photo_url, photo_urls, detected_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
-        .run(h.vintedId, h.searchId, h.title, h.price, h.currency, h.size, h.brand, h.url, h.photoUrl, new Date().toISOString());
+        .run(h.vintedId, h.searchId, h.title, h.price, h.currency, h.size, h.brand, h.url, h.photoUrls[0] ?? null, JSON.stringify(h.photoUrls.slice(0, 3)), new Date().toISOString());
       if (res.changes === 0) return null;
       return toHit(db.prepare(`${hitSelect} WHERE h.id = ?`).get(Number(res.lastInsertRowid)));
     },

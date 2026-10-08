@@ -64,7 +64,9 @@ function parseHit(b: any): HitInput {
     size: str(b.size),
     brand: str(b.brand),
     url: b.url,
-    photoUrl: str(b.photoUrl),
+    photoUrls: (Array.isArray(b.photoUrls) ? b.photoUrls : [])
+      .filter((u: unknown): u is string => typeof u === "string" && /^https?:\/\//.test(u))
+      .slice(0, 3),
   };
 }
 

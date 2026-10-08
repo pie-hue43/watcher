@@ -10,7 +10,8 @@ import type { Search, ServerMessage } from "../src/types.ts";
 
 const listing = (id: string, price: number, size: string | null): Listing => ({
   id, title: `Nike Dunk Low ${id}`, price, currency: "EUR", size, brand: "Nike",
-  url: `https://www.vinted.de/items/${id}`, photoUrl: null,
+  url: `https://www.vinted.de/items/${id}`,
+  photoUrls: [`https://img.example/${id}-1.jpg`],
 });
 
 test("matches: Preis und Größe", () => {
@@ -45,6 +46,9 @@ test("Watcher → Backend → Datenbank → WebSocket", async () => {
   // Gefälschte Datenquelle: erster Durchlauf = Bestand, zweiter = neue Listings
   let round = 0;
   const source: Source = {
+    async photos(l) {
+      return [...l.photoUrls, `https://img.example/${l.id}-2.jpg`, `https://img.example/${l.id}-3.jpg`, `https://img.example/${l.id}-4.jpg`].slice(0, 3);
+    },
     async search() {
       round++;
       return round === 1
@@ -62,6 +66,7 @@ test("Watcher → Backend → Datenbank → WebSocket", async () => {
   assert.equal(pushed.length, 1);
   assert.equal(pushed[0].type === "hit" && pushed[0].hit.vintedId, "101");
   assert.equal(db.listHits().length, 1);
+  assert.deepEqual(db.listHits()[0].photoUrls, ["https://img.example/101-1.jpg", "https://img.example/101-2.jpg", "https://img.example/101-3.jpg"]);
 
   // Ohne Token darf niemand Treffer einschleusen
   const bad = await fetch(`${base}/api/hits`, { method: "POST", body: "{}" });

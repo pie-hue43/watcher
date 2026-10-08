@@ -9,11 +9,13 @@ export interface Listing {
   size: string | null;
   brand: string | null;
   url: string;
-  photoUrl: string | null;
+  photoUrls: string[];
 }
 
 export interface Source {
   search(s: Search): Promise<Listing[]>;
+  /** Optional: weitere Bilder eines Listings nachladen (nur für neue Treffer). */
+  photos?(l: Listing): Promise<string[]>;
 }
 
 export class RateLimitError extends Error {}
@@ -40,6 +42,19 @@ export class VintedSource implements Source {
     if (!cookies.length) throw new Error(`Kein Session-Cookie von ${this.domain} erhalten (HTTP ${res.status})`);
     this.cookie = cookies.join("; ");
     this.cookieFetchedAt = Date.now();
+  }
+
+  /** Die Suche liefert meist nur ein Bild. Für neue Treffer holen wir die Detailseite mit allen Bildern. */
+  async photos(l: Listing): Promise<string[]> {
+    if (!this.cookie) await this.refreshCookie();
+    const res = await fetch(`https://${this.domain}/api/v2/items/${l.id}`, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json", Cookie: this.cookie! },
+    });
+    if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
+    if (!res.ok) return l.photoUrls;
+    const data: any = await res.json();
+    const more = photoList(data.item ?? data);
+    return [...new Set([...l.photoUrls, ...more])].slice(0, 3);
   }
 
   async search(s: Search): Promise<Listing[]> {
@@ -74,6 +89,12 @@ export class VintedSource implements Source {
   }
 }
 
+function photoList(it: any): string[] {
+  const all = [...(Array.isArray(it.photos) ? it.photos : []), ...(it.photo ? [it.photo] : [])];
+  const urls = all.map((p: any) => p?.url || p?.full_size_url).filter((u: unknown): u is string => typeof u === "string");
+  return [...new Set(urls)].slice(0, 3);
+}
+
 function toListing(it: any): Listing {
   // Vinted liefert den Preis je nach Version als String oder als {amount, currency_code}
   const price = typeof it.price === "object" && it.price ? Number(it.price.amount) : Number(it.price);
@@ -86,7 +107,7 @@ function toListing(it: any): Listing {
     size: it.size_title || null,
     brand: it.brand_title || null,
     url: it.url || `https://www.vinted.de/items/${it.id}`,
-    photoUrl: it.photo?.url ?? null,
+    photoUrls: photoList(it),
   };
 }
 
@@ -108,7 +129,7 @@ export class MockSource implements Source {
         size: s.size && Math.random() < 0.7 ? s.size : sizes[Math.floor(Math.random() * sizes.length)],
         brand: s.query.split(" ")[0],
         url: `https://www.vinted.de/items/${id}`,
-        photoUrl: null,
+        photoUrls: [],
       });
     }
     return out;

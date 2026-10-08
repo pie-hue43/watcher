@@ -17,7 +17,8 @@ export interface HitInput {
   size: string | null;
   brand: string | null;
   url: string;
-  photoUrl: string | null;
+  /** Bis zu drei Bilder des Listings (leer, wenn keine vorhanden). */
+  photoUrls: string[];
 }
 
 export interface Hit extends HitInput {

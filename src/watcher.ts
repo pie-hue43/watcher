@@ -59,6 +59,14 @@ export class Watcher {
         seen.add(l.id);
         // Beim ersten Durchlauf nur merken, was schon online ist. Gemeldet werden neue Listings.
         if (firstRun || !matches(s, l)) continue;
+        let photoUrls = l.photoUrls;
+        if (photoUrls.length < 3 && this.source.photos) {
+          await sleep(jitter(1500)); // höflich bleiben
+          photoUrls = await this.source.photos(l).catch((err) => {
+            if (err instanceof RateLimitError) throw err;
+            return l.photoUrls;
+          });
+        }
         const isNew = await this.report({
           vintedId: l.id,
           searchId: s.id,
@@ -68,7 +76,7 @@ export class Watcher {
           size: l.size,
           brand: l.brand,
           url: l.url,
-          photoUrl: l.photoUrl,
+          photoUrls,
         });
         if (isNew) {
           found++;

@@ -6,7 +6,7 @@ Vinted Watcher mit Backend und Echtzeit-Dashboard.
 Vinted → Watcher → Backend/API → SQLite + WebSocket → Dashboard (Browser)
 ```
 
-- **Watcher** (`src/watcher.ts`): fragt pro Suchauftrag die öffentliche Vinted-Katalogsuche ab (neueste zuerst), filtert nach Max-Preis und Größe und meldet neue Listings per `POST /api/hits` ans Backend. Beim ersten Durchlauf einer Suche merkt er sich nur den Bestand, gemeldet wird danach nur, was neu online kommt.
+- **Watcher** (`src/watcher.ts`): holt pro neuem Treffer bis zu drei Bilder (falls vorhanden), fragt pro Suchauftrag die öffentliche Vinted-Katalogsuche ab (neueste zuerst), filtert nach Max-Preis und Größe und meldet neue Listings per `POST /api/hits` ans Backend. Beim ersten Durchlauf einer Suche merkt er sich nur den Bestand, gemeldet wird danach nur, was neu online kommt.
 - **Backend** (`src/server.ts`): speichert Treffer in SQLite (doppelte Vinted-IDs werden ignoriert) und pusht jeden neuen Treffer sofort per WebSocket an alle offenen Dashboards.
 - **Dashboard** (`public/`): zeigt Treffer live, verwaltet Suchaufträge, optional Browser-Benachrichtigungen.
 - **Landingpage** (`public/landing.html`): stellt watchr als Produkt vor, erreichbar unter `/landing.html`. Funktioniert auch eigenständig auf deiner Website (die Buttons verlinken auf das Dashboard `./`).
@@ -43,7 +43,7 @@ Ein Treffer sieht so aus:
 ```json
 { "id": 7, "vintedId": "4823…", "title": "Nike Dunk Low", "price": 65, "currency": "EUR",
   "size": "43", "brand": "Nike", "url": "https://www.vinted.de/items/…",
-  "photoUrl": "https://…", "searchQuery": "Nike Dunk", "detectedAt": "2026-10-08T15:35:12.000Z" }
+  "photoUrls": ["https://…", "https://…", "https://…"], "searchQuery": "Nike Dunk", "detectedAt": "2026-10-08T15:35:12.000Z" }
 ```
 
 ## In die eigene Website einbauen

@@ -88,17 +88,19 @@
     .cat span { position: absolute; left: -2px; right: -2px; top: 60%; background: var(--grad);
       text-align: center; font-weight: 800; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; padding: 2px 0; }
 
-    /* Menüleiste */
-    .menu { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow-x: auto; }
-    .menu ul { display: flex; gap: 8px; align-items: center; list-style: none; margin: 0 auto; padding: 12px 20px; max-width: 1080px; }
-    .menu a { display: block; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 17px; text-transform: uppercase; text-decoration: none; white-space: nowrap; color: var(--text); }
-    .menu a:hover { background: var(--panel); }
-    .menu a.hot { background: var(--grad); color: #000; }
-
     .pill::before { animation: blink 1.2s ease-in-out infinite; }
     @keyframes blink { 50% { opacity: .15; } }
-    @media (prefers-reduced-motion: reduce) { .ticker-track, .pill::before { animation: none; } .cat { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .ticker-track, .pill::before, .live-dot { animation: none; } .cat { transition: none; } }
     @media (max-width: 760px) { nav { flex-direction: column; align-items: flex-start; gap: 10px; } nav .cats { width: 100%; } }
+    .preview { position: relative; }
+    .live-dot { position: absolute; top: 18px; right: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--ok);
+      box-shadow: 0 0 0 4px rgba(47,191,113,.18); animation: blink 1.2s ease-in-out infinite; }
+    .hit { grid-template-columns: auto minmax(0,1fr) auto auto; }
+    .pics { display: flex; gap: 3px; }
+    .pics i { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 6px; background: #fde8f0; }
+    .pics i.t1 { background: #f6eef2; } .pics i.t2 { background: #fbe4dd; }
+    .pics svg { width: 22px; height: 22px; }
+    @media (max-width: 520px) { .hit { grid-template-columns: minmax(0,1fr) auto auto; } .pics { grid-column: 1 / -1; } }
   </style>
 </head>
 <body>
@@ -116,15 +118,6 @@
     </div>
     </nav>
   </div>
-  <div class="menu">
-    <ul>
-      <li><a href="#">Start</a></li>
-      <li><a href="#so-funktionierts">So funktioniert’s</a></li>
-      <li><a href="#funktionen">Funktionen</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li><a class="hot" href="./">Dashboard</a></li>
-    </ul>
-  </div>
   <div class="wrap">
 
     <header class="hero">
@@ -139,10 +132,10 @@
       </div>
 
       <div class="preview" aria-label="Beispielansicht des Dashboards">
-        <h3>Live Listings Monitor</h3>
-        <div class="hit new"><div><b>Nike Dunk Low</b><small>Größe 43 · gerade eben</small></div><span class="price">65 €</span><span class="go">Ansehen</span></div>
-        <div class="hit"><div><b>Adidas Samba</b><small>Größe 42 · vor 2 Min.</small></div><span class="price">45 €</span><span class="go">Ansehen</span></div>
-        <div class="hit"><div><b>Stone Island Overshirt</b><small>Größe M · vor 5 Min.</small></div><span class="price">120 €</span><span class="go">Ansehen</span></div>
+        <h3>Live Listings Monitor</h3><span class="live-dot" title="Live"></span>
+        <div class="hit new"><div class="pics" aria-hidden="true"><i class="t0"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t1"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t2"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i></div><div><b>Nike Dunk Low</b><small>Größe 43 · gerade eben</small></div><span class="price">65 €</span><span class="go">Ansehen</span></div>
+        <div class="hit"><div class="pics" aria-hidden="true"><i class="t0"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t1"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t2"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i></div><div><b>Adidas Samba</b><small>Größe 42 · vor 2 Min.</small></div><span class="price">45 €</span><span class="go">Ansehen</span></div>
+        <div class="hit"><div class="pics" aria-hidden="true"><i class="t0"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/></svg></i><i class="t1"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/></svg></i><i class="t2"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/></svg></i></div><div><b>Stone Island Overshirt</b><small>Größe M · vor 5 Min.</small></div><span class="price">120 €</span><span class="go">Ansehen</span></div>
       </div>
     </header>
   </div>
