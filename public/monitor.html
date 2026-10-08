@@ -45,12 +45,10 @@
     .verdict { display: inline-block; font-size: 12px; font-weight: 800; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
     /* Rarities: Farbe zeigt sofort, wie gut ein Flip ist */
     :root { --r-common: #8a948d; --r-good: #16a34a; --r-rare: #2563eb; --r-epic: #9333ea; --r-legendary: #f59e0b; }
-    .v-common { background: #eef1ef; color: #4b554e; border: 1px solid #d9dfdb; }
     .v-good { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
     .v-rare { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
     .v-epic { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
     .v-legendary { background: linear-gradient(135deg, #fde68a, #f59e0b); color: #5c3a00; border: 1px solid #f59e0b; box-shadow: 0 0 10px rgba(245,158,11,.55); text-transform: uppercase; letter-spacing: .04em; }
-    .listing.r-common { border-left: 5px solid var(--r-common); }
     .listing.r-good { border-left: 5px solid var(--r-good); }
     .listing.r-rare { border-left: 5px solid var(--r-rare); }
     .listing.r-epic { border-left: 5px solid var(--r-epic); }
@@ -120,7 +118,7 @@
           <div class="monitor-head"><h2 id="live-title">New matches <span id="hit-count" class="count"></span></h2><a class="btn ghost small" href="flips.html">Flips</a></div>
           <p id="demo-note" class="demo-note" hidden>Example data: watchr isn't running here. Start it with npm start to see your real snipes.</p>
           <ul id="hits" class="listings"></ul>
-          <p id="hits-empty" class="empty">No matches yet. As soon as watchr finds a new listing for your preferences, it shows up here.</p>
+          <p id="hits-empty" class="empty">No matches yet. As soon as watchr finds a listing for your preferences with at least 20% estimated return, it shows up here.</p>
         </section>
         <aside class="monitor" aria-labelledby="prefs-title">
           <div class="monitor-head"><h2 id="prefs-title">Individual Preferences</h2></div>
@@ -138,7 +136,7 @@
         </aside>
       </div>
       <section id="analysis" class="analysis" aria-labelledby="an-title" hidden>
-        <div class="monitor-head"><h2 id="an-title">Flip analysis</h2><span class="muted">After Vinted fees and shipping</span></div>
+        <div class="monitor-head"><h2 id="an-title">Flip analysis</h2><span class="muted">After Vinted fees and shipping · only snipes with 20%+ return</span></div>
         <div class="stats">
           <div class="stat"><b id="an-potential">€0</b><span>Potential net profit</span></div>
           <div class="stat"><b id="an-invest">€0</b><span>Money needed to buy them</span></div>

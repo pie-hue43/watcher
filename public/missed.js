@@ -129,7 +129,7 @@ async function load() {
   try {
     const res = await fetch(`${BACKEND}/api/hits?limit=200`);
     if (!res.ok) throw new Error();
-    hits = await res.json();
+    hits = (await res.json()).filter(watchrEval.qualifies); // nur Snipes mit mindestens 20 % geschätzter Rendite
   } catch {
     $("ledger-empty-text").textContent =
       "watchr isn't reachable right now. Start it with npm start, then reload this page to see your Flips.";

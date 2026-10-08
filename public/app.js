@@ -120,7 +120,6 @@ function renderAnalysis() {
   $("an-strong").textContent = String(s.byRarity.epic + s.byRarity.legendary);
   $("an-mix").replaceChildren(
     ...[...watchrEval.LEVELS].reverse().map((v) => el("span", "verdict v-" + v, `${s.byRarity[v]} ${watchrEval.LABEL[v]}`)),
-    ...(s.unpriced ? [el("span", "muted", `${s.unpriced} without resale estimate`)] : []),
   );
   const body = $("an-top");
   body.replaceChildren(
@@ -182,6 +181,7 @@ function renderHits() {
 }
 
 function addHit(h) {
+  if (!watchrEval.qualifies(h)) return; // unter 20 % Rendite: gar nicht anzeigen
   if (hits.some((x) => x.id === h.id)) return;
   hits.unshift(h);
   hits = hits.slice(0, 100);
@@ -306,7 +306,7 @@ function connect() {
     if (msg.type === "hello") {
       demo = false;
       $("demo-note").hidden = true;
-      hits = msg.hits;
+      hits = msg.hits.filter(watchrEval.qualifies);
       searches = msg.searches;
       renderHits();
       renderSearches();
@@ -341,7 +341,7 @@ function showDemo() {
     ex(-6, "Stone Island crewneck knit", "Stone Island", "L", 110, 140, 95, 190, 7, 58, null, null),
     ex(-7, "Carhartt Detroit jacket", "Carhartt", "L", 60, 110, 90, 135, 34, 75, null, null),
     ex(-8, "Prada Re-Edition 2005 bag", "Prada", null, 380, 400, 340, 480, 18, 96, 40, "Prada"),
-  ];
+  ].filter(watchrEval.qualifies);
   renderHits();
   $("demo-note").hidden = false;
 }
