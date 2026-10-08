@@ -383,6 +383,42 @@ export function ruleFilters(text: string) {
   };
 }
 
+/**
+ * Verkaufsprüfung für Snipes: schaut regelmäßig nach, ob gefundene Listings auf Vinted verkauft wurden.
+ * Verkaufte landen mit Datum unter Flips und werden live gemeldet.
+ */
+export function startSaleChecker(d: ToolDeps, everyMs = 10 * 60_000, perRun = 10, log = (m: string) => console.log(`[flips] ${m}`), gapMs = 3000) {
+  if (!d.source?.item) return () => {};
+  let stopped = false;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms).unref());
+  const run = async () => {
+    for (const h of d.db.dueSaleChecks(perRun)) {
+      if (stopped) return;
+      try {
+        const item = await d.source!.item!(h.vintedId);
+        const sold = d.db.setSaleStatus(h.id, !item ? "gone" : item.sold ? "sold" : "active");
+        if (sold) {
+          log(`Verkauft: ${sold.title} (${sold.price} ${sold.currency})`);
+          d.broadcast({ type: "hitSold", hit: sold });
+        }
+      } catch (err) {
+        if (err instanceof RateLimitError) return log("Vinted bremst, nächster Versuch später");
+      }
+      await sleep(gapMs + Math.random() * (gapMs * 0.66));
+    }
+  };
+  const loop = async () => {
+    while (!stopped) {
+      await run().catch(() => {});
+      await sleep(everyMs);
+    }
+  };
+  void loop();
+  return () => {
+    stopped = true;
+  };
+}
+
 /** Wardrobe Tracker im Hintergrund: prüft regelmäßig, ob beobachtete Artikel verkauft wurden. */
 export function startTracker(d: ToolDeps, everyMs = 10 * 60_000, perRun = 10, log = (m: string) => console.log(`[tracker] ${m}`)) {
   if (!d.source?.item) return () => {};

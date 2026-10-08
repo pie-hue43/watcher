@@ -25,7 +25,33 @@ let hits = [];
 let filter = null; // searchQuery oder null = alle
 let missedOnly = false;
 
+// Ranking der verkauften Flips: was der Bot als verkauft gemeldet hat, nach geschätztem Netto-Gewinn
+function renderSold() {
+  const sold = hits
+    .filter((h) => h.saleStatus === "sold")
+    .map((h) => ({ h, e: watchrEval.evaluate(h) }))
+    .filter((x) => x.e && x.e.qualifies)
+    .sort((a, b) => b.e.profit - a.e.profit);
+  $("m-sold").textContent = sold.length;
+  $("sold-rank").hidden = sold.length === 0;
+  $("sold-n").textContent = sold.length;
+  $("sold-sum").textContent = fmtPrice(Math.round(sold.reduce((s, x) => s + x.e.profit, 0)));
+  $("sold-list").replaceChildren(
+    ...sold.slice(0, 20).map(({ h, e }, i) => {
+      const li = el("li", `lb-row r-${e.verdict}` + (i < 3 ? ` podium p${i + 1}` : ""));
+      li.append(el("span", "lb-rank", i < 3 ? ["🥇", "🥈", "🥉"][i] : String(i + 1)));
+      const name = el("div", "lb-name");
+      const a = Object.assign(el("a", null, h.title), { href: h.url, target: "_blank", rel: "noopener" });
+      const when = h.soldAt ? `sold ${fmtDay(h.soldAt).replace(/^(Today|Yesterday)$/, (d) => d.toLowerCase())}` : "sold";
+      name.append(a, el("span", "meta", `${fmtPrice(h.price, h.currency)} → ~${fmtPrice(e.sale, h.currency)} · ${when}${h.openedAt ? "" : " · missed"}`));
+      li.append(name, el("span", "verdict v-" + e.verdict, e.label), el("span", "lb-profit", fmtDiff(e.profit, h.currency)), el("span", "lb-roi", `${e.roi}%`));
+      return li;
+    }),
+  );
+}
+
 function render() {
+  renderSold();
   const missed = hits.filter((h) => !h.openedAt);
   $("m-total").textContent = hits.length;
   $("m-missed").textContent = missed.length;
@@ -113,6 +139,7 @@ function render() {
           cells[5].append(el("span", "diff " + (d >= 0 ? "up" : "down"), fmtDiff(d, h.currency)));
         } else cells[5].textContent = "–";
         cells[6].append(el("span", "status " + (h.openedAt ? "opened" : "missed"), h.openedAt ? "Opened" : "Missed"));
+        if (h.saleStatus === "sold") cells[6].append(" ", el("span", "status sold", "Sold"));
         tr.append(...cells);
         body.append(tr);
       }
@@ -130,9 +157,13 @@ async function load() {
     const res = await fetch(`${BACKEND}/api/hits?limit=200`);
     if (!res.ok) throw new Error();
     hits = (await res.json()).filter(watchrEval.qualifies); // nur Snipes mit mindestens 20 % geschätzter Rendite
+    $("demo-note").hidden = true;
   } catch {
-    $("ledger-empty-text").textContent =
-      "watchr isn't reachable right now. Start it with npm start, then reload this page to see your Flips.";
+    // Vorschau ohne Backend: Beispieldaten statt leerer Seite
+    if (!hits.length || !$("demo-note").hidden) {
+      hits = watchrDemoHits().filter(watchrEval.qualifies);
+      $("demo-note").hidden = false;
+    }
   }
   render();
 }

@@ -55,6 +55,7 @@ function hitNode(h, fresh) {
     el("span", "meta", [h.size && `Size ${h.size}`, h.brand, prefTags, fmtTime(h.detectedAt)].filter(Boolean).join(" · ")),
   );
   if (h.archiveScore >= 50) info.append(archBadge(h));
+  if (h.saleStatus === "sold") info.append(el("span", "sold-tag", "Sold · in Flips"));
   li.append(pics, info, pricing(h), link("btn small", "View"));
   const check = flipCheck(h);
   if (check) li.append(check);
@@ -113,7 +114,7 @@ function flipCheck(h) {
 
 // Auswertung aller Snipes in der Liste
 function renderAnalysis() {
-  const s = watchrEval.summarize(hits);
+  const s = watchrEval.summarize(hits.filter(visible));
   $("an-potential").textContent = fmtPrice(s.potential);
   $("an-invest").textContent = fmtPrice(s.invest);
   $("an-roi").textContent = s.avgRoi == null ? "–" : `${s.avgRoi}%`;
@@ -144,28 +145,38 @@ function renderAnalysis() {
     }),
   );
   $("analysis").hidden = s.evaluated === 0;
-  renderLeaderboard();
 }
 
-// Leaderboard: die besten Flips des Tages nach Netto-Gewinn
-function renderLeaderboard() {
-  const today = watchrEval.summarize(hits.filter((h) => isToday(h.detectedAt))).ranked.filter(({ e }) => e.profit > 0).slice(0, 10);
-  $("leaderboard").hidden = today.length === 0;
-  $("lb-list").replaceChildren(
-    ...today.map(({ h, e }, i) => {
-      const li = el("li", `lb-row r-${e.verdict}` + (i < 3 ? ` podium p${i + 1}` : ""));
-      li.append(el("span", "lb-rank", i < 3 ? ["🥇", "🥈", "🥉"][i] : String(i + 1)));
-      const name = el("div", "lb-name");
-      const a = Object.assign(el("a", null, h.title), { href: h.url, target: "_blank", rel: "noopener" });
-      a.addEventListener("click", () => markOpened(h));
-      name.append(a, el("span", "meta", `${fmtPrice(h.price, h.currency)} → ~${fmtPrice(e.sale, h.currency)} · ${fmtTime(h.detectedAt)}`));
-      li.append(name, el("span", "verdict v-" + e.verdict, e.label), el("span", "lb-profit", fmtDiff(e.profit, h.currency)), el("span", "lb-roi", `${e.roi}%`));
-      return li;
+// Rarity-Filter: der Nutzer wählt, welche Stufen er in Live Sniper sieht (im Browser gespeichert)
+const RARITY_KEY = "watchr.rarities";
+let shownRarities = new Set(watchrEval.LEVELS);
+try {
+  const saved = JSON.parse(localStorage.getItem(RARITY_KEY));
+  if (Array.isArray(saved)) shownRarities = new Set(saved.filter((v) => watchrEval.LEVELS.includes(v)));
+} catch {}
+const visible = (h) => shownRarities.has(watchrEval.evaluate(h)?.verdict);
+const shownHits = () => hits.filter(visible);
+
+function renderRarityFilter() {
+  $("rarity-filter").replaceChildren(
+    el("span", null, "Show"),
+    ...watchrEval.LEVELS.map((v) => {
+      const n = hits.filter((h) => watchrEval.evaluate(h)?.verdict === v).length;
+      const b = el("button", "verdict v-" + v, `${watchrEval.LABEL[v]} ${n}`);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(shownRarities.has(v)));
+      b.onclick = () => {
+        shownRarities.has(v) ? shownRarities.delete(v) : shownRarities.add(v);
+        try { localStorage.setItem(RARITY_KEY, JSON.stringify([...shownRarities])); } catch {}
+        renderHits();
+      };
+      return b;
     }),
   );
 }
 
 function renderStats() {
+  const hits = shownHits();
   $("st-today").textContent = hits.filter((h) => isToday(h.detectedAt)).length;
   $("st-prefs").textContent = searches.filter((s) => s.active).length;
   $("st-missed").textContent = hits.filter((h) => !h.openedAt).length;
@@ -173,11 +184,13 @@ function renderStats() {
 }
 
 function renderHits() {
-  $("hits").replaceChildren(...hits.map((h) => hitNode(h, false)));
-  $("hits-empty").hidden = hits.length > 0;
-  $("hit-count").textContent = hits.length ? `(${hits.length})` : "";
+  const shown = shownHits();
+  $("hits").replaceChildren(...shown.map((h) => hitNode(h, false)));
+  $("hits-empty").hidden = shown.length > 0;
+  $("hit-count").textContent = shown.length ? `(${shown.length})` : "";
   renderStats();
   renderAnalysis();
+  renderRarityFilter();
 }
 
 function addHit(h) {
@@ -185,12 +198,14 @@ function addHit(h) {
   if (hits.some((x) => x.id === h.id)) return;
   hits.unshift(h);
   hits = hits.slice(0, 100);
+  if (!visible(h)) return; // Rarity abgewählt: merken, aber nicht zeigen und nicht melden
   $("hits").prepend(hitNode(h, true));
   while ($("hits").children.length > 100) $("hits").lastElementChild.remove();
   $("hits-empty").hidden = true;
-  $("hit-count").textContent = `(${hits.length})`;
+  $("hit-count").textContent = `(${shownHits().length})`;
   renderStats();
   renderAnalysis();
+  renderRarityFilter();
   notify(h);
 }
 
@@ -311,6 +326,14 @@ function connect() {
       renderHits();
       renderSearches();
     } else if (msg.type === "hit") addHit(msg.hit);
+    else if (msg.type === "hitSold") {
+      // Bot hat gemeldet: dieser Snipe ist verkauft und steht jetzt unter Flips
+      const i = hits.findIndex((x) => x.id === msg.hit.id);
+      if (i >= 0) {
+        hits[i] = { ...hits[i], ...msg.hit };
+        renderHits();
+      }
+    }
     else if (msg.type === "searches") {
       searches = msg.searches;
       renderSearches();
@@ -327,21 +350,7 @@ function connect() {
 let demo = false;
 function showDemo() {
   demo = true;
-  const ago = (m) => new Date(Date.now() - m * 60000).toISOString();
-  const ex = (id, title, brand, size, price, est, low, high, n, min, arch, designer) => ({
-    id, title, brand, size, price, currency: "EUR", resaleEstimate: est, resaleLow: low, resaleHigh: high, resaleSamples: n,
-    detectedAt: ago(min), url: "https://www.vinted.de/catalog?search_text=" + encodeURIComponent(title), photoUrls: [], archiveScore: arch, designer, openedAt: null,
-  });
-  hits = [
-    ex(-1, "Raf Simons AW02 bomber jacket", "Raf Simons", "M", 340, 900, 700, 1150, 14, 2, 95, "Raf Simons"),
-    ex(-2, "Helmut Lang 1999 painter jeans", "Helmut Lang", "W31", 120, 260, 210, 320, 26, 9, 85, "Helmut Lang"),
-    ex(-3, "Ralph Lauren polo slim fit", "Ralph Lauren", "M", 12, 30, 25, 35, 48, 15, null, null),
-    ex(-4, "Maison Margiela Tabi boots", "Maison Margiela", "41", 210, 380, 290, 470, 22, 31, 65, "Maison Margiela"),
-    ex(-5, "Nike Dunk Low Panda", "Nike", "43", 65, 85, 75, 95, 60, 44, null, null),
-    ex(-6, "Stone Island crewneck knit", "Stone Island", "L", 110, 140, 95, 190, 7, 58, null, null),
-    ex(-7, "Carhartt Detroit jacket", "Carhartt", "L", 60, 110, 90, 135, 34, 75, null, null),
-    ex(-8, "Prada Re-Edition 2005 bag", "Prada", null, 380, 400, 340, 480, 18, 96, 40, "Prada"),
-  ].filter(watchrEval.qualifies);
+  hits = watchrDemoHits().filter((h) => watchrEval.qualifies(h) && isToday(h.detectedAt));
   renderHits();
   $("demo-note").hidden = false;
 }

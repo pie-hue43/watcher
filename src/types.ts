@@ -47,6 +47,10 @@ export interface Hit extends HitInput {
   detectedAt: string;
   /** Wann der Treffer im Monitor geöffnet wurde (null = verpasst). */
   openedAt: string | null;
+  /** Verkaufsstatus auf Vinted: active = noch online, sold = verkauft, gone = gelöscht */
+  saleStatus: "active" | "sold" | "gone";
+  /** Wann watchr den Verkauf bemerkt hat */
+  soldAt: string | null;
 }
 
 /** Ein Artikel im Wardrobe Tracker. */
@@ -71,4 +75,5 @@ export type ServerMessage =
   | { type: "hello"; hits: Hit[]; searches: Search[] }
   | { type: "hit"; hit: Hit }
   | { type: "searches"; searches: Search[] }
-  | { type: "sold"; item: Tracked };
+  | { type: "sold"; item: Tracked }
+  | { type: "hitSold"; hit: Hit };

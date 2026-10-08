@@ -7,7 +7,7 @@ import { config } from "./config.ts";
 import { openDb, type Db } from "./db.ts";
 import { makeAi } from "./ai.ts";
 import { PriceEstimator } from "./pricing.ts";
-import { ToolError, startTracker, toolRoutes, type ToolDeps } from "./tools.ts";
+import { ToolError, startSaleChecker, startTracker, toolRoutes, type ToolDeps } from "./tools.ts";
 import { MockSource, VintedSource } from "./vinted.ts";
 import { CONDITIONS, KINDS, type Condition, type HitInput, type SearchKind, type ServerMessage } from "./types.ts";
 
@@ -262,7 +262,10 @@ export function startServer() {
   const source = config.source === "mock" ? new MockSource() : new VintedSource(config.vintedDomain);
   const estimator = new PriceEstimator((q) => source.comparables(q), join(dirname(config.dbPath), "price-cache.json"));
   const app = createServer(db, undefined, { source, estimator, ai: makeAi(), vintedDomain: config.vintedDomain });
-  if (app.deps) startTracker(app.deps);
+  if (app.deps) {
+    startTracker(app.deps);
+    startSaleChecker(app.deps);
+  }
   app.server.listen(config.port, () => console.log(`[backend] Dashboard: http://localhost:${config.port}`));
   return app;
 }

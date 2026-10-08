@@ -4,7 +4,7 @@ import type { AddressInfo } from "node:net";
 import { openDb } from "../src/db.ts";
 import { createServer } from "../src/server.ts";
 import { PriceEstimator, guessBrand } from "../src/pricing.ts";
-import { ruleFilters, startTracker } from "../src/tools.ts";
+import { ruleFilters, startSaleChecker, startTracker } from "../src/tools.ts";
 import { MockSource } from "../src/vinted.ts";
 
 async function setup() {
@@ -114,5 +114,22 @@ test("Wardrobe Tracker meldet verkaufte Artikel", async () => {
   assert.equal(list.find((t) => t.vintedId === "1001")!.status, "active");
   assert.equal(events.filter((e) => e.type === "sold").length, 1);
   assert.equal((await call("/tracked")).body.length, 2);
+  await app.close();
+});
+
+test("Verkaufsprüfung: verkaufte Snipes landen unter Flips", async () => {
+  const { app, db } = await setup(); // MockSource: Listing 3 ist verkauft
+  const events: any[] = [];
+  const stop = startSaleChecker({ ...app.deps!, broadcast: (m) => events.push(m) }, 60_000, 10, () => {}, 0);
+  await new Promise((r) => setTimeout(r, 300));
+  stop();
+  const hits = db.listHits(10);
+  assert.equal(hits.find((h) => h.vintedId === "3")!.saleStatus, "sold");
+  assert.ok(hits.find((h) => h.vintedId === "3")!.soldAt);
+  assert.equal(hits.find((h) => h.vintedId === "1")!.saleStatus, "active");
+  assert.equal(events.filter((e) => e.type === "hitSold").length, 1);
+  // gerade geprüft: kommt erst nach 30 Minuten wieder dran, verkaufte gar nicht mehr
+  assert.equal(db.dueSaleChecks(10).length, 0);
+  assert.equal(db.setSaleStatus(hits.find((h) => h.vintedId === "3")!.id, "sold"), null);
   await app.close();
 });

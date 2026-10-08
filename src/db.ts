@@ -54,7 +54,8 @@ export function openDb(path: string) {
   const cols = db.prepare("PRAGMA table_info(hits)").all() as { name: string }[];
   if (!cols.some((c) => c.name === "photo_urls")) db.exec("ALTER TABLE hits ADD COLUMN photo_urls TEXT");
   if (!cols.some((c) => c.name === "opened_at")) db.exec("ALTER TABLE hits ADD COLUMN opened_at TEXT");
-  for (const [col, type] of [["resale_estimate", "REAL"], ["resale_low", "REAL"], ["resale_high", "REAL"], ["resale_samples", "INTEGER"], ["archive_score", "INTEGER"], ["designer", "TEXT"]])
+  for (const [col, type] of [["resale_estimate", "REAL"], ["resale_low", "REAL"], ["resale_high", "REAL"], ["resale_samples", "INTEGER"], ["archive_score", "INTEGER"], ["designer", "TEXT"],
+    ["sale_status", "TEXT NOT NULL DEFAULT 'active'"], ["sale_checked_at", "TEXT"], ["sold_at", "TEXT"]])
     if (!cols.some((c) => c.name === col)) db.exec(`ALTER TABLE hits ADD COLUMN ${col} ${type}`);
 
   const toSearch = (r: any): Search => ({
@@ -90,6 +91,8 @@ export function openDb(path: string) {
     resaleSamples: r.resale_samples ?? null,
     archiveScore: r.archive_score ?? null,
     designer: r.designer ?? null,
+    saleStatus: r.sale_status === "sold" || r.sale_status === "gone" ? r.sale_status : "active",
+    soldAt: r.sold_at ?? null,
   });
 
   const toTracked = (r: any): Tracked => ({
@@ -154,6 +157,29 @@ export function openDb(path: string) {
       db.prepare("UPDATE hits SET opened_at = COALESCE(opened_at, ?) WHERE id = ?").run(new Date().toISOString(), id);
       const r = db.prepare(`${hitSelect} WHERE h.id = ?`).get(id);
       return r ? toHit(r) : null;
+    },
+    /** Treffer, deren Verkaufsstatus wieder geprüft werden sollte: noch online, höchstens maxAgeDays alt, am längsten nicht geprüft. */
+    dueSaleChecks(limit: number, maxAgeDays = 14, minGapMin = 30): Hit[] {
+      const since = new Date(Date.now() - maxAgeDays * 864e5).toISOString();
+      const before = new Date(Date.now() - minGapMin * 60_000).toISOString();
+      return db
+        .prepare(
+          `${hitSelect} WHERE h.sale_status = 'active' AND h.resale_estimate IS NOT NULL AND h.detected_at >= ?
+             AND (h.sale_checked_at IS NULL OR h.sale_checked_at <= ?) ORDER BY h.sale_checked_at IS NOT NULL, h.sale_checked_at, h.id DESC LIMIT ?`,
+        )
+        .all(since, before, limit)
+        .map(toHit);
+    },
+    /** Speichert das Ergebnis einer Verkaufsprüfung. Gibt den Treffer zurück, wenn er gerade als verkauft erkannt wurde. */
+    setSaleStatus(id: number, status: Hit["saleStatus"]): Hit | null {
+      const now = new Date().toISOString();
+      const prev = db.prepare("SELECT sale_status FROM hits WHERE id = ?").get(id) as { sale_status: string } | undefined;
+      if (!prev) return null;
+      db.prepare("UPDATE hits SET sale_status = ?, sale_checked_at = ?, sold_at = CASE WHEN ? = 'sold' AND sold_at IS NULL THEN ? ELSE sold_at END WHERE id = ?").run(
+        status, now, status, now, id,
+      );
+      if (status !== "sold" || prev.sale_status === "sold") return null;
+      return toHit(db.prepare(`${hitSelect} WHERE h.id = ?`).get(id));
     },
     listHits(limit = 50): Hit[] {
       return db.prepare(`${hitSelect} ORDER BY h.id DESC LIMIT ?`).all(limit).map(toHit);

@@ -44,6 +44,13 @@
     .status { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
     .status.missed { background: #fff1ef; color: var(--danger); border: 1px solid #f9d0c9; }
     .status.opened { background: var(--green-soft); color: var(--green-deep); border: 1px solid #c7f0d4; }
+    @media (min-width: 761px) { .stats { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+    .status.sold { background: var(--text); color: var(--green); border: 1px solid var(--text); }
+    .sold-rank { padding-block: 8px 12px; display: flex; flex-direction: column; gap: 14px; }
+    .sold-rank .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .sold-rank h2 { font-size: clamp(24px, 3vw, 32px); }
+    .sold-rank .head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .demo-note { margin: 0 0 16px; padding: 8px 12px; border-radius: 10px; background: var(--green-soft); border: 1px solid #c7f0d4; font-size: 13px; }
     .note { color: var(--muted); font-size: 14px; border-left: 3px solid var(--green); padding-left: 12px; margin: 32px 0 64px; }
     .empty-state { text-align: center; padding: 48px 16px; }
     .empty-state p { color: var(--muted); max-width: 36em; margin: 8px auto 20px; }
@@ -63,10 +70,19 @@
       <div class="page-head">
         <span class="eyebrow">Your private ledger · updates live</span>
         <h1>Every listing watchr found.<span>And the ones you missed.</span></h1>
-        <p>Flips lists every match from your Live Sniper with at least 20% estimated return, newest first. Anything you didn't open is marked as missed, so you can see which preferences bring the best deals and when you need to be faster.</p>
+        <p>Flips lists every match from your Live Sniper with at least 20% estimated return, newest first. watchr keeps checking your snipes and reports when one sells, so the ranking below shows which flips actually went. Anything you didn't open is marked as missed.</p>
       </div>
+      <p id="demo-note" class="demo-note" hidden>Example data: watchr isn't running here. Start it with npm start to see your real Flips.</p>
+      <section class="sold-rank" id="sold-rank" aria-labelledby="sold-title" hidden>
+        <div class="head">
+          <h2 id="sold-title">Sold flips ranking</h2>
+          <p><b id="sold-sum">€0</b> est. net profit across <b id="sold-n">0</b> sold flips</p>
+        </div>
+        <ol class="lb-list" id="sold-list"></ol>
+      </section>
       <div class="stats" aria-label="Ledger totals">
         <div class="stat"><b id="m-total">0</b><span>Listings found</span></div>
+        <div class="stat"><b id="m-sold">0</b><span>Sold on Vinted</span></div>
         <div class="stat"><b id="m-missed">0</b><span>Missed · <span id="m-opened">0</span> opened</span></div>
         <div class="stat"><b id="m-value">€0</b><span>Asking prices missed</span></div>
         <div class="stat"><b id="m-margin">€0</b><span>Est. resale margin missed</span></div>
@@ -78,7 +94,7 @@
         <p id="ledger-empty-text">Once watchr finds listings for your Individual Preferences, they appear here. Start with your first preferences in Live Sniper.</p>
         <a class="btn" href="monitor.html">Open Live Sniper</a>
       </div>
-      <p class="note">Prices are the asking prices at the moment watchr found the listing. watchr doesn't know whether or for how much an item sold. The resale estimate is the median asking price of comparable listings on Vinted (same brand and type of item), so the difference and margin are estimates, not profit. "Opened" means you clicked the listing in Live Sniper.</p>
+      <p class="note">Prices are the asking prices at the moment watchr found the listing. watchr checks your snipes from the last 14 days every few minutes and marks them "Sold" once Vinted shows them as sold or reserved. It can't see the final price, so the ranking uses the asking price and the estimated net profit after buyer protection and shipping. The resale estimate is the median asking price of comparable listings on Vinted (same brand and type of item), so the difference and margin are estimates, not profit. "Opened" means you clicked the listing in Live Sniper.</p>
     </div>
   </main>
   <footer class="site-footer">
@@ -102,6 +118,7 @@
   </footer>
   <script src="tags.js"></script>
   <script src="flip-eval.js"></script>
+  <script src="demo-hits.js"></script>
   <script src="missed.js"></script>
 </body>
 </html>
