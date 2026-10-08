@@ -2,6 +2,7 @@ import { pathToFileURL } from "node:url";
 import { config } from "./config.ts";
 import { join, dirname } from "node:path";
 import { DESIGNERS, archiveScore } from "./designers.ts";
+import { splitCategory } from "./tags.ts";
 import { PriceEstimator, type PriceRef } from "./pricing.ts";
 import { MockSource, RateLimitError, VintedSource, matches, type Listing, type Source } from "./vinted.ts";
 import type { HitInput, Search } from "./types.ts";
@@ -25,8 +26,8 @@ export class Watcher {
   private stopped = false;
   /** Pause zwischen zwei Anfragen an Vinted (in Tests 0) */
   gapMs = 3000;
-  /** Position in der Designerliste je #archive-Suche */
-  private rotation = new Map<number, number>();
+  /** Position in der Designer- bzw. Kategorieliste je Suche */
+  private rotation = new Map<string, number>();
   private estimator: PriceEstimator | null;
 
   constructor(
@@ -41,14 +42,22 @@ export class Watcher {
   }
 
   /** Normale Suchen laufen einmal, #archive-Suchen reihum über mehrere Designer. */
+  /**
+   * Kategorie-Hashtags (#accessories, #tops) gehen nicht als Text an Vinted, sondern werden beim Abgleich geprüft.
+   * Bleibt sonst kein Suchwort übrig, fragt der Watcher die Begriffe der Kategorie reihum ab.
+   */
   private queriesFor(s: Search): (Search & { keywords: string })[] {
-    if (s.kind !== "archive") return [{ ...s, keywords: s.query }];
-    const start = this.rotation.get(s.id) ?? 0;
-    this.rotation.set(s.id, (start + DESIGNERS_PER_RUN) % DESIGNERS.length);
-    return Array.from({ length: DESIGNERS_PER_RUN }, (_, i) => {
-      const d = DESIGNERS[(start + i) % DESIGNERS.length];
-      return { ...s, query: `${d.name} ${s.query}`.trim(), keywords: s.query };
-    });
+    const { rest, category } = splitCategory(s.query);
+    const rotate = <T,>(key: string, list: T[], n: number) => {
+      const start = this.rotation.get(key) ?? 0;
+      this.rotation.set(key, (start + n) % list.length);
+      return Array.from({ length: Math.min(n, list.length) }, (_, i) => list[(start + i) % list.length]);
+    };
+    if (s.kind === "archive")
+      return rotate(`a${s.id}`, DESIGNERS, DESIGNERS_PER_RUN).map((d) => ({ ...s, query: `${d.name} ${rest}`.trim(), keywords: s.query }));
+    if (category && !rest)
+      return rotate(`c${s.id}`, category.search, DESIGNERS_PER_RUN).map((term) => ({ ...s, query: term, keywords: s.query }));
+    return [{ ...s, query: category ? rest : s.query, keywords: s.query }];
   }
 
   private async resale(l: Listing): Promise<PriceRef | null> {

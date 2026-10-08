@@ -36,6 +36,39 @@ const SYNONYMS: string[][] = [
   ["vintage", "retro"],
 ];
 
+/**
+ * Sammel-Kategorien: Ein Hashtag wie #accessories passt, wenn irgendeiner der Begriffe passt.
+ * `search` sind die Suchwörter, die der Watcher reihum bei Vinted abfragt, wenn sonst nichts angegeben ist.
+ */
+export const CATEGORIES: Record<string, { aliases: string[]; match: string[]; search: string[] }> = {
+  accessories: {
+    aliases: ["accessories", "accessory", "accessoires", "accessoire", "zubehor"],
+    match: [
+      "belt", "bag", "wallet", "cap", "scarf", "ring", "necklace", "kette", "bracelet", "armband", "earring", "earrings",
+      "ohrring", "ohrringe", "schmuck", "jewelry", "jewellery", "pendant", "anhanger", "chain", "sunglasses", "sonnenbrille",
+      "watch", "uhr", "gloves", "handschuhe", "krawatte", "necktie", "keychain", "schlusselanhanger", "cardholder", "kartenetui",
+    ],
+    search: ["gürtel", "kette", "ring", "armband", "ohrringe", "tasche", "sonnenbrille", "portemonnaie", "cap", "schal", "uhr"],
+  },
+  tops: {
+    aliases: ["tops", "top", "oberteil", "oberteile"],
+    match: ["tshirt", "shirt", "sweater", "hoodie", "polo", "longsleeve", "tank", "top", "bluse", "blouse"],
+    search: ["t-shirt", "hoodie", "pullover", "hemd", "polo"],
+  },
+};
+
+const categoryOf = (word: string) => {
+  const w = norm(word);
+  return Object.values(CATEGORIES).find((c) => c.aliases.map(norm).includes(w)) ?? null;
+};
+
+/** Trennt Kategorie-Hashtags von den übrigen Stichwörtern (für die Vinted-Suche). */
+export function splitCategory(query: string): { rest: string; category: (typeof CATEGORIES)[string] | null } {
+  const words = query.split(/\s+/).filter(Boolean);
+  const cat = words.map(categoryOf).find(Boolean) ?? null;
+  return { rest: words.filter((w) => !categoryOf(w)).join(" "), category: cat };
+}
+
 /** Kleinbuchstaben, ohne Akzente/Umlaute-Punkte, nur Buchstaben und Ziffern. */
 export const norm = (s: string) =>
   s
@@ -60,6 +93,8 @@ function variants(word: string): string[] {
 
 /** Passt ein einzelnes Stichwort zum Text? Kurze Wörter müssen am Wortanfang stehen. */
 export function keywordMatches(word: string, text: string): boolean {
+  const cat = categoryOf(word);
+  if (cat) return cat.match.some((m) => keywordMatches(m, text));
   const t = ` ${norm(text)} `;
   const compact = t.replace(/ /g, "");
   return variants(word).some((v) => {

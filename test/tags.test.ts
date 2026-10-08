@@ -31,3 +31,23 @@ test("Mindestzustand wird geprüft, wenn Vinted ihn liefert", () => {
   assert.equal(matches(vg, l("Prada bag", null, { condition: "new" })), true);
   assert.equal(matches(vg, l("Prada bag")), true, "unbekannter Zustand: Vinted-Filter gilt");
 });
+
+test("#accessories passt zu Gürteln, Schmuck, Taschen", () => {
+  for (const t of ["Gucci Gürtel GG", "Chrome Hearts Ring Silber", "Vivienne Westwood Orb Kette", "Prada Re-Edition Tasche", "Ray-Ban Sonnenbrille"])
+    assert.equal(keywordMatches("accessories", t), true, t);
+  assert.equal(keywordMatches("accessories", "Raf Simons Hoodie"), false);
+  assert.equal(matches({ ...s, query: "accessories gucci" }, l("Gucci Gürtel GG")), true);
+  assert.equal(matches({ ...s, query: "tops" }, l("Ralph Lauren Poloshirt")), true);
+});
+
+test("Watcher fragt bei #accessories die Begriffe reihum ab", async () => {
+  const { Watcher } = await import("../src/watcher.ts");
+  const queries: string[] = [];
+  const w = new Watcher({ async search(x) { queries.push(x.query); return []; } }, "http://x", "t", 60_000, () => {});
+  w.gapMs = 0;
+  (w as any).getSearches = async () => [{ ...s, query: "accessories" }, { ...s, id: 2, query: "gucci accessories" }];
+  await w.runOnce();
+  await w.runOnce();
+  assert.deepEqual(queries.filter((q) => q === "gucci"), ["gucci", "gucci"], "mit Marke: Marke suchen, Kategorie beim Abgleich prüfen");
+  assert.equal(new Set(queries.filter((q) => q !== "gucci")).size, 6, "ohne Marke: reihum gürtel, kette, ring …");
+});

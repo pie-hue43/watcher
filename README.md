@@ -41,6 +41,8 @@ Im Dashboard und im Live Listings Monitor der Landingpage gibt man Wünsche als 
 
 Der Snipebot gleicht jeden Hashtag selbst mit dem Artikel ab (`src/tags.ts`), denn Vinted liefert bei einer Suche auch lose verwandte Listings. Jedes Stichwort muss in Titel, Marke oder Größe vorkommen, auch in zusammengesetzten Wörtern („Poloshirt“). Deutsch und Englisch zählen gleich (#jacket findet „Jacke“, #black findet „schwarz“), Designer-Kürzel ebenso (#cdg findet „Comme des Garçons“). Liefert Vinted den Zustand mit, wird auch der Mindestzustand geprüft.
 
+Kategorie-Hashtags decken eine ganze Gruppe ab: `#accessories` passt zu Gürteln, Schmuck, Taschen, Sonnenbrillen, Caps usw., `#tops` zu Shirts, Polos, Hoodies und Pullovern. Steht sonst kein Suchwort dabei, fragt der Watcher die Begriffe der Kategorie reihum bei Vinted ab (drei pro Durchlauf).
+
 Die Landingpage übergibt die Hashtags per `/?tags=…` an das Dashboard. Die Oberfläche ist auf Englisch.
 
 ## Resellpreis
