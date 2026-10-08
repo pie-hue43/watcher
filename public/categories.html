@@ -34,6 +34,15 @@
     .cats { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
     .cat { position: relative; display: block; width: 104px; height: 104px; border-radius: 50%; border: 2px solid var(--text);
       background: radial-gradient(circle at 50% 40%, #fff, var(--green-soft)); text-decoration: none; color: #000; transition: transform .2s, box-shadow .2s; flex: none; }
+    .cat[aria-current="true"] { outline: 4px solid var(--green); outline-offset: 4px; }
+    .cat-results { padding-block: 0 64px; display: flex; flex-direction: column; gap: 14px; }
+    .cat-results .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .cat-results h2 { font-size: clamp(24px, 3vw, 32px); }
+    .cat-results .head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .cat-results .empty { text-align: center; padding: 32px 16px; }
+    .cat-results .empty p { color: var(--muted); max-width: 34em; margin: 6px auto 16px; }
+    .demo-note { margin: 0; padding: 8px 12px; border-radius: 10px; background: var(--green-soft); border: 1px solid #c7f0d4; font-size: 13px; }
+    .lb-row .pic { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--surface); }
     .cat-archive { background: radial-gradient(circle at 50% 40%, #fff, #c7f0d4); }
     .cat:hover, .cat:focus-visible { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(21,128,61,.18); }
     .cat svg { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 46px; height: 46px; stroke-width: 3; }
@@ -81,14 +90,31 @@
     <div class="wrap">
       <div class="page-head">
         <span class="eyebrow">Categories</span>
-        <h1>Snipe categories.<span>Start with one click.</span></h1>
-        <p>Pick a category to open Live Sniper with it, then refine it with your own hashtags.</p>
+        <h1>Best open listings.<span>Sorted by category.</span></h1>
+        <p>Pick a category to see the best listings watchr found in it that are still for sale, ranked by estimated net profit. Sold listings drop out automatically.</p>
       </div>
     </div>
     <section class="cats-band" id="categories" aria-label="Snipe categories">
       <div class="wrap">
         
-        <div class="cats"><a class="cat cat-archive" href="monitor.html?tags=%23archive"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M27 15a5 5 0 1 1 5 5v4"/><path d="M32 24 7 42h50z"/><path d="M45 42v5l4 5 4-5v-5"/></svg><span>Archive</span></a><a class="cat" href="monitor.html?tags=%23sneakers"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 43V26c0-1.7 1.3-3 3-3h7c2 0 3 1.5 3 3.5 0 3 3 4.5 6 3.5l6-3c3 4.5 8.5 6.5 14.5 7.5C53 36.5 57 39 58 43z"/><path d="M4 43h56v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M45 43c0-3.5 3.5-6 9-5.5"/><path d="M26 31l3 4M31 28.5l3 4"/><path d="M12 38c8 1.5 17 0 25-5"/></svg><span>Sneakers</span></a><a class="cat" href="monitor.html?tags=%23jacket"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 9 11 14 5 49l8 2 4-20v25h30V31l4 20 8-2-6-35-11-5-10 8z"/><path d="M22 9l4 10 6-2 6 2 4-10"/><path d="M32 17v39"/><path d="M21 42h6M37 42h6"/></svg><span>Jackets</span></a><a class="cat" href="monitor.html?tags=%23pants"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Pants</span></a><a class="cat" href="monitor.html?tags=%23tops"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a><a class="cat" href="monitor.html?tags=%23accessories"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M5 20h54v10H5z"/><rect x="20" y="16" width="13" height="18" rx="2"/><path d="M26 25h11"/><circle cx="44" cy="25" r="1"/><circle cx="51" cy="25" r="1"/><circle cx="22" cy="49" r="6"/><path d="M19 41.5l3-3 3 3z"/><path d="M38 40c0 8 4 13 9 13s9-5 9-13"/><circle cx="47" cy="53" r="2"/></svg><span>Accessories</span></a><a class="cat" href="monitor.html"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>All</span></a></div>
+        <div class="cats"><a class="cat cat-archive" href="?cat=archive" data-cat="archive"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M27 15a5 5 0 1 1 5 5v4"/><path d="M32 24 7 42h50z"/><path d="M45 42v5l4 5 4-5v-5"/></svg><span>Archive</span></a><a class="cat" href="?cat=sneakers" data-cat="sneakers"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 43V26c0-1.7 1.3-3 3-3h7c2 0 3 1.5 3 3.5 0 3 3 4.5 6 3.5l6-3c3 4.5 8.5 6.5 14.5 7.5C53 36.5 57 39 58 43z"/><path d="M4 43h56v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M45 43c0-3.5 3.5-6 9-5.5"/><path d="M26 31l3 4M31 28.5l3 4"/><path d="M12 38c8 1.5 17 0 25-5"/></svg><span>Sneakers</span></a><a class="cat" href="?cat=jackets" data-cat="jackets"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 9 11 14 5 49l8 2 4-20v25h30V31l4 20 8-2-6-35-11-5-10 8z"/><path d="M22 9l4 10 6-2 6 2 4-10"/><path d="M32 17v39"/><path d="M21 42h6M37 42h6"/></svg><span>Jackets</span></a><a class="cat" href="?cat=pants" data-cat="pants"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Pants</span></a><a class="cat" href="?cat=tops" data-cat="tops"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a><a class="cat" href="?cat=accessories" data-cat="accessories"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M5 20h54v10H5z"/><rect x="20" y="16" width="13" height="18" rx="2"/><path d="M26 25h11"/><circle cx="44" cy="25" r="1"/><circle cx="51" cy="25" r="1"/><circle cx="22" cy="49" r="6"/><path d="M19 41.5l3-3 3 3z"/><path d="M38 40c0 8 4 13 9 13s9-5 9-13"/><circle cx="47" cy="53" r="2"/></svg><span>Accessories</span></a><a class="cat" href="?cat=all" data-cat="all"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>All</span></a></div>
+      </div>
+    </section>
+
+    <section class="cat-results" aria-labelledby="cat-title">
+      <div class="wrap" style="display:flex;flex-direction:column;gap:14px">
+        <div class="head">
+          <div><span class="eyebrow">Best open listings</span><h2 id="cat-title">All categories</h2></div>
+          <p id="cat-sub"></p>
+        </div>
+        <p id="demo-note" class="demo-note" hidden>Example data: watchr isn't running here. Start it with npm start to see real listings.</p>
+        <ol class="lb-list" id="cat-list"></ol>
+        <div class="card empty" id="cat-empty" hidden>
+          <h3>Nothing open in this category yet</h3>
+          <p>watchr fills this list with everything it finds for your preferences. Start sniping this category and the best open listings show up here.</p>
+          <a class="btn" id="cat-snipe" href="monitor.html">Snipe this category</a>
+        </div>
+        <a class="btn ghost" id="cat-more" href="monitor.html" style="align-self:flex-start">Snipe this category live</a>
       </div>
     </section>
 
@@ -144,5 +170,8 @@
       <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
     </div>
   </footer>
+  <script src="flip-eval.js"></script>
+  <script src="demo-hits.js"></script>
+  <script src="categories.js"></script>
 </body>
 </html>
