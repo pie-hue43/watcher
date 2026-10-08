@@ -1,0 +1,25 @@
+watchr lokal starten
+====================
+
+1. Node.js installieren (einmalig): https://nodejs.org, die "LTS"-Version, Version 22 oder neuer.
+2. Diesen Ordner entpacken, z. B. auf den Desktop. Nicht direkt aus der ZIP heraus starten.
+3. Doppelklick auf:
+   - Windows: watchr-starten.bat
+   - Mac:     watchr-starten.command (beim ersten Mal Rechtsklick > Öffnen)
+   Beim ersten Start installiert sich watchr selbst (1-2 Minuten, braucht Internet).
+4. Die Website öffnet sich unter http://localhost:3000. Das schwarze Fenster offen lassen,
+   solange watchr laufen soll. Schließen = watchr aus.
+
+Testen, ob Vinted antwortet
+---------------------------
+Auf "Live Sniper" eine breite Präferenz anlegen, z. B. #ralph #lauren #polo.
+Im schwarzen Fenster sollte nach spätestens einer Minute stehen:
+  [watcher] "ralph lauren polo": 30 bestehende Listings gemerkt, ab jetzt wird nur Neues gemeldet
+Dann ist Vinted verbunden. Gemeldet werden ab dann nur neue Angebote.
+
+Steht dort "HTTP 403" oder "Kein Session-Cookie", blockt Vinted gerade. Mehr dazu in
+docs/mit-vinted-verbinden.md.
+
+Optional in der Datei .env (mit dem Editor öffnen):
+- VINTED_DOMAIN=www.vinted.at usw. für andere Länder
+- ANTHROPIC_API_KEY=... für die KI-Funktionen der AI Tools
