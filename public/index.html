@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,37 +11,28 @@
   <header>
     <h1><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#f14187"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>watch<span class="hl">r</span></span> <span class="muted">Dashboard</span></h1>
     <div class="header-actions">
-      <button id="notify-btn" class="ghost" type="button">🔔 Benachrichtigungen</button>
-      <span id="conn" class="conn off">Verbinde…</span>
+      <button id="notify-btn" class="ghost" type="button">🔔 Notifications</button>
+      <span id="conn" class="conn off">Connecting…</span>
     </div>
   </header>
 
   <main>
     <section class="panel">
-      <h2>Neue Treffer <span id="hit-count" class="muted"></span></h2>
+      <h2>Live Listings Monitor <span id="hit-count" class="muted"></span></h2>
       <ul id="hits" class="hits"></ul>
-      <p id="hits-empty" class="empty">Noch keine Treffer. Sobald der Watcher ein neues Listing findet, erscheint es hier sofort.</p>
+      <p id="hits-empty" class="empty">No matches yet. As soon as watchr finds a new listing for your preferences, it shows up here.</p>
     </section>
 
     <section class="panel">
-      <h2>Meine Suchaufträge</h2>
+      <h2>Individual Preferences</h2>
       <form id="search-form" class="search-form">
-        <input id="f-query" name="query" placeholder="Suchbegriff, z. B. Nike Dunk" required maxlength="200" />
-        <input id="f-min" name="minPrice" type="number" min="1" step="1" placeholder="Min. €" aria-label="Mindestpreis" />
-        <input id="f-max" name="maxPrice" type="number" min="1" step="1" placeholder="Max. €" aria-label="Maximalpreis" />
-        <input id="f-size" name="size" placeholder="Größe" maxlength="40" aria-label="Größe" />
-        <select id="f-cond" name="condition" aria-label="Zustand">
-          <option value="">Zustand egal</option>
-          <option value="new_tags">Neu mit Etikett</option>
-          <option value="new">Neu</option>
-          <option value="very_good">Sehr gut oder besser</option>
-          <option value="good">Gut oder besser</option>
-        </select>
-        <button type="submit">+ Hinzufügen</button>
+        <input id="f-tags" name="tags" placeholder="#nike #dunk #size43 #max80" required maxlength="300" autocomplete="off" spellcheck="false" aria-label="Individual Preferences" />
+        <button type="submit">+ Add</button>
       </form>
+      <p class="hint">Words become keywords. Add #size43 or #sizeM, #min20, #max80 and #newtags, #new, #verygood or #good.</p>
       <p id="form-error" class="error" hidden></p>
       <ul id="searches" class="searches"></ul>
-      <p id="searches-empty" class="empty">Noch keine Suchaufträge.</p>
+      <p id="searches-empty" class="empty">No preferences yet. Add your first hashtags above.</p>
     </section>
   </main>
 
@@ -53,10 +44,11 @@
         <div class="meta"></div>
       </div>
       <div class="price"></div>
-      <a class="cta" target="_blank" rel="noopener">Jetzt ansehen</a>
+      <a class="cta" target="_blank" rel="noopener">View now</a>
     </li>
   </template>
 
+  <script src="tags.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -6,10 +6,8 @@ const WS_URL = BACKEND.replace(/^http/, "ws") + "/ws";
 
 const $ = (id) => document.getElementById(id);
 const fmtPrice = (p, cur) =>
-  new Intl.NumberFormat("de-DE", { style: "currency", currency: cur || "EUR", maximumFractionDigits: p % 1 ? 2 : 0 }).format(p);
-const fmtTime = (iso) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-
-const CONDITION_LABELS = { new_tags: "Neu mit Etikett", new: "Neu", very_good: "ab sehr gut", good: "ab gut" };
+  new Intl.NumberFormat("en-IE", { style: "currency", currency: cur || "EUR", maximumFractionDigits: p % 1 ? 2 : 0 }).format(p);
+const fmtTime = (iso) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
 let hits = [];
 let searches = [];
@@ -28,7 +26,7 @@ function hitNode(h, fresh) {
   const title = node.querySelector(".title");
   title.textContent = h.title;
   title.href = h.url;
-  const meta = [h.size && `Größe ${h.size}`, h.brand, h.searchQuery && `Suche: ${h.searchQuery}`, fmtTime(h.detectedAt)];
+  const meta = [h.size && `Size ${h.size}`, h.brand, h.searchQuery && `#${h.searchQuery.split(/\s+/).join(" #")}`, fmtTime(h.detectedAt)];
   node.querySelector(".meta").textContent = meta.filter(Boolean).join(" · ");
   node.querySelector(".price").textContent = fmtPrice(h.price, h.currency);
   node.querySelector(".cta").href = h.url;
@@ -59,28 +57,25 @@ function renderSearches() {
       li.className = "search" + (s.active ? "" : " paused");
       const q = document.createElement("span");
       q.className = "q";
-      q.textContent = s.query;
-      const f = document.createElement("span");
-      f.className = "f";
-      const priceText =
-        s.minPrice != null && s.maxPrice != null ? `${fmtPrice(s.minPrice, "EUR")}–${fmtPrice(s.maxPrice, "EUR")}`
-        : s.maxPrice != null ? `Max. ${fmtPrice(s.maxPrice, "EUR")}`
-        : s.minPrice != null ? `ab ${fmtPrice(s.minPrice, "EUR")}` : null;
-      f.textContent = [priceText, s.size && `Gr. ${s.size}`, s.condition && CONDITION_LABELS[s.condition]]
-        .filter(Boolean)
-        .join(" · ");
+      q.textContent = watchrTags.toTags(s).join(" ");
       const toggle = document.createElement("button");
       toggle.className = "ghost small";
-      toggle.textContent = s.active ? "Pause" : "Start";
+      toggle.textContent = s.active ? "Pause" : "Resume";
       toggle.onclick = () => api(`/api/searches/${s.id}`, "PATCH", { active: !s.active });
       const del = document.createElement("button");
       del.className = "ghost small";
       del.textContent = "✕";
-      del.title = "Löschen";
-      del.onclick = () => confirm(`Suchauftrag „${s.query}“ löschen?`) && api(`/api/searches/${s.id}`, "DELETE");
+      del.title = "Delete";
+      del.setAttribute("aria-label", "Delete");
+      del.onclick = () => {
+        if (del.dataset.armed) return api(`/api/searches/${s.id}`, "DELETE");
+        del.dataset.armed = "1";
+        del.textContent = "Delete?";
+        setTimeout(() => { delete del.dataset.armed; del.textContent = "✕"; }, 3000);
+      };
       const txt = document.createElement("div");
       txt.className = "txt";
-      txt.append(q, f);
+      txt.append(q);
       li.append(txt, toggle, del);
       return li;
     }),
@@ -100,15 +95,16 @@ async function api(path, method, body) {
 
 $("search-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const fd = new FormData(e.target);
+  const f = watchrTags.parse(e.target.tags.value);
   $("form-error").hidden = true;
   try {
+    if (!f.keywords.length) throw new Error("Add at least one keyword, for example #nike.");
     await api("/api/searches", "POST", {
-      query: fd.get("query"),
-      minPrice: fd.get("minPrice") || null,
-      maxPrice: fd.get("maxPrice") || null,
-      condition: fd.get("condition") || null,
-      size: fd.get("size") || null,
+      query: f.keywords.join(" "),
+      minPrice: f.minPrice,
+      maxPrice: f.maxPrice,
+      size: f.size,
+      condition: f.condition,
     });
     e.target.reset();
   } catch (err) {
@@ -118,24 +114,21 @@ $("search-form").addEventListener("submit", async (e) => {
 });
 
 // Suchbegriff aus der Landingpage übernehmen (z. B. /?q=Sneaker)
-// Filter aus der Suchleiste der Landingpage übernehmen (z. B. /?q=Sneaker&max=80&size=43&cond=new)
+// Preferences handed over from the landing page (e.g. /?tags=%23nike%20%23max80)
 {
   const params = new URLSearchParams(location.search);
-  const form = $("search-form");
-  const map = { q: "query", min: "minPrice", max: "maxPrice", size: "size", cond: "condition" };
-  let any = false;
-  for (const [param, field] of Object.entries(map)) {
-    const v = params.get(param);
-    if (v) { form[field].value = v; any = true; }
+  const tags = params.get("tags") || (params.get("q") ? "#" + params.get("q") : "");
+  if (tags) {
+    $("search-form").tags.value = tags;
+    $("search-form").querySelector("button").focus();
   }
-  if (any) form.querySelector("button").focus();
 }
 
 // Browser-Benachrichtigungen (optional)
 function notify(h) {
   if (!("Notification" in window) || Notification.permission !== "granted" || document.hasFocus()) return;
-  const n = new Notification(`watchr · Neuer Treffer: ${h.title}`, {
-    body: [fmtPrice(h.price, h.currency), h.size && `Größe ${h.size}`].filter(Boolean).join(" — "),
+  const n = new Notification(`watchr · New match: ${h.title}`, {
+    body: [fmtPrice(h.price, h.currency), h.size && `Size ${h.size}`].filter(Boolean).join(" — "),
     icon: (h.photoUrls && h.photoUrls[0]) || "logo.svg",
   });
   n.onclick = () => window.open(h.url, "_blank");
@@ -143,7 +136,7 @@ function notify(h) {
 function updateNotifyBtn() {
   const btn = $("notify-btn");
   if (!("Notification" in window)) return (btn.hidden = true);
-  btn.textContent = Notification.permission === "granted" ? "🔔 Benachrichtigungen an" : "🔔 Benachrichtigungen";
+  btn.textContent = Notification.permission === "granted" ? "🔔 Notifications on" : "🔔 Notifications";
   btn.disabled = Notification.permission !== "default";
 }
 $("notify-btn").onclick = () => Notification.requestPermission().then(updateNotifyBtn);
@@ -174,7 +167,7 @@ function connect() {
   };
   ws.onclose = () => {
     conn.className = "conn off";
-    conn.textContent = "Getrennt, verbinde neu…";
+    conn.textContent = "Disconnected, reconnecting…";
     setTimeout(connect, Math.min(30000, 1000 * 2 ** retry++));
   };
 }

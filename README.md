@@ -26,6 +26,17 @@ Backend und Watcher getrennt (z. B. auf zwei Servern): `npm run server` und `npm
 
 Tests: `npm test` (spielt Watcher → Backend → DB → WebSocket einmal komplett durch).
 
+## Individual Preferences (Hashtags)
+
+Im Dashboard und im Live Listings Monitor der Landingpage gibt man Wünsche als Hashtags ein, z. B. `#nike #dunk #size43 #min20 #max80 #verygood`:
+
+- normale Wörter werden Suchbegriffe (`#nike #dunk`)
+- `#size43`, `#sizeM` setzt die Größe
+- `#min20` / `#over20` und `#max80` / `#under80` setzen die Preisspanne
+- `#newtags`, `#new`, `#verygood`, `#good` setzen den Mindestzustand
+
+Die Landingpage übergibt die Hashtags per `/?tags=…` an das Dashboard. Die Oberfläche ist auf Englisch.
+
 ## API
 
 | Methode | Pfad | Zweck |

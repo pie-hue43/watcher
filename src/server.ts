@@ -25,12 +25,12 @@ async function readJson(req: http.IncomingMessage): Promise<any> {
   let body = "";
   for await (const chunk of req) {
     body += chunk;
-    if (body.length > 100_000) throw new HttpError(413, "Body zu groß");
+    if (body.length > 100_000) throw new HttpError(413, "Request body too large");
   }
   try {
     return body ? JSON.parse(body) : {};
   } catch {
-    throw new HttpError(400, "Ungültiges JSON");
+    throw new HttpError(400, "Invalid JSON");
   }
 }
 
@@ -40,22 +40,22 @@ function parseSearchBody(b: any, partial: boolean) {
     size?: string | null; condition?: Condition | null; active?: boolean;
   } = {};
   if (b.query !== undefined || !partial) {
-    if (typeof b.query !== "string" || !b.query.trim()) throw new HttpError(400, "query fehlt");
+    if (typeof b.query !== "string" || !b.query.trim()) throw new HttpError(400, "Add at least one keyword");
     out.query = b.query.trim().slice(0, 200);
   }
   const price = (v: any, name: string) => {
     if (v === null || v === "") return null;
     if (Number.isFinite(Number(v)) && Number(v) > 0) return Number(v);
-    throw new HttpError(400, `${name} muss eine positive Zahl sein`);
+    throw new HttpError(400, `${name} must be a positive number`);
   };
   if (b.minPrice !== undefined) out.minPrice = price(b.minPrice, "minPrice");
   if (b.maxPrice !== undefined) out.maxPrice = price(b.maxPrice, "maxPrice");
   if (out.minPrice != null && out.maxPrice != null && out.minPrice > out.maxPrice)
-    throw new HttpError(400, "Der Mindestpreis ist höher als der Maximalpreis");
+    throw new HttpError(400, "The minimum price is higher than the maximum price");
   if (b.condition !== undefined) {
     if (b.condition === null || b.condition === "") out.condition = null;
     else if ((CONDITIONS as readonly string[]).includes(b.condition)) out.condition = b.condition;
-    else throw new HttpError(400, "Unbekannter Zustand");
+    else throw new HttpError(400, "Unknown condition");
   }
   if (b.size !== undefined) out.size = typeof b.size === "string" && b.size.trim() ? b.size.trim().slice(0, 40) : null;
   if (b.active !== undefined) out.active = !!b.active;
@@ -130,12 +130,12 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
         }
         if (idMatch && req.method === "PATCH") {
           const s = db.updateSearch(Number(idMatch[1]), parseSearchBody(await readJson(req), true));
-          if (!s) throw new HttpError(404, "Suchauftrag nicht gefunden");
+          if (!s) throw new HttpError(404, "Preference not found");
           broadcastSearches();
           return send(200, s);
         }
         if (idMatch && req.method === "DELETE") {
-          if (!db.deleteSearch(Number(idMatch[1]))) throw new HttpError(404, "Suchauftrag nicht gefunden");
+          if (!db.deleteSearch(Number(idMatch[1]))) throw new HttpError(404, "Preference not found");
           broadcastSearches();
           return send(204);
         }
@@ -146,28 +146,28 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
         }
         if (path === "/hits" && req.method === "POST") {
           // Nur der Watcher darf Treffer melden.
-          if (req.headers.authorization !== `Bearer ${opts.watcherToken}`) throw new HttpError(401, "Nicht autorisiert");
+          if (req.headers.authorization !== `Bearer ${opts.watcherToken}`) throw new HttpError(401, "Not authorized");
           const hit = db.insertHit(parseHit(await readJson(req)));
           if (!hit) return send(200, { duplicate: true });
           broadcast({ type: "hit", hit });
           return send(201, hit);
         }
-        throw new HttpError(404, "Nicht gefunden");
+        throw new HttpError(404, "Not found");
       }
 
       // Dashboard (statische Dateien)
-      if (req.method !== "GET") throw new HttpError(405, "Methode nicht erlaubt");
+      if (req.method !== "GET") throw new HttpError(405, "Method not allowed");
       const rel = normalize(url.pathname === "/" ? "/index.html" : url.pathname).replace(/^(\.\.[/\\])+/, "");
       const file = join(PUBLIC_DIR, rel);
-      if (!file.startsWith(PUBLIC_DIR)) throw new HttpError(403, "Verboten");
+      if (!file.startsWith(PUBLIC_DIR)) throw new HttpError(403, "Forbidden");
       const data = await readFile(file).catch(() => null);
-      if (!data) throw new HttpError(404, "Nicht gefunden");
+      if (!data) throw new HttpError(404, "Not found");
       res.writeHead(200, { "Content-Type": MIME[extname(file)] ?? "application/octet-stream" });
       res.end(data);
     } catch (err) {
       if (err instanceof HttpError) return send(err.status, { error: err.message });
       console.error(err);
-      send(500, { error: "Interner Fehler" });
+      send(500, { error: "Internal error" });
     }
   });
 

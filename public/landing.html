@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>watchr – Neue Vinted-Listings in Echtzeit</title>
-  <meta name="description" content="watchr beobachtet Vinted für dich und zeigt neue Treffer zu deinen Suchaufträgen sofort an." />
+  <title>watchr – Live Vinted listings</title>
+  <meta name="description" content="watchr monitors Vinted for you and shows new listings that match your preferences the moment they appear." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2080%2080%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20rx%3D%2218%22%20fill%3D%22%23f14187%22/%3E%3Cpath%20d%3D%22M15%2024%20L28%2058%20L40%2033%20L52%2058%20L65%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%229%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E" />
   <style>
     :root {
@@ -101,137 +101,174 @@
     .pics i.t1 { background: #f6eef2; } .pics i.t2 { background: #fbe4dd; }
     .pics svg { width: 22px; height: 22px; }
     @media (max-width: 520px) { .hit { grid-template-columns: minmax(0,1fr) auto auto; } .pics { grid-column: 1 / -1; } }
-    /* Suchleiste */
-    .finder { display: grid; grid-template-columns: 2fr repeat(6, minmax(0, 1fr)) auto; gap: 10px; align-items: end;
-      background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin: 4px 0 8px; }
-    .finder label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    .finder label span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-    .finder input, .finder select { font: inherit; font-size: 15px; color: var(--text); background: var(--bg); border: 1px solid var(--line);
-      border-radius: 8px; padding: 0 10px; height: 42px; min-width: 0; width: 100%; }
-    .finder input:focus, .finder select:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
-    .finder .btn { border: 0; cursor: pointer; font: inherit; font-weight: 700; height: 42px; padding: 0 18px; white-space: nowrap; }
-    .f-err { grid-column: 1 / -1; margin: 0; color: #b4232f; font-size: 14px; }
-    @media (max-width: 980px) { .finder { grid-template-columns: repeat(3, minmax(0, 1fr)); } .finder .f-q { grid-column: 1 / -1; } .finder .btn { grid-column: span 2; } }
-    @media (max-width: 520px) { .finder { grid-template-columns: repeat(2, minmax(0, 1fr)); } .finder .btn { grid-column: 1 / -1; } }
+    /* Individual Preferences im Live Monitor */
+    .prefs { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; }
+    .prefs label { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .prefs input { font: inherit; font-size: 15px; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+      border-radius: 8px; padding: 0 12px; height: 42px; min-width: 0; width: 100%; }
+    .prefs input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
+    .prefs small { color: var(--muted); font-size: 12px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+    .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 10px; border-radius: 999px; background: #fde8f0;
+      border: 1px solid #f7c3d8; font-size: 13px; font-weight: 700; color: #000; }
+    .chip button { border: 0; background: transparent; cursor: pointer; font: inherit; width: 22px; height: 22px; border-radius: 50%; color: #000; }
+    .chip button:hover { background: #f7c3d8; }
+    .chip.kw { background: #fff; }
+    .mon-list { display: flex; flex-direction: column; margin-top: 2px; }
+    .mon-empty { color: var(--muted); font-size: 14px; padding: 14px 4px; margin: 0; }
+    .mon-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+    .mon-foot span { color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
-  <div class="ticker" role="marquee" aria-label="Neuigkeiten"><div class="ticker-track"><span>Neue Vinted-Listings in Echtzeit</span><span>Suchaufträge mit Preis und Größe</span><span>Keine Dubletten</span><span>Browser-Benachrichtigungen</span><span>Auch am Handy</span><span>Jetzt Suchauftrag anlegen</span><span aria-hidden="true">Neue Vinted-Listings in Echtzeit</span><span aria-hidden="true">Suchaufträge mit Preis und Größe</span><span aria-hidden="true">Keine Dubletten</span><span aria-hidden="true">Browser-Benachrichtigungen</span><span aria-hidden="true">Auch am Handy</span><span aria-hidden="true">Jetzt Suchauftrag anlegen</span></div></div>
+  <div class="ticker" role="marquee" aria-label="News"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>No duplicates</span><span>Browser notifications</span><span>Works on your phone</span><span>Start watching now</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">No duplicates</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">Works on your phone</span><span aria-hidden="true">Start watching now</span></div></div>
   <div class="wrap">
     <nav>
       <a class="logo" href="#"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#f14187"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <div class="cats" id="kategorien" aria-label="Snipe-Kategorien">
-      <a class="cat" href="./?q=Sneaker"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/><path d="M30 34l4 3M34 31l4 3"/></svg><span>Sneaker</span></a>
-      <a class="cat" href="./?q=Jacke"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/><path d="M18 34h6M40 34h6"/></svg><span>Jacken</span></a>
-      <a class="cat" href="./?q=Hose"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Hosen</span></a>
-      <a class="cat" href="./?q=Pullover"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a>
-      <a class="cat" href="./?q=Tasche"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="26" width="40" height="28" rx="5"/><path d="M24 26v-6a8 8 0 0 1 16 0v6"/></svg><span>Taschen</span></a>
-      <a class="cat" href="./"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>Alle</span></a>
-    </div>
+      <div class="cats" id="categories" aria-label="Snipe categories">
+        <a class="cat" href="./?tags=%23Sneaker"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/><path d="M30 34l4 3M34 31l4 3"/></svg><span>Sneakers</span></a>
+        <a class="cat" href="./?tags=%23Jacke"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/><path d="M18 34h6M40 34h6"/></svg><span>Jackets</span></a>
+        <a class="cat" href="./?tags=%23Hose"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Pants</span></a>
+        <a class="cat" href="./?tags=%23Pullover"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a>
+        <a class="cat" href="./?tags=%23Tasche"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="26" width="40" height="28" rx="5"/><path d="M24 26v-6a8 8 0 0 1 16 0v6"/></svg><span>Bags</span></a>
+        <a class="cat" href="./"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>All</span></a>
+      </div>
     </nav>
-    <form class="finder" id="finder" aria-label="Artikel genauer suchen">
-      <label class="f-q"><span>Was suchst du?</span><input id="s-q" name="q" placeholder="z. B. Dunk Low Panda" maxlength="120" /></label>
-      <label><span>Kategorie</span><select id="s-cat" name="cat"><option value="">Alle</option><option>Sneaker</option><option>Jacke</option><option>Hose</option><option>Pullover</option><option>Tasche</option></select></label>
-      <label><span>Marke</span><input id="s-brand" name="brand" placeholder="z. B. Nike" maxlength="60" /></label>
-      <label><span>Größe</span><input id="s-size" name="size" placeholder="z. B. 43" maxlength="40" /></label>
-      <label><span>Preis von</span><input id="s-min" name="min" type="number" min="1" step="1" placeholder="€" /></label>
-      <label><span>Preis bis</span><input id="s-max" name="max" type="number" min="1" step="1" placeholder="€" /></label>
-      <label><span>Zustand</span><select id="s-cond" name="cond"><option value="">Egal</option><option value="new_tags">Neu mit Etikett</option><option value="new">Neu</option><option value="very_good">Sehr gut oder besser</option><option value="good">Gut oder besser</option></select></label>
-      <button class="btn" type="submit">Live suchen</button>
-      <p class="f-err" id="s-err" hidden></p>
-    </form>
   </div>
-  <div class="wrap">
 
+  <div class="wrap">
     <header class="hero">
       <div>
         <span class="pill">Live Listings Monitor</span>
-        <h1>Schnapp dir die besten Vinted-Deals, <em>bevor es andere tun.</em></h1>
-        <p class="lead">watchr beobachtet Vinted rund um die Uhr für dich. Sobald ein neues Listing zu deiner Suche, deinem Budget und deiner Größe passt, siehst du es sofort im Dashboard.</p>
+        <h1>Grab the best Vinted deals <em>before anyone else does.</em></h1>
+        <p class="lead">watchr monitors Vinted around the clock for you. Tell it what you want with a few hashtags, and the moment a new listing matches your preferences, it shows up in your dashboard.</p>
         <div class="ctas">
-          <a class="btn" href="./">Jetzt loslegen</a>
-          <a class="btn ghost" href="#so-funktionierts">So funktioniert’s</a>
+          <a class="btn" href="./">Get started</a>
+          <a class="btn ghost" href="#how-it-works">How it works</a>
         </div>
       </div>
 
-      <div class="preview" aria-label="Beispielansicht des Dashboards">
+      <div class="preview" aria-label="Live Listings Monitor">
         <h3>Live Listings Monitor</h3><span class="live-dot" title="Live"></span>
-        <div class="hit new"><div class="pics" aria-hidden="true"><i class="t0"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t1"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t2"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i></div><div><b>Nike Dunk Low</b><small>Größe 43 · gerade eben</small></div><span class="price">65 €</span><span class="go">Ansehen</span></div>
-        <div class="hit"><div class="pics" aria-hidden="true"><i class="t0"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t1"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i><i class="t2"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/></svg></i></div><div><b>Adidas Samba</b><small>Größe 42 · vor 2 Min.</small></div><span class="price">45 €</span><span class="go">Ansehen</span></div>
-        <div class="hit"><div class="pics" aria-hidden="true"><i class="t0"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/></svg></i><i class="t1"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/></svg></i><i class="t2"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/></svg></i></div><div><b>Stone Island Overshirt</b><small>Größe M · vor 5 Min.</small></div><span class="price">120 €</span><span class="go">Ansehen</span></div>
+        <div class="prefs">
+          <label for="prefs">Individual Preferences</label>
+          <input id="prefs" value="#nike #size43 #max80" autocomplete="off" spellcheck="false" />
+          <small>Try #nike #sizeM #min20 #max80 #new #verygood</small>
+          <div class="chips" id="chips"></div>
+        </div>
+        <div class="mon-list" id="mon-list"></div>
+        <p class="mon-empty" id="mon-empty" hidden>No listings match these preferences yet. watchr keeps watching and shows new ones the moment they appear.</p>
+        <div class="mon-foot">
+          <span id="mon-count"></span>
+          <a class="btn small" id="watch-btn" href="./">Watch these preferences</a>
+        </div>
       </div>
     </header>
   </div>
 
-  <section id="so-funktionierts">
+  <section id="how-it-works">
     <div class="wrap">
-      <h2>So funktioniert’s</h2>
-      <p class="sub">In drei Schritten zu deinem persönlichen Deal-Radar.</p>
+      <h2>How it works</h2>
+      <p class="sub">Three steps to your personal deal radar.</p>
       <div class="grid steps">
-        <div class="card step"><div class="icon"></div><h3>Suchauftrag anlegen</h3><p>Gib ein, was du suchst, dazu deinen Maximalpreis und deine Größe. Zum Beispiel: Nike Dunk, bis 80 €, Größe 43.</p></div>
-        <div class="card step"><div class="icon"></div><h3>Watcher sucht für dich</h3><p>Der Watcher prüft regelmäßig die neuesten Listings und filtert alles heraus, was nicht zu deinen Vorgaben passt.</p></div>
-        <div class="card step"><div class="icon"></div><h3>Sofort zuschlagen</h3><p>Neue Treffer erscheinen ohne Neuladen in deinem Dashboard. Ein Klick auf „Ansehen“ bringt dich direkt zum Angebot.</p></div>
+        <div class="card step"><div class="icon"></div><h3>Set your preferences</h3><p>Type hashtags for what you want: brand, model, size, price range and condition. For example #nike #dunk #size43 #max80.</p></div>
+        <div class="card step"><div class="icon"></div><h3>watchr monitors for you</h3><p>watchr checks the newest listings regularly and filters out everything that doesn't match your preferences.</p></div>
+        <div class="card step"><div class="icon"></div><h3>Strike instantly</h3><p>New matches appear in your dashboard without reloading, with up to three photos. One click on "View" takes you straight to the listing.</p></div>
       </div>
     </div>
   </section>
 
   <section>
     <div class="wrap">
-      <h2 id="funktionen">Alles, was du zum Zuschlagen brauchst</h2>
-      <p class="sub">Schlank, schnell und auf das Wesentliche reduziert.</p>
+      <h2 id="features">Everything you need to strike first</h2>
+      <p class="sub">Lean, fast and focused on what matters.</p>
       <div class="grid">
-        <div class="card"><div class="icon">⚡</div><h3>Echtzeit-Dashboard</h3><p>Treffer werden per WebSocket direkt in deinen Browser gepusht. Kein Aktualisieren, kein Warten.</p></div>
-        <div class="card"><div class="icon">🎯</div><h3>Genaue Filter</h3><p>Suchbegriff, Maximalpreis und Größe. Du siehst nur, was wirklich für dich in Frage kommt.</p></div>
-        <div class="card"><div class="icon">🔔</div><h3>Benachrichtigungen</h3><p>Auf Wunsch meldet sich dein Browser, sobald ein neuer Treffer reinkommt, auch wenn der Tab im Hintergrund ist.</p></div>
-        <div class="card"><div class="icon">🧹</div><h3>Keine Dubletten</h3><p>Jedes Listing wird nur einmal gemeldet. Was du schon gesehen hast, taucht nicht wieder auf.</p></div>
-        <div class="card"><div class="icon">⏸️</div><h3>Suchen im Griff</h3><p>Suchaufträge jederzeit anlegen, pausieren oder löschen, alles direkt im Dashboard.</p></div>
-        <div class="card"><div class="icon">📱</div><h3>Auch am Handy</h3><p>Das Dashboard passt sich jedem Bildschirm an. So bist du auch unterwegs schneller als die anderen.</p></div>
+        <div class="card"><div class="icon">⚡</div><h3>Real-time dashboard</h3><p>Matches are pushed straight to your browser. No refreshing, no waiting.</p></div>
+        <div class="card"><div class="icon">#️⃣</div><h3>Hashtag preferences</h3><p>Brand, size, price range and condition in one line of hashtags. You only see what's actually relevant to you.</p></div>
+        <div class="card"><div class="icon">🔔</div><h3>Notifications</h3><p>If you like, your browser alerts you as soon as a new match comes in, even when the tab is in the background.</p></div>
+        <div class="card"><div class="icon">🧹</div><h3>No duplicates</h3><p>Every listing is reported only once. What you've already seen won't show up again.</p></div>
+        <div class="card"><div class="icon">⏸️</div><h3>Full control</h3><p>Add, pause or delete your preferences any time, right in the dashboard.</p></div>
+        <div class="card"><div class="icon">📱</div><h3>Works on your phone</h3><p>The dashboard fits any screen, so you can beat everyone else on the go too.</p></div>
       </div>
     </div>
   </section>
 
   <section>
     <div class="wrap">
-      <h2 id="faq">Häufige Fragen</h2>
-      <details><summary>Wie schnell sehe ich neue Listings?</summary><p>Der Watcher prüft deine Suchen etwa einmal pro Minute. Neue Treffer stehen danach sofort in deinem Dashboard.</p></details>
-      <details><summary>Wie viele Suchaufträge kann ich anlegen?</summary><p>So viele du möchtest. Für eine schnelle Prüfung empfehlen wir aber, dich auf die Suchen zu konzentrieren, die dir wirklich wichtig sind.</p></details>
-      <details><summary>Kauft der Watcher automatisch für mich?</summary><p>Nein. watchr findet die Angebote, die Entscheidung und den Kauf machst du selbst auf Vinted.</p></details>
+      <h2 id="faq">FAQ</h2>
+      <details><summary>How quickly will I see new listings?</summary><p>watchr checks your preferences about once a minute. New matches appear in your dashboard right after that.</p></details>
+      <details><summary>Which hashtags can I use?</summary><p>Any word becomes a keyword, like #nike or #dunk. Add #size43 or #sizeM for the size, #min20 and #max80 for the price range, and #newtags, #new, #verygood or #good for the minimum condition.</p></details>
+      <details><summary>Does watchr buy items for me?</summary><p>No. watchr finds the listings. You decide and buy on Vinted yourself.</p></details>
     </div>
   </section>
 
   <section>
     <div class="wrap">
       <div class="cta-box">
-        <h2>Bereit für deinen nächsten Fund?</h2>
-        <p>Leg deinen ersten Suchauftrag an und lass den Watcher die Arbeit machen.</p>
-        <a class="btn" href="./">Zum Dashboard</a>
+        <h2>Ready for your next find?</h2>
+        <p>Set your first preferences and let watchr do the work.</p>
+        <a class="btn" href="./">Open dashboard</a>
       </div>
     </div>
   </section>
 
   <footer>
     <div class="wrap">
-      © 2026 watchr. Ein unabhängiges Projekt, nicht mit Vinted verbunden oder von Vinted unterstützt. „Vinted“ ist eine Marke der Vinted UAB.
+      © 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.
     </div>
   </footer>
+
+  <script src="tags.js"></script>
   <script>
-    // Suchleiste: Filter ans Dashboard übergeben, dort wird daraus ein Suchauftrag
-    document.getElementById("finder").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const f = e.target, err = document.getElementById("s-err");
-      // Die Kategorie nur als Suchwort nutzen, wenn sonst nichts angegeben ist (Titel enthalten selten „Sneaker“)
-      const q = [f.brand.value.trim(), f.q.value.trim()].filter(Boolean).join(" ") || f.cat.value;
-      const min = Number(f.min.value), max = Number(f.max.value);
-      err.hidden = true;
-      if (!q) { err.textContent = "Gib einen Suchbegriff, eine Marke oder eine Kategorie an."; err.hidden = false; return; }
-      if (min && max && min > max) { err.textContent = "„Preis von“ ist höher als „Preis bis“. Bitte tausch die Werte."; err.hidden = false; return; }
-      const p = new URLSearchParams({ q });
-      if (min) p.set("min", String(min));
-      if (max) p.set("max", String(max));
-      if (f.size.value.trim()) p.set("size", f.size.value.trim());
-      if (f.cond.value) p.set("cond", f.cond.value);
-      location.href = "./?" + p.toString();
-    });
+    // Live Listings Monitor demo: example listings filtered by the hashtags typed above
+    const SAMPLES = [{"title": "Nike Dunk Low Panda", "price": 65, "size": "43", "cond": "very_good", "icon": "sneaker", "ago": "just now"}, {"title": "Nike Air Max 90", "price": 70, "size": "43", "cond": "new", "icon": "sneaker", "ago": "1 min ago"}, {"title": "Adidas Samba OG", "price": 45, "size": "42", "cond": "good", "icon": "sneaker", "ago": "2 min ago"}, {"title": "Nike Tech Fleece Hoodie", "price": 55, "size": "M", "cond": "new_tags", "icon": "top", "ago": "3 min ago"}, {"title": "Stone Island Overshirt", "price": 120, "size": "M", "cond": "very_good", "icon": "jacket", "ago": "5 min ago"}, {"title": "Carhartt Detroit Jacket", "price": 95, "size": "L", "cond": "good", "icon": "jacket", "ago": "7 min ago"}, {"title": "Levi's 501 Jeans", "price": 30, "size": "W32", "cond": "very_good", "icon": "pants", "ago": "9 min ago"}, {"title": "Prada Re-Edition Bag", "price": 380, "size": null, "cond": "very_good", "icon": "bag", "ago": "12 min ago"}];
+    const ICONS = {"sneaker": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z\"/><path d=\"M6 48h52\"/><path d=\"M30 34l4 3M34 31l4 3\"/></svg>", "jacket": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M22 12l10 7 10-7 12 8v32H10V20z\"/><path d=\"M32 19v33\"/><path d=\"M18 34h6M40 34h6\"/></svg>", "pants": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M20 8h24l4 48H36l-4-32-4 32H16z\"/><path d=\"M20 15h24\"/></svg>", "top": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z\"/></svg>", "bag": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><rect x=\"12\" y=\"26\" width=\"40\" height=\"28\" rx=\"5\"/><path d=\"M24 26v-6a8 8 0 0 1 16 0v6\"/></svg>"};
+    const RANK = { new_tags: 4, new: 3, very_good: 2, good: 1 };
+    const CONDITION_LABEL = { new_tags: "New with tags", new: "New", very_good: "Very good", good: "Good" };
+    const norm = (v) => String(v).trim().toLowerCase().replace(",", ".").replace(/^eu\s*/, "");
+    const input = document.getElementById("prefs");
+
+    function matches(item, f) {
+      const title = item.title.toLowerCase();
+      if (!f.keywords.every((k) => title.includes(k.toLowerCase()))) return false;
+      if (f.minPrice != null && item.price < f.minPrice) return false;
+      if (f.maxPrice != null && item.price > f.maxPrice) return false;
+      if (f.size && (!item.size || norm(item.size) !== norm(f.size))) return false;
+      if (f.condition && RANK[item.cond] < RANK[f.condition]) return false;
+      return true;
+    }
+
+    function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+    function render() {
+      const f = watchrTags.parse(input.value);
+      const chips = document.getElementById("chips");
+      chips.replaceChildren(...f.tags.map((t, i) => {
+        const chip = el("span", "chip" + (i < f.keywords.length ? " kw" : ""), t);
+        const x = el("button", null, "×");
+        x.type = "button";
+        x.setAttribute("aria-label", "Remove " + t);
+        x.onclick = () => { input.value = f.tags.filter((o) => o !== t).join(" "); render(); input.focus(); };
+        chip.append(x);
+        return chip;
+      }));
+      const hits = SAMPLES.filter((s) => matches(s, f));
+      document.getElementById("mon-list").replaceChildren(...hits.map((h, i) => {
+        const row = el("div", "hit" + (i === 0 ? " new" : ""));
+        const pics = el("div", "pics");
+        pics.setAttribute("aria-hidden", "true");
+        for (let n = 0; n < 3; n++) { const t = el("i", "t" + n); t.innerHTML = ICONS[h.icon]; pics.append(t); }
+        const txt = el("div");
+        txt.append(el("b", null, h.title), el("small", null, [h.size && "Size " + h.size, CONDITION_LABEL[h.cond], h.ago].filter(Boolean).join(" · ")));
+        row.append(pics, txt, el("span", "price", "€" + h.price), el("span", "go", "View"));
+        return row;
+      }));
+      document.getElementById("mon-empty").hidden = hits.length > 0;
+      document.getElementById("mon-count").textContent = hits.length === 1 ? "1 example match" : hits.length + " example matches";
+      document.getElementById("watch-btn").href = "./?tags=" + encodeURIComponent(f.tags.join(" "));
+    }
+    input.addEventListener("input", render);
+    render();
   </script>
 </body>
 </html>
