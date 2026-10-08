@@ -49,8 +49,26 @@ export interface Hit extends HitInput {
   openedAt: string | null;
 }
 
+/** Ein Artikel im Wardrobe Tracker. */
+export interface Tracked {
+  id: number;
+  vintedId: string;
+  url: string;
+  title: string;
+  price: number | null;
+  currency: string;
+  photoUrl: string | null;
+  seller: string | null;
+  /** active = noch online, sold = verkauft/reserviert, gone = gelöscht oder nicht mehr auffindbar */
+  status: "active" | "sold" | "gone";
+  addedAt: string;
+  checkedAt: string | null;
+  soldAt: string | null;
+}
+
 /** Nachrichten, die das Backend per WebSocket an die Website pusht. */
 export type ServerMessage =
   | { type: "hello"; hits: Hit[]; searches: Search[] }
   | { type: "hit"; hit: Hit }
-  | { type: "searches"; searches: Search[] };
+  | { type: "searches"; searches: Search[] }
+  | { type: "sold"; item: Tracked };

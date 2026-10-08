@@ -47,6 +47,14 @@ export function productKey(l: { title: string; brand: string | null }): { key: s
   return { key: `${b}|${type ?? "item"}`, query: type ? `${b} ${TYPE_QUERY[type] ?? type}` : b };
 }
 
+/** Marke aus einer freien Beschreibung: alles vor der Artikelart, z. B. „Ralph Lauren“ aus „Ralph Lauren polo“. */
+export function guessBrand(title: string): string | null {
+  const t = title.trim();
+  const m = TYPES.map(([re]) => t.match(re)).find((x) => x && x.index != null);
+  const brand = (m ? t.slice(0, m.index) : t).replace(/[^\p{L}\p{N}&' -]/gu, " ").trim().split(/\s+/).slice(0, 3).join(" ");
+  return brand.length >= 2 ? brand : null;
+}
+
 /** Median mit abgeschnittenen Ausreißern (oberste und unterste 15 %). */
 export function robustStats(prices: number[]): { median: number; low: number; high: number } | null {
   const p = prices.filter((x) => Number.isFinite(x) && x > 0).sort((a, b) => a - b);
@@ -89,6 +97,11 @@ export class PriceEstimator {
     if (!this.cacheFile) return;
     mkdirSync(dirname(this.cacheFile), { recursive: true });
     writeFileSync(this.cacheFile, JSON.stringify([...this.refs.values()], null, 1));
+  }
+
+  /** Alle gespeicherten Referenzpreise (für den Niche Finder). */
+  all(): PriceRef[] {
+    return [...this.refs.values()];
   }
 
   /** Liefert die gespeicherte oder frisch berechnete Referenz, oder null, wenn zu wenig Vergleiche da sind. */

@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import type { Hit, HitInput, Search } from "./types.ts";
+import type { Hit, HitInput, Search, Tracked } from "./types.ts";
 
 export function openDb(path: string) {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
@@ -31,6 +31,20 @@ export function openDb(path: string) {
       detected_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS hits_detected_at ON hits(detected_at DESC);
+    CREATE TABLE IF NOT EXISTS tracked (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      vinted_id  TEXT NOT NULL UNIQUE,
+      url        TEXT NOT NULL,
+      title      TEXT NOT NULL,
+      price      REAL,
+      currency   TEXT NOT NULL DEFAULT 'EUR',
+      photo_url  TEXT,
+      seller     TEXT,
+      status     TEXT NOT NULL DEFAULT 'active',
+      added_at   TEXT NOT NULL,
+      checked_at TEXT,
+      sold_at    TEXT
+    );
   `);
   const searchCols = (db.prepare("PRAGMA table_info(searches)").all() as { name: string }[]).map((c) => c.name);
   if (!searchCols.includes("min_price")) db.exec("ALTER TABLE searches ADD COLUMN min_price REAL");
@@ -76,6 +90,11 @@ export function openDb(path: string) {
     resaleSamples: r.resale_samples ?? null,
     archiveScore: r.archive_score ?? null,
     designer: r.designer ?? null,
+  });
+
+  const toTracked = (r: any): Tracked => ({
+    id: r.id, vintedId: r.vinted_id, url: r.url, title: r.title, price: r.price, currency: r.currency,
+    photoUrl: r.photo_url, seller: r.seller, status: r.status, addedAt: r.added_at, checkedAt: r.checked_at, soldAt: r.sold_at,
   });
 
   const hitSelect = `SELECT h.*, s.query AS search_query, s.kind AS search_kind FROM hits h LEFT JOIN searches s ON s.id = h.search_id`;
@@ -138,6 +157,29 @@ export function openDb(path: string) {
     },
     listHits(limit = 50): Hit[] {
       return db.prepare(`${hitSelect} ORDER BY h.id DESC LIMIT ?`).all(limit).map(toHit);
+    },
+    /** Wardrobe Tracker: Artikel merken (doppelte werden ignoriert). */
+    track(t: { vintedId: string; url: string; title: string; price: number | null; currency: string; photoUrl: string | null; seller: string | null }): Tracked | null {
+      const res = db
+        .prepare("INSERT OR IGNORE INTO tracked (vinted_id, url, title, price, currency, photo_url, seller, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        .run(t.vintedId, t.url, t.title, t.price, t.currency, t.photoUrl, t.seller, new Date().toISOString());
+      return res.changes ? toTracked(db.prepare("SELECT * FROM tracked WHERE id = ?").get(Number(res.lastInsertRowid))) : null;
+    },
+    listTracked(): Tracked[] {
+      return db.prepare("SELECT * FROM tracked ORDER BY (status = 'active') ASC, COALESCE(sold_at, added_at) DESC").all().map(toTracked);
+    },
+    /** Die am längsten nicht geprüften aktiven Artikel */
+    dueTracked(limit: number): Tracked[] {
+      return db.prepare("SELECT * FROM tracked WHERE status = 'active' ORDER BY COALESCE(checked_at, '') ASC LIMIT ?").all(limit).map(toTracked);
+    },
+    setTrackedStatus(id: number, status: Tracked["status"]): Tracked | null {
+      const now = new Date().toISOString();
+      db.prepare("UPDATE tracked SET status = ?, checked_at = ?, sold_at = CASE WHEN ? = 'active' THEN sold_at ELSE COALESCE(sold_at, ?) END WHERE id = ?").run(status, now, status, now, id);
+      const r = db.prepare("SELECT * FROM tracked WHERE id = ?").get(id);
+      return r ? toTracked(r) : null;
+    },
+    untrack(id: number): boolean {
+      return db.prepare("DELETE FROM tracked WHERE id = ?").run(id).changes > 0;
     },
     close() {
       db.close();

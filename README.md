@@ -64,6 +64,23 @@ Für jeden neuen Treffer schätzt der Watcher einen Resellpreis (`src/pricing.ts
 
 Jeder Treffer bekommt einen Archive-Score von 0 bis 100 (Designer-Rang + Signale + Bonus, wenn der Preis bei höchstens 60 % des Resellpreises liegt). Eine `#archive`-Präferenz fragt pro Durchlauf drei Designer der Reihe nach ab und meldet nur Teile mit Score ab 50.
 
+## AI Tools
+
+Die Seite **AI Tools** (`/tools`) bündelt zehn Werkzeuge. Alle laufen über `/api/tools/…` im Backend.
+
+| Tool | Was es macht | Braucht |
+| --- | --- | --- |
+| AI Photo Enhancer | Licht, Kontrast, Zuschnitt und Studiohintergrund | Freistellen nur mit `REMOVE_BG_API_KEY` |
+| Price Estimator | Resellpreis aus vergleichbaren Vinted-Listings | Vinted-Verbindung |
+| Niche Finder | Produktgruppen, die für 2× oder mehr weiterverkauft werden | gesammelte Treffer |
+| Deal Finder | Treffer der letzten Tage nach Rendite sortiert | gesammelte Treffer |
+| Offer Finder | Listings, bei denen ein Angebot bis 30 % unter Preis noch Marge lässt | gesammelte Treffer |
+| Seller Intel | Kennzahlen eines Kleiderschranks, mit KI-Analyse | KI-Text nur mit `ANTHROPIC_API_KEY` |
+| AI Listings | Titel, Beschreibung und Hashtags | KI nur mit `ANTHROPIC_API_KEY`, sonst Vorlage |
+| Vinted Repost | Text und Fotos eines **eigenen** Listings, Fotos 3 % zugeschnitten | Vinted-Verbindung |
+| Wardrobe Tracker | Meldet, wenn beobachtete Artikel verkauft werden (alle 10 Minuten) | Vinted-Verbindung |
+| AI Filters | Beschreibung in Worten → Hashtags und Vinted-Link | KI nur mit `ANTHROPIC_API_KEY`, sonst Regeln |
+
 ## API
 
 | Methode | Pfad | Zweck |

@@ -1,10 +1,14 @@
 import http from "node:http";
 import { readFile } from "node:fs/promises";
-import { extname, join, normalize } from "node:path";
+import { dirname, extname, join, normalize } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { WebSocketServer, WebSocket } from "ws";
 import { config } from "./config.ts";
 import { openDb, type Db } from "./db.ts";
+import { makeAi } from "./ai.ts";
+import { PriceEstimator } from "./pricing.ts";
+import { ToolError, startTracker, toolRoutes, type ToolDeps } from "./tools.ts";
+import { MockSource, VintedSource } from "./vinted.ts";
 import { CONDITIONS, KINDS, type Condition, type HitInput, type SearchKind, type ServerMessage } from "./types.ts";
 
 const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
@@ -21,11 +25,11 @@ class HttpError extends Error {
   }
 }
 
-async function readJson(req: http.IncomingMessage): Promise<any> {
+async function readJson(req: http.IncomingMessage, limit = 100_000): Promise<any> {
   let body = "";
   for await (const chunk of req) {
     body += chunk;
-    if (body.length > 100_000) throw new HttpError(413, "Request body too large");
+    if (body.length > limit) throw new HttpError(413, "Request body too large");
   }
   try {
     return body ? JSON.parse(body) : {};
@@ -96,7 +100,11 @@ function parseHit(b: any): HitInput {
   };
 }
 
-export function createServer(db: Db, opts = { watcherToken: config.watcherToken, allowedOrigins: config.allowedOrigins }) {
+export function createServer(
+  db: Db,
+  opts = { watcherToken: config.watcherToken, allowedOrigins: config.allowedOrigins },
+  toolDeps: Omit<ToolDeps, "db" | "broadcast"> | null = null,
+) {
   const server = http.createServer();
   const wss = new WebSocketServer({ noServer: true });
 
@@ -105,6 +113,8 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
     for (const client of wss.clients) if (client.readyState === WebSocket.OPEN) client.send(data);
   };
   const broadcastSearches = () => broadcast({ type: "searches", searches: db.listSearches() });
+  const deps: ToolDeps | null = toolDeps ? { ...toolDeps, db, broadcast } : null;
+  const tools = deps ? toolRoutes(deps) : null;
 
   const originAllowed = (origin: string | undefined, host: string | undefined) =>
     !origin || opts.allowedOrigins.includes("*") || opts.allowedOrigins.includes(origin) || origin === `http://${host}` || origin === `https://${host}`;
@@ -172,6 +182,15 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
           broadcast({ type: "hit", hit });
           return send(201, hit);
         }
+        // AI Tools (Fotos für den AI Listings-Upload dürfen größer sein)
+        if (tools) {
+          const r = await tools(req.method ?? "GET", path, url.searchParams, () => readJson(req, path === "/tools/listing" || path === "/tools/cutout" ? 12_000_000 : 100_000));
+          if (r?.raw) {
+            res.writeHead(r.status, { "Content-Type": r.raw.type, "Cache-Control": "private, max-age=3600" });
+            return void res.end(r.raw.data);
+          }
+          if (r) return send(r.status, r.body);
+        } else if (path.startsWith("/tools/")) throw new HttpError(503, "AI Tools are not enabled on this server");
         throw new HttpError(404, "Not found");
       }
 
@@ -192,7 +211,7 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
       res.writeHead(200, { "Content-Type": MIME[extname(file) || ".html"] ?? "application/octet-stream" });
       res.end(data);
     } catch (err) {
-      if (err instanceof HttpError) return send(err.status, { error: err.message });
+      if (err instanceof HttpError || err instanceof ToolError) return send(err.status, { error: err.message });
       console.error(err);
       send(500, { error: "Internal error" });
     }
@@ -229,6 +248,7 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
 
   return {
     server,
+    deps,
     close: async () => {
       clearInterval(ping);
       for (const ws of wss.clients) ws.terminate();
@@ -239,7 +259,10 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
 
 export function startServer() {
   const db = openDb(config.dbPath);
-  const app = createServer(db);
+  const source = config.source === "mock" ? new MockSource() : new VintedSource(config.vintedDomain);
+  const estimator = new PriceEstimator((q) => source.comparables(q), join(dirname(config.dbPath), "price-cache.json"));
+  const app = createServer(db, undefined, { source, estimator, ai: makeAi(), vintedDomain: config.vintedDomain });
+  if (app.deps) startTracker(app.deps);
   app.server.listen(config.port, () => console.log(`[backend] Dashboard: http://localhost:${config.port}`));
   return app;
 }

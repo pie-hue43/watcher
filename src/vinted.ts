@@ -29,7 +29,29 @@ export interface Source {
   photos?(l: Listing): Promise<string[]>;
   /** Optional: Preise vergleichbarer Listings für die Resell-Schätzung. */
   comparables?(query: string): Promise<number[]>;
+  /** Optional (AI Tools): Detailseite eines Artikels, null = gelöscht/nicht gefunden. */
+  item?(id: string): Promise<ItemDetail | null>;
+  /** Optional (AI Tools): Profil und Kleiderschrank eines Verkäufers. */
+  wardrobe?(userId: string): Promise<Wardrobe | null>;
 }
+
+export interface ItemDetail extends Listing {
+  description: string;
+  /** verkauft, reserviert oder ausgeblendet */
+  sold: boolean;
+  seller: { id: string; login: string } | null;
+  allPhotoUrls: string[];
+}
+
+export interface Wardrobe {
+  user: { id: string; login: string; itemCount: number; rating: number | null; reviews: number; followers: number; city: string | null };
+  items: (Listing & { sold: boolean; favourites: number })[];
+}
+
+/** Artikel-ID aus einer Vinted-Adresse, z. B. https://www.vinted.de/items/1234567-raf-simons-jacke */
+export const itemIdFromUrl = (u: string) => u.match(/\/items\/(\d+)/)?.[1] ?? (/^\d+$/.test(u.trim()) ? u.trim() : null);
+/** Nutzer-ID aus einer Profiladresse, z. B. https://www.vinted.de/member/123456-name */
+export const userIdFromUrl = (u: string) => u.match(/\/member\/(?:general\/)?(\d+)/)?.[1] ?? null;
 
 export class RateLimitError extends Error {}
 
@@ -81,6 +103,50 @@ export class VintedSource implements Source {
     if (!res.ok) return [];
     const data: any = await res.json();
     return (data.items ?? []).map((it: any) => toListing(it).price).filter((p: number) => Number.isFinite(p) && p > 0);
+  }
+
+  private async getJson(path: string): Promise<any | null> {
+    if (!this.cookie || Date.now() - this.cookieFetchedAt > 3600_000) await this.refreshCookie();
+    const res = await fetch(`https://${this.domain}${path}`, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json", "Accept-Language": "de-DE,de;q=0.9", Cookie: this.cookie! },
+    });
+    if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
+    if (res.status === 401) this.cookie = null;
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Vinted antwortet mit HTTP ${res.status}`);
+    return res.json();
+  }
+
+  async item(id: string): Promise<ItemDetail | null> {
+    const data = await this.getJson(`/api/v2/items/${encodeURIComponent(id)}`);
+    const it = data?.item ?? data;
+    if (!it?.id) return null;
+    const all = (Array.isArray(it.photos) ? it.photos : []).map((p: any) => p?.full_size_url || p?.url).filter(Boolean);
+    return {
+      ...toListing(it),
+      description: String(it.description ?? ""),
+      sold: !!(it.is_closed || it.is_reserved || it.is_hidden || it.item_closing_action),
+      seller: it.user ? { id: String(it.user.id), login: String(it.user.login ?? "") } : null,
+      allPhotoUrls: all,
+    };
+  }
+
+  async wardrobe(userId: string): Promise<Wardrobe | null> {
+    const u = (await this.getJson(`/api/v2/users/${encodeURIComponent(userId)}`))?.user;
+    if (!u) return null;
+    const w = await this.getJson(`/api/v2/wardrobe/${encodeURIComponent(userId)}/items?page=1&per_page=96&order=newest_first`);
+    return {
+      user: {
+        id: String(u.id),
+        login: String(u.login ?? ""),
+        itemCount: Number(u.item_count ?? 0),
+        rating: u.feedback_reputation != null ? Math.round(Number(u.feedback_reputation) * 50) / 10 : null,
+        reviews: Number(u.feedback_count ?? 0),
+        followers: Number(u.followers_count ?? 0),
+        city: u.city || null,
+      },
+      items: (w?.items ?? []).map((it: any) => ({ ...toListing(it), sold: !!(it.is_closed || it.is_reserved), favourites: Number(it.favourite_count ?? 0) })),
+    };
   }
 
   async search(s: Search): Promise<Listing[]> {
@@ -177,6 +243,26 @@ export class MockSource implements Source {
       });
     }
     return out;
+  }
+
+  async item(id: string): Promise<ItemDetail | null> {
+    const n = Number(id.slice(-2)) || 0;
+    return {
+      id, title: "Raf Simons archive bomber jacket (Test)", price: 180 + n, currency: "EUR", size: "M", brand: "Raf Simons",
+      url: `https://www.vinted.de/items/${id}`, photoUrls: [], condition: "very_good",
+      description: "Testartikel aus der MockSource.", sold: n % 3 === 0, seller: { id: "42", login: "testseller" }, allPhotoUrls: [],
+    };
+  }
+
+  async wardrobe(userId: string): Promise<Wardrobe | null> {
+    const brands = ["Raf Simons", "Prada", "Ralph Lauren", "Nike", "Stone Island"];
+    return {
+      user: { id: userId, login: "testseller", itemCount: 20, rating: 4.8, reviews: 31, followers: 120, city: "Berlin" },
+      items: Array.from({ length: 20 }, (_, i) => ({
+        id: String(9000 + i), title: `${brands[i % 5]} Test ${i}`, price: 20 + i * 9, currency: "EUR", size: "M", brand: brands[i % 5],
+        url: `https://www.vinted.de/items/${9000 + i}`, photoUrls: [], sold: i % 4 === 0, favourites: i % 7,
+      })),
+    };
   }
 
   async comparables(query: string): Promise<number[]> {

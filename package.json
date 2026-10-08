@@ -4,7 +4,9 @@
   "private": true,
   "description": "Vinted Watcher mit Backend, SQLite und Echtzeit-Dashboard per WebSocket",
   "type": "module",
-  "engines": { "node": ">=22.13" },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "start": "tsx src/main.ts",
     "dev": "tsx watch src/main.ts",
@@ -14,6 +16,7 @@
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "tsx": "^4.19.2",
     "ws": "^8.18.0"
   },

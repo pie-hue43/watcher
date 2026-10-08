@@ -22,7 +22,7 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Listings</a><a href="snipes.html">Snipes</a><a href="categories.html">Categories</a><a href="features.html">Features</a><a href="how-it-works.html">How it works</a><a href="faq.html" aria-current="page">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Listings</a><a href="snipes.html">Snipes</a><a href="categories.html">Categories</a><a href="features.html">Features</a><a href="how-it-works.html">How it works</a><a href="tools.html">AI Tools</a><a href="faq.html" aria-current="page">FAQ</a></nav>
     </div>
   </header>
   <main>
@@ -36,6 +36,9 @@
         <h2>Individual Preferences</h2>
         <details><summary>Which hashtags can I use?</summary><p>Any word becomes a keyword, like #nike or #dunk. Add #size43 or #sizeM for the size, #min20 and #max80 for the price range, and #newtags, #new, #verygood or #good for the minimum condition. #archive switches on Designer &amp; Archive mode. The snipebot checks every hashtag against each listing (title, brand, size and condition) and only shows listings that fit all of them. English and German words both work, so #jacket also finds “Jacke”. Category hashtags cover a whole group: #accessories finds belts, jewellery, bags, sunglasses, caps and more, #tops finds shirts, polos, hoodies and sweaters.</p></details>
         <details><summary>How many preferences can I add?</summary><p>As many as you like. Each one is checked separately, so a few focused preferences find matches faster than many broad ones.</p></details>
+        <h2>AI Tools</h2>
+        <details><summary>Which AI Tools work without setup?</summary><p>Price Estimator, Niche Finder, Deal Finder, Offer Finder, Seller Intel, Vinted Repost and Wardrobe Tracker run on watchr's own Vinted data. AI Listings, AI Filters and the written Seller Intel analysis use Claude once an ANTHROPIC_API_KEY is set on the server, and fall back to simple rules without it. The Photo Enhancer removes backgrounds with a REMOVE_BG_API_KEY and otherwise improves light, contrast and framing.</p></details>
+        <details><summary>Can I repost other people's listings?</summary><p>No. Vinted Repost is meant for your own listings only. Copying other sellers' photos or texts breaks Vinted's rules and their copyright.</p></details>
         <h2>Designer &amp; Archive</h2>
         <details><summary>What does #archive do?</summary><p>watchr searches through a curated list of 40+ designers by itself, a few per round, and scores every new listing from 0 to 100. Points come from the designer, from signals in the title like archive, runway, sample, AW02 or 90s, and from a price far below the resale estimate. Only pieces scoring 50 or more reach your monitor. Add keywords like #jacket or a #max300 to narrow it down.</p></details>
         <details id="resale"><summary>How is the resale estimate calculated?</summary><p>watchr looks up comparable listings on Vinted, with the same brand and the same type of item (for example Ralph Lauren polos), removes the cheapest and most expensive 15&nbsp;% and takes the median. The value is kept for 24 hours, so frequent items are always priced the same way. It's based on asking prices, not on what items actually sold for, so treat it as a guide.</p></details>
@@ -58,7 +61,7 @@
         </div>
         <div>
           <h4>Product</h4>
-          <ul><li><a href="monitor.html">Live Listings</a></li><li><a href="snipes.html">Snipes</a></li><li><a href="features.html">Features</a></li></ul>
+          <ul><li><a href="monitor.html">Live Listings</a></li><li><a href="snipes.html">Snipes</a></li><li><a href="features.html">Features</a></li><li><a href="tools.html">AI Tools</a></li></ul>
         </div>
         <div>
           <h4>Help</h4>
