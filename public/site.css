@@ -59,6 +59,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; text-wrap: bala
 .btn.ghost:hover { background: var(--surface); }
 .btn.small { padding: 8px 14px; font-size: 14px; }
 .btn.dark { background: var(--text); color: #fff; }
+.btn.snipe-now { align-self: flex-start; margin-top: 4px; font-weight: 800; }
 
 /* Bausteine */
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green-deep); }
