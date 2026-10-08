@@ -69,18 +69,66 @@
       .grid { grid-template-columns: 1fr; }
       section { padding: 48px 0; }
     }
+    /* Laufband ganz oben */
+    .ticker { background: var(--pink); color: #000; overflow: hidden; white-space: nowrap; font-size: 14px; font-weight: 700; }
+    .ticker-track { display: inline-flex; animation: ticker 28s linear infinite; }
+    .ticker-track span { padding: 9px 28px; }
+    .ticker-track span::before { content: "✓"; margin-right: 8px; }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+
+    /* Kategorie-Kreise */
+    .cats { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 8px 0 28px; }
+    .cat { position: relative; display: grid; place-items: center; width: 132px; height: 132px; border-radius: 50%;
+      border: 3px solid var(--text); background: radial-gradient(circle at 50% 40%, #fff, #fde8f0); text-decoration: none; color: #000;
+      transition: transform .2s ease, box-shadow .2s ease; }
+    .cat:hover, .cat:focus-visible { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(241,65,135,.25); }
+    .cat svg { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); width: 62px; height: 62px; }
+    .cat span { position: absolute; left: -3px; right: -3px; top: 66%; background: var(--grad);
+      text-align: center; font-weight: 800; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; padding: 3px 0; }
+    .cat.sale { border-color: var(--pink); }
+
+    /* Menüleiste */
+    .menu { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow-x: auto; }
+    .menu ul { display: flex; gap: 8px; align-items: center; list-style: none; margin: 0 auto; padding: 12px 20px; max-width: 1080px; }
+    .menu a { display: block; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 17px; text-transform: uppercase; text-decoration: none; white-space: nowrap; color: var(--text); }
+    .menu a:hover { background: var(--panel); }
+    .menu a.hot { background: var(--grad); color: #000; }
+
+    .pill::before { animation: blink 1.2s ease-in-out infinite; }
+    @keyframes blink { 50% { opacity: .15; } }
+    @media (prefers-reduced-motion: reduce) { .ticker-track, .pill::before { animation: none; } .cat { transition: none; } }
+    @media (max-width: 520px) { .cat { width: 96px; height: 96px; } .cat svg { top: 10px; width: 46px; height: 46px; } .cat span { font-size: 12px; } .cats { gap: 12px; } }
   </style>
 </head>
 <body>
+  <div class="ticker" role="marquee" aria-label="Neuigkeiten"><div class="ticker-track"><span>Neue Vinted-Listings in Echtzeit</span><span>Suchaufträge mit Preis und Größe</span><span>Keine Dubletten</span><span>Browser-Benachrichtigungen</span><span>Auch am Handy</span><span>Jetzt Suchauftrag anlegen</span><span aria-hidden="true">Neue Vinted-Listings in Echtzeit</span><span aria-hidden="true">Suchaufträge mit Preis und Größe</span><span aria-hidden="true">Keine Dubletten</span><span aria-hidden="true">Browser-Benachrichtigungen</span><span aria-hidden="true">Auch am Handy</span><span aria-hidden="true">Jetzt Suchauftrag anlegen</span></div></div>
   <div class="wrap">
     <nav>
       <a class="logo" href="#"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#f14187"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <a class="btn small" href="./">Zum Dashboard</a>
     </nav>
+    <div class="cats" id="kategorien" aria-label="Kategorien">
+      <a class="cat" href="./?q=Sneaker"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/><path d="M30 34l4 3M34 31l4 3"/></svg><span>Sneaker</span></a>
+      <a class="cat" href="./?q=Jacke"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/><path d="M18 34h6M40 34h6"/></svg><span>Jacken</span></a>
+      <a class="cat" href="./?q=Hose"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Hosen</span></a>
+      <a class="cat" href="./?q=Pullover"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a>
+      <a class="cat" href="./?q=Tasche"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="26" width="40" height="28" rx="5"/><path d="M24 26v-6a8 8 0 0 1 16 0v6"/></svg><span>Taschen</span></a>
+      <a class="cat" href="./"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>Alle</span></a>
+    </div>
+  </div>
+  <div class="menu">
+    <ul>
+      <li><a href="#">Start</a></li>
+      <li><a href="#so-funktionierts">So funktioniert’s</a></li>
+      <li><a href="#funktionen">Funktionen</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a class="hot" href="./">Dashboard</a></li>
+    </ul>
+  </div>
+  <div class="wrap">
 
     <header class="hero">
       <div>
-        <span class="pill">Live-Treffer in Echtzeit</span>
+        <span class="pill">Live Listings Monitor</span>
         <h1>Schnapp dir die besten Vinted-Deals, <em>bevor es andere tun.</em></h1>
         <p class="lead">watchr beobachtet Vinted rund um die Uhr für dich. Sobald ein neues Listing zu deiner Suche, deinem Budget und deiner Größe passt, siehst du es sofort im Dashboard.</p>
         <div class="ctas">
@@ -90,7 +138,7 @@
       </div>
 
       <div class="preview" aria-label="Beispielansicht des Dashboards">
-        <h3>Neue Treffer</h3>
+        <h3>Live Listings Monitor</h3>
         <div class="hit new"><div><b>Nike Dunk Low</b><small>Größe 43 · gerade eben</small></div><span class="price">65 €</span><span class="go">Ansehen</span></div>
         <div class="hit"><div><b>Adidas Samba</b><small>Größe 42 · vor 2 Min.</small></div><span class="price">45 €</span><span class="go">Ansehen</span></div>
         <div class="hit"><div><b>Stone Island Overshirt</b><small>Größe M · vor 5 Min.</small></div><span class="price">120 €</span><span class="go">Ansehen</span></div>
@@ -112,7 +160,7 @@
 
   <section>
     <div class="wrap">
-      <h2>Alles, was du zum Zuschlagen brauchst</h2>
+      <h2 id="funktionen">Alles, was du zum Zuschlagen brauchst</h2>
       <p class="sub">Schlank, schnell und auf das Wesentliche reduziert.</p>
       <div class="grid">
         <div class="card"><div class="icon">⚡</div><h3>Echtzeit-Dashboard</h3><p>Treffer werden per WebSocket direkt in deinen Browser gepusht. Kein Aktualisieren, kein Warten.</p></div>
@@ -127,7 +175,7 @@
 
   <section>
     <div class="wrap">
-      <h2>Häufige Fragen</h2>
+      <h2 id="faq">Häufige Fragen</h2>
       <details><summary>Wie schnell sehe ich neue Listings?</summary><p>Der Watcher prüft deine Suchen etwa einmal pro Minute. Neue Treffer stehen danach sofort in deinem Dashboard.</p></details>
       <details><summary>Wie viele Suchaufträge kann ich anlegen?</summary><p>So viele du möchtest. Für eine schnelle Prüfung empfehlen wir aber, dich auf die Suchen zu konzentrieren, die dir wirklich wichtig sind.</p></details>
       <details><summary>Kauft der Watcher automatisch für mich?</summary><p>Nein. watchr findet die Angebote, die Entscheidung und den Kauf machst du selbst auf Vinted.</p></details>

@@ -99,6 +99,14 @@ $("search-form").addEventListener("submit", async (e) => {
   }
 });
 
+// Suchbegriff aus der Landingpage übernehmen (z. B. /?q=Sneaker)
+const presetQuery = new URLSearchParams(location.search).get("q");
+if (presetQuery) {
+  const form = $("search-form");
+  form.query.value = presetQuery;
+  form.maxPrice.focus();
+}
+
 // Browser-Benachrichtigungen (optional)
 function notify(h) {
   if (!("Notification" in window) || Notification.permission !== "granted" || document.hasFocus()) return;
