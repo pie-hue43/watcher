@@ -16,7 +16,9 @@
     .hero h1 .free { display: block; color: var(--green-deep); }
     .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--green) 62%); }
     .hero { align-items: center; }
-    .snipe-big-wrap { display: grid; place-items: center; min-height: 360px; }
+    .snipe-big-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 56px; min-height: 420px; }
+    .how-btn { min-width: 220px; background: rgba(255,255,255,.7); }
+    .ctas.ctas-mobile { display: none; }
     .snipe-big { position: relative; width: 300px; height: 300px; border-radius: 50%; background: var(--green); color: #000; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
       font-family: var(--font-display); font-weight: 800; font-size: 34px; letter-spacing: -.01em; box-shadow: 0 0 0 14px rgba(134,239,172,.35), 0 0 0 30px rgba(134,239,172,.15), 0 24px 50px rgba(21,128,61,.25); transition: transform .2s, box-shadow .2s; }
     .snipe-big svg { width: 84px; height: 84px; }
@@ -24,7 +26,7 @@
     .snipe-big::after { content: ""; position: absolute; inset: -30px; border-radius: 50%; border: 2px solid rgba(21,128,61,.35); animation: ping 2.4s ease-out infinite; }
     @keyframes ping { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.15); opacity: 0; } }
     .snipe-mobile { display: none; margin-top: 0 !important; }
-    @media (max-width: 860px) { .snipe-big-wrap { display: none; } .snipe-mobile { display: inline-flex; } }
+    @media (max-width: 860px) { .snipe-big-wrap { display: none; } .snipe-mobile { display: inline-flex; } .ctas.ctas-mobile { display: flex; } }
     @media (prefers-reduced-motion: reduce) { .snipe-big::after { animation: none; } }
     .lead { font-size: 18px; color: var(--muted); max-width: 32em; margin: 0; }
     .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 0 20px; }
@@ -88,7 +90,7 @@
     <div class="wrap hero">
       <div>
         <h1>Every Vinted listing you want. <em>The moment it goes live.</em> <span class="free">Completely free.</span></h1>
-        <div class="ctas">
+        <div class="ctas ctas-mobile">
           <a class="btn snipe-now snipe-mobile" href="monitor.html"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>Snipe now</a>
           <a class="btn ghost" href="#how-it-works">See how it works</a>
         </div>
@@ -101,6 +103,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
           <span>Snipe now</span>
         </a>
+        <a class="btn ghost how-btn" href="#how-it-works">See how it works</a>
       </div>
     </div>
 
