@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" />
   <link rel="stylesheet" href="site.css" />
   <style>
-    .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: center; padding-block: 56px 64px; }
-    .hero h1 { font-size: clamp(38px, 5.4vw, 64px); margin: 16px 0; letter-spacing: -.02em; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: start; padding-block: 24px 64px; }
+    .hero h1 { font-size: clamp(38px, 5.4vw, 64px); margin: 0 0 16px; letter-spacing: -.02em; }
     .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--green) 62%); }
     .lead { font-size: 18px; color: var(--muted); max-width: 32em; margin: 0; }
     .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
@@ -60,7 +60,7 @@
     .final .card { background: var(--text); color: #fff; border: 0; padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .final h2 { font-size: clamp(30px, 4vw, 46px); }
     .final h2 span { display: block; color: var(--green); }
-    @media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); padding-top: 32px; } .hub { grid-template-columns: minmax(0, 1fr); } .cat { width: 88px; height: 88px; } .cat svg { width: 38px; height: 38px; top: 11px; } .cat span { font-size: 10px; } .cats { gap: 10px; } }
+    @media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); padding-top: 16px; } .hub { grid-template-columns: minmax(0, 1fr); } .cat { width: 88px; height: 88px; } .cat svg { width: 38px; height: 38px; top: 11px; } .cat span { font-size: 10px; } .cats { gap: 10px; } }
     @media (prefers-reduced-motion: reduce) { .cat { transition: none; } }
   </style>
 </head>
