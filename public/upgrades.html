@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Upgrades · watchr</title>
+  <meta name="description" content="watchr upgrades: Autobuy for 5 € a month, plus the Supplier Bundle and Premium Supplier Bundle, coming soon." />
+  <link rel="icon" href="logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    .page-head { padding-block: 24px 8px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+    .page-head h1 { font-size: clamp(34px, 4.6vw, 54px); letter-spacing: -.02em; }
+    .page-head h1 span { display: block; color: var(--muted); font-weight: 600; }
+    .page-head p { margin: 0; color: var(--muted); max-width: 40em; }
+    .plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+    .plan { position: relative; display: flex; flex-direction: column; gap: 14px; padding: 28px; border-radius: 20px; background: var(--bg); border: 1px solid var(--line); }
+    .plan.featured { background: var(--text); color: #fff; border: 0; box-shadow: 0 24px 50px rgba(21,128,61,.22); }
+    .plan.featured p, .plan.featured li { color: #d7e9dc; }
+    .plan.soon { background: rgba(255,255,255,.45); border: 2px dashed #9ccfae; }
+    .plan.soon > *:not(.plan-tag) { opacity: .62; }
+    .plan-tag { position: absolute; top: -13px; left: 24px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; background: var(--green); color: #000; }
+    .plan.soon .plan-tag { background: #fff; color: var(--green-deep); border: 2px dashed #9ccfae; }
+    .plan h2 { font-size: 26px; margin: 6px 0 0; }
+    .plan p { margin: 0; color: var(--muted); }
+    .price { font-family: var(--font-display); font-weight: 800; font-size: 44px; line-height: 1; }
+    .price small { font-family: var(--font-body); font-size: 15px; font-weight: 600; opacity: .75; margin-left: 4px; }
+    .plan ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .plan li { padding-left: 24px; position: relative; color: var(--muted); }
+    .plan li::before { content: "✓"; position: absolute; left: 0; font-weight: 800; color: var(--green-deep); }
+    .plan.featured li::before { color: var(--green); }
+    .plan .btn { margin-top: auto; width: 100%; }
+    .plan.soon .btn { background: transparent; border: 2px dashed #9ccfae; color: var(--muted); cursor: not-allowed; }
+    .plan .btn[disabled] { cursor: not-allowed; }
+    .plan .fine { font-size: 13px; }
+    .free-note { margin-top: 24px; padding: 16px 20px; border-radius: 14px; background: var(--green-soft); border: 1px solid #c7f0d4; }
+    @media (max-width: 960px) { .plans { grid-template-columns: minmax(0, 1fr); } }
+  </style>
+</head>
+  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Designer &amp; archive pieces</span><span>Resale estimate on every listing</span><span>Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Designer &amp; archive pieces</span><span aria-hidden="true">Resale estimate on every listing</span><span aria-hidden="true">Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="features.html">Features</a><a href="how-it-works.html">How it works</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <a class="btn small upgrades-btn" aria-current="page" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <div class="page-head">
+        <span class="eyebrow">Upgrades</span>
+        <h1>The sniper stays free.<span>Upgrades make it faster.</span></h1>
+        <p>Everything you've used so far stays 100% free. Upgrades are optional extras for resellers who want more.</p>
+      </div>
+    </div>
+    <section class="plans-section" style="padding-top:32px">
+      <div class="wrap">
+        <div class="plans">
+          <div class="plan featured" id="autobuy">
+            <span class="plan-tag">Upgrade</span>
+            <h2>Autobuy</h2>
+            <div class="price">5 €<small>/ month</small></div>
+            <p>watchr buys matching listings for you the second they go live, so nobody else gets them first.</p>
+            <ul>
+              <li>Instant purchase on your Live Sniper matches</li>
+              <li>Your own rules: max price, minimum net profit, verdict</li>
+              <li>Daily spending limit so you stay in control</li>
+              <li>Cancel any time</li>
+            </ul>
+            <button class="btn" type="button" id="autobuy-btn">Get Autobuy · 5 € / month</button>
+            <p class="fine" id="autobuy-msg" hidden>Payments open soon. We'll switch Autobuy on for you as soon as checkout is live.</p>
+          </div>
+          <div class="plan soon">
+            <span class="plan-tag">Not available yet</span>
+            <h2>Supplier Bundle</h2>
+            <div class="price">20 €<small>one-time</small></div>
+            <p>The 20 best suppliers for reselling, handpicked and checked, so you can buy stock cheaper and in bulk.</p>
+            <ul>
+              <li>20 checked suppliers</li>
+              <li>Contacts and what each one is best for</li>
+              <li>Free updates to the list</li>
+            </ul>
+            <button class="btn" type="button" disabled>Coming soon</button>
+          </div>
+          <div class="plan soon">
+            <span class="plan-tag">Not available yet</span>
+            <h2>Premium Supplier Bundle</h2>
+            <div class="price">40 €<small>one-time</small></div>
+            <p>30 premium suppliers for designer and archive pieces, for the items with the biggest margins.</p>
+            <ul>
+              <li>30 premium suppliers</li>
+              <li>Designer and archive sources</li>
+              <li>Includes the Supplier Bundle</li>
+            </ul>
+            <button class="btn" type="button" disabled>Coming soon</button>
+          </div>
+        </div>
+        <p class="free-note">Live Sniper, Flips, snipe categories, the flip analysis and all AI Tools stay free, with or without an upgrade.</p>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+          <p class="muted">The live sniper for Vinted. watchr spots new listings that match your preferences and shows them the moment they go live.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="features.html">Features</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
+        </div>
+        <div>
+          <h4>Help</h4>
+          <ul><li><a href="how-it-works.html">How it works</a></li><li><a href="faq.html">FAQ</a></li><li><a href="features.html#embed">Use it on your website</a></li></ul>
+        </div>
+      </div>
+      <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
+    </div>
+  </footer>
+  <script>
+    document.getElementById("autobuy-btn").addEventListener("click", () => { document.getElementById("autobuy-msg").hidden = false; });
+  </script>
+</body>
+</html>
