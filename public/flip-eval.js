@@ -18,8 +18,9 @@
     return "low";
   }
 
-  const LEVELS = ["skip", "thin", "good", "strong"];
-  const LABEL = { strong: "Strong flip", good: "Good flip", thin: "Thin margin", skip: "No flip" };
+  // Seltenheitsstufen wie in Games: Common (kein Gewinn) bis Legendary
+  const LEVELS = ["common", "good", "rare", "epic", "legendary"];
+  const LABEL = { common: "Common", good: "Good", rare: "Rare", epic: "Epic", legendary: "Legendary" };
 
   function evaluate(h, costs = COSTS) {
     if (!h || !h.resaleEstimate || !(h.price > 0)) return null;
@@ -33,7 +34,7 @@
     const profitHigh = r2(saleHigh - cost);
     const roi = Math.round((profit / cost) * 100);
     const confidence = confidenceOf(h);
-    let level = profit >= 30 && roi >= 50 ? 3 : profit >= 10 && roi >= 20 ? 2 : profit > 0 ? 1 : 0;
+    let level = profit >= 100 && roi >= 80 ? 4 : profit >= 30 && roi >= 50 ? 3 : profit >= 10 && roi >= 20 ? 2 : profit > 0 ? 1 : 0;
     // unsichere Schätzung: eine Stufe vorsichtiger, außer der schlechteste Fall ist trotzdem im Plus
     if (confidence === "low" && level > 1 && profitLow <= 0) level -= 1;
     const verdict = LEVELS[level];
@@ -50,21 +51,19 @@
     const evals = hits.map((h) => ({ h, e: evaluate(h) })).filter((x) => x.e);
     const positive = evals.filter((x) => x.e.profit > 0);
     const count = (v) => evals.filter((x) => x.e.verdict === v).length;
+    const byRarity = Object.fromEntries(LEVELS.map((v) => [v, count(v)]));
     return {
       evaluated: evals.length,
       unpriced: hits.length - evals.length,
       potential: r2(positive.reduce((s, x) => s + x.e.profit, 0)),
       invest: r2(positive.reduce((s, x) => s + x.e.cost, 0)),
       avgRoi: positive.length ? Math.round(positive.reduce((s, x) => s + x.e.roi, 0) / positive.length) : null,
-      strong: count("strong"),
-      good: count("good"),
-      thin: count("thin"),
-      skip: count("skip"),
+      byRarity,
       ranked: evals.sort((a, b) => b.e.profit - a.e.profit),
     };
   }
 
-  const api = { COSTS, evaluate, summarize };
+  const api = { COSTS, LEVELS, LABEL, evaluate, summarize };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.watchrEval = api;
 })(typeof window !== "undefined" ? window : globalThis);

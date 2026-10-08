@@ -20,23 +20,25 @@ test("Flip-Auswertung rechnet Gebühren, Versand und realistischen Verkaufspreis
   assert.equal(e.profitHigh, 129.8);
   assert.equal(e.roi, 63);
   assert.equal(e.confidence, "high");
-  assert.equal(e.verdict, "strong");
+  assert.equal(e.verdict, "epic"); // +69,80 € bei 63 %
+  assert.equal(evaluate(hit({ price: 60, resaleEstimate: 250 })).verdict, "legendary");
 });
 
 test("Flip-Auswertung: Stufen, Unsicherheit und fehlender Resellpreis", () => {
   assert.equal(evaluate(hit({ resaleEstimate: null })), null);
-  assert.equal(evaluate(hit({ price: 180 })).verdict, "skip");
-  assert.equal(evaluate(hit({ price: 160 })).verdict, "thin");
-  assert.equal(evaluate(hit({ price: 150 })).verdict, "thin");
-  assert.equal(evaluate(hit({ price: 130 })).verdict, "good");
+  assert.equal(evaluate(hit({ price: 180 })).verdict, "common");
+  assert.equal(evaluate(hit({ price: 160 })).verdict, "good");
+  assert.equal(evaluate(hit({ price: 150 })).verdict, "good");
+  assert.equal(evaluate(hit({ price: 130 })).verdict, "rare");
   // wenige Vergleiche und schlechtester Fall im Minus -> eine Stufe vorsichtiger
   const unsure = evaluate(hit({ price: 115, resaleLow: 100, resaleSamples: 4 }));
   assert.equal(unsure.confidence, "low");
-  assert.equal(unsure.verdict, "thin");
+  assert.equal(unsure.verdict, "good");
   const s = summarize([hit({}), hit({ price: 160 }), hit({ resaleEstimate: null })]);
   assert.equal(s.evaluated, 2);
   assert.equal(s.unpriced, 1);
-  assert.equal(s.strong, 1);
+  assert.equal(s.byRarity.epic, 1);
+  assert.equal(s.byRarity.good, 1);
   assert.equal(s.potential, 76.6); // 69,80 + 6,80
-  assert.equal(s.ranked[0].e.verdict, "strong");
+  assert.equal(s.ranked[0].e.verdict, "epic");
 });

@@ -30,7 +30,8 @@ function markOpened(h) {
 }
 
 function hitNode(h, fresh) {
-  const li = el("li", "listing" + (fresh ? " fresh" : ""));
+  const ev = watchrEval.evaluate(h);
+  const li = el("li", "listing" + (fresh ? " fresh" : "") + (ev ? " r-" + ev.verdict : ""));
   const link = (cls, text) => {
     const a = el("a", cls, text);
     a.href = h.url;
@@ -116,9 +117,9 @@ function renderAnalysis() {
   $("an-potential").textContent = fmtPrice(s.potential);
   $("an-invest").textContent = fmtPrice(s.invest);
   $("an-roi").textContent = s.avgRoi == null ? "–" : `${s.avgRoi}%`;
-  $("an-strong").textContent = String(s.strong);
+  $("an-strong").textContent = String(s.byRarity.epic + s.byRarity.legendary);
   $("an-mix").replaceChildren(
-    ...[["strong", s.strong], ["good", s.good], ["thin", s.thin], ["skip", s.skip]].map(([v, n]) => el("span", "verdict v-" + v, `${n} ${{ strong: "strong", good: "good", thin: "thin", skip: "no flip" }[v]}`)),
+    ...[...watchrEval.LEVELS].reverse().map((v) => el("span", "verdict v-" + v, `${s.byRarity[v]} ${watchrEval.LABEL[v]}`)),
     ...(s.unpriced ? [el("span", "muted", `${s.unpriced} without resale estimate`)] : []),
   );
   const body = $("an-top");
@@ -144,6 +145,25 @@ function renderAnalysis() {
     }),
   );
   $("analysis").hidden = s.evaluated === 0;
+  renderLeaderboard();
+}
+
+// Leaderboard: die besten Flips des Tages nach Netto-Gewinn
+function renderLeaderboard() {
+  const today = watchrEval.summarize(hits.filter((h) => isToday(h.detectedAt))).ranked.filter(({ e }) => e.profit > 0).slice(0, 10);
+  $("leaderboard").hidden = today.length === 0;
+  $("lb-list").replaceChildren(
+    ...today.map(({ h, e }, i) => {
+      const li = el("li", `lb-row r-${e.verdict}` + (i < 3 ? ` podium p${i + 1}` : ""));
+      li.append(el("span", "lb-rank", i < 3 ? ["🥇", "🥈", "🥉"][i] : String(i + 1)));
+      const name = el("div", "lb-name");
+      const a = Object.assign(el("a", null, h.title), { href: h.url, target: "_blank", rel: "noopener" });
+      a.addEventListener("click", () => markOpened(h));
+      name.append(a, el("span", "meta", `${fmtPrice(h.price, h.currency)} → ~${fmtPrice(e.sale, h.currency)} · ${fmtTime(h.detectedAt)}`));
+      li.append(name, el("span", "verdict v-" + e.verdict, e.label), el("span", "lb-profit", fmtDiff(e.profit, h.currency)), el("span", "lb-roi", `${e.roi}%`));
+      return li;
+    }),
+  );
 }
 
 function renderStats() {
@@ -319,6 +339,8 @@ function showDemo() {
     ex(-4, "Maison Margiela Tabi boots", "Maison Margiela", "41", 210, 380, 290, 470, 22, 31, 65, "Maison Margiela"),
     ex(-5, "Nike Dunk Low Panda", "Nike", "43", 65, 85, 75, 95, 60, 44, null, null),
     ex(-6, "Stone Island crewneck knit", "Stone Island", "L", 110, 140, 95, 190, 7, 58, null, null),
+    ex(-7, "Carhartt Detroit jacket", "Carhartt", "L", 60, 110, 90, 135, 34, 75, null, null),
+    ex(-8, "Prada Re-Edition 2005 bag", "Prada", null, 380, 400, 340, 480, 18, 96, 40, "Prada"),
   ];
   renderHits();
   $("demo-note").hidden = false;
