@@ -4,12 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Snipe Dashboard</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+  <link rel="icon" href="logo.svg" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>Snipe Dashboard</h1>
+    <h1><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f14187"/><stop offset="1" stop-color="#ee5544"/></linearGradient></defs><rect width="80" height="80" rx="20" fill="url(#lg)"/><circle cx="40" cy="40" r="20" fill="none" stroke="#fff" stroke-width="6"/><path d="M40 10v14M40 56v14M10 40h14M56 40h14" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="40" cy="40" r="5" fill="#fff"/></svg> Snipe Dashboard</h1>
     <div class="header-actions">
       <button id="notify-btn" class="ghost" type="button">🔔 Benachrichtigungen</button>
       <span id="conn" class="conn off">Verbinde…</span>
@@ -18,7 +18,7 @@
 
   <main>
     <section class="panel">
-      <h2>🔥 Neue Treffer <span id="hit-count" class="muted"></span></h2>
+      <h2>Neue Treffer <span id="hit-count" class="muted"></span></h2>
       <ul id="hits" class="hits"></ul>
       <p id="hits-empty" class="empty">Noch keine Treffer. Sobald der Watcher ein neues Listing findet, erscheint es hier sofort.</p>
     </section>

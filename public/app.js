@@ -102,9 +102,9 @@ $("search-form").addEventListener("submit", async (e) => {
 // Browser-Benachrichtigungen (optional)
 function notify(h) {
   if (!("Notification" in window) || Notification.permission !== "granted" || document.hasFocus()) return;
-  const n = new Notification(`🔥 Neuer Treffer: ${h.title}`, {
+  const n = new Notification(`Neuer Treffer: ${h.title}`, {
     body: [fmtPrice(h.price, h.currency), h.size && `Größe ${h.size}`].filter(Boolean).join(" — "),
-    icon: h.photoUrl || undefined,
+    icon: h.photoUrl || "logo.svg",
   });
   n.onclick = () => window.open(h.url, "_blank");
 }
