@@ -31,7 +31,7 @@ Tests: `npm test` (spielt Watcher → Backend → DB → WebSocket einmal komple
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/api/searches` | Suchaufträge |
-| POST | `/api/searches` | `{ "query": "Nike Dunk", "maxPrice": 80, "size": "43" }` |
+| POST | `/api/searches` | `{ "query": "Nike Dunk", "minPrice": 30, "maxPrice": 80, "size": "43", "condition": "very_good" }` (condition: `new_tags`, `new`, `very_good`, `good` oder leer) |
 | PATCH | `/api/searches/:id` | z. B. `{ "active": false }` zum Pausieren |
 | DELETE | `/api/searches/:id` | löschen |
 | GET | `/api/hits?limit=50` | letzte Treffer |

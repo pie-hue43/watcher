@@ -15,13 +15,14 @@ const listing = (id: string, price: number, size: string | null): Listing => ({
 });
 
 test("matches: Preis und Größe", () => {
-  const s: Search = { id: 1, query: "nike", maxPrice: 80, size: "43", active: true, createdAt: "" };
+  const s: Search = { id: 1, query: "nike", minPrice: null, maxPrice: 80, size: "43", condition: null, active: true, createdAt: "" };
   assert.equal(matches(s, listing("1", 65, "43")), true);
   assert.equal(matches(s, listing("2", 85, "43")), false);
   assert.equal(matches(s, listing("3", 65, "42")), false);
   assert.equal(matches(s, listing("4", 65, "EU 43")), true);
   assert.equal(matches({ ...s, size: "M" }, listing("5", 50, "M / 38 / 10")), true);
   assert.equal(matches({ ...s, size: "42,5" }, listing("6", 50, "42.5")), true);
+  assert.equal(matches({ ...s, minPrice: 60 }, listing("7", 50, "43")), false);
 });
 
 test("Watcher → Backend → Datenbank → WebSocket", async () => {
@@ -33,9 +34,12 @@ test("Watcher → Backend → Datenbank → WebSocket", async () => {
   // Suchauftrag per API anlegen
   const created = await fetch(`${base}/api/searches`, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query: "Nike Dunk", maxPrice: 80, size: "43" }),
+    body: JSON.stringify({ query: "Nike Dunk", minPrice: 20, maxPrice: 80, size: "43", condition: "very_good" }),
   });
   assert.equal(created.status, 201);
+  const createdSearch = await created.json();
+  assert.equal(createdSearch.minPrice, 20);
+  assert.equal(createdSearch.condition, "very_good");
 
   // Dashboard verbindet sich per WebSocket
   const ws = new WebSocket(`${base.replace("http", "ws")}/ws`);

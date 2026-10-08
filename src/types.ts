@@ -1,7 +1,13 @@
+export const CONDITIONS = ["new_tags", "new", "very_good", "good"] as const;
+export type Condition = (typeof CONDITIONS)[number];
+
 export interface Search {
   id: number;
   query: string;
+  minPrice: number | null;
   maxPrice: number | null;
+  /** Mindestzustand: new_tags, new, very_good, good (null = egal) */
+  condition: Condition | null;
   size: string | null;
   active: boolean;
   createdAt: string;

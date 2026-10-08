@@ -48,7 +48,7 @@ export class Watcher {
     for (const [i, s] of searches.entries()) {
       if (this.stopped) break;
       if (i > 0) await sleep(jitter(3000)); // höflich: Anfragen nicht bündeln
-      const key = `${s.id}|${s.query}|${s.maxPrice}|${s.size}`;
+      const key = `${s.id}|${s.query}|${s.minPrice}|${s.maxPrice}|${s.size}|${s.condition}`;
       const listings = await this.source.search(s);
       const firstRun = !this.seen.has(key);
       const seen = this.seen.get(key) ?? new Set<string>();

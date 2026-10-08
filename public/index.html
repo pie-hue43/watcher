@@ -26,9 +26,17 @@
     <section class="panel">
       <h2>Meine Suchaufträge</h2>
       <form id="search-form" class="search-form">
-        <input name="query" placeholder="Suchbegriff, z. B. Nike Dunk" required maxlength="200" />
-        <input name="maxPrice" type="number" min="1" step="1" placeholder="Max. €" />
-        <input name="size" placeholder="Größe" maxlength="40" />
+        <input id="f-query" name="query" placeholder="Suchbegriff, z. B. Nike Dunk" required maxlength="200" />
+        <input id="f-min" name="minPrice" type="number" min="1" step="1" placeholder="Min. €" aria-label="Mindestpreis" />
+        <input id="f-max" name="maxPrice" type="number" min="1" step="1" placeholder="Max. €" aria-label="Maximalpreis" />
+        <input id="f-size" name="size" placeholder="Größe" maxlength="40" aria-label="Größe" />
+        <select id="f-cond" name="condition" aria-label="Zustand">
+          <option value="">Zustand egal</option>
+          <option value="new_tags">Neu mit Etikett</option>
+          <option value="new">Neu</option>
+          <option value="very_good">Sehr gut oder besser</option>
+          <option value="good">Gut oder besser</option>
+        </select>
         <button type="submit">+ Hinzufügen</button>
       </form>
       <p id="form-error" class="error" hidden></p>

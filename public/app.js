@@ -9,6 +9,8 @@ const fmtPrice = (p, cur) =>
   new Intl.NumberFormat("de-DE", { style: "currency", currency: cur || "EUR", maximumFractionDigits: p % 1 ? 2 : 0 }).format(p);
 const fmtTime = (iso) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
+const CONDITION_LABELS = { new_tags: "Neu mit Etikett", new: "Neu", very_good: "ab sehr gut", good: "ab gut" };
+
 let hits = [];
 let searches = [];
 
@@ -60,7 +62,11 @@ function renderSearches() {
       q.textContent = s.query;
       const f = document.createElement("span");
       f.className = "f";
-      f.textContent = [s.maxPrice != null && `Max. ${fmtPrice(s.maxPrice, "EUR")}`, s.size && `Gr. ${s.size}`]
+      const priceText =
+        s.minPrice != null && s.maxPrice != null ? `${fmtPrice(s.minPrice, "EUR")}–${fmtPrice(s.maxPrice, "EUR")}`
+        : s.maxPrice != null ? `Max. ${fmtPrice(s.maxPrice, "EUR")}`
+        : s.minPrice != null ? `ab ${fmtPrice(s.minPrice, "EUR")}` : null;
+      f.textContent = [priceText, s.size && `Gr. ${s.size}`, s.condition && CONDITION_LABELS[s.condition]]
         .filter(Boolean)
         .join(" · ");
       const toggle = document.createElement("button");
@@ -72,7 +78,10 @@ function renderSearches() {
       del.textContent = "✕";
       del.title = "Löschen";
       del.onclick = () => confirm(`Suchauftrag „${s.query}“ löschen?`) && api(`/api/searches/${s.id}`, "DELETE");
-      li.append(q, f, toggle, del);
+      const txt = document.createElement("div");
+      txt.className = "txt";
+      txt.append(q, f);
+      li.append(txt, toggle, del);
       return li;
     }),
   );
@@ -96,7 +105,9 @@ $("search-form").addEventListener("submit", async (e) => {
   try {
     await api("/api/searches", "POST", {
       query: fd.get("query"),
+      minPrice: fd.get("minPrice") || null,
       maxPrice: fd.get("maxPrice") || null,
+      condition: fd.get("condition") || null,
       size: fd.get("size") || null,
     });
     e.target.reset();
@@ -107,11 +118,17 @@ $("search-form").addEventListener("submit", async (e) => {
 });
 
 // Suchbegriff aus der Landingpage übernehmen (z. B. /?q=Sneaker)
-const presetQuery = new URLSearchParams(location.search).get("q");
-if (presetQuery) {
+// Filter aus der Suchleiste der Landingpage übernehmen (z. B. /?q=Sneaker&max=80&size=43&cond=new)
+{
+  const params = new URLSearchParams(location.search);
   const form = $("search-form");
-  form.query.value = presetQuery;
-  form.maxPrice.focus();
+  const map = { q: "query", min: "minPrice", max: "maxPrice", size: "size", cond: "condition" };
+  let any = false;
+  for (const [param, field] of Object.entries(map)) {
+    const v = params.get(param);
+    if (v) { form[field].value = v; any = true; }
+  }
+  if (any) form.querySelector("button").focus();
 }
 
 // Browser-Benachrichtigungen (optional)

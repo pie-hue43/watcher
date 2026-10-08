@@ -101,6 +101,18 @@
     .pics i.t1 { background: #f6eef2; } .pics i.t2 { background: #fbe4dd; }
     .pics svg { width: 22px; height: 22px; }
     @media (max-width: 520px) { .hit { grid-template-columns: minmax(0,1fr) auto auto; } .pics { grid-column: 1 / -1; } }
+    /* Suchleiste */
+    .finder { display: grid; grid-template-columns: 2fr repeat(6, minmax(0, 1fr)) auto; gap: 10px; align-items: end;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin: 4px 0 8px; }
+    .finder label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .finder label span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .finder input, .finder select { font: inherit; font-size: 15px; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+      border-radius: 8px; padding: 0 10px; height: 42px; min-width: 0; width: 100%; }
+    .finder input:focus, .finder select:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
+    .finder .btn { border: 0; cursor: pointer; font: inherit; font-weight: 700; height: 42px; padding: 0 18px; white-space: nowrap; }
+    .f-err { grid-column: 1 / -1; margin: 0; color: #b4232f; font-size: 14px; }
+    @media (max-width: 980px) { .finder { grid-template-columns: repeat(3, minmax(0, 1fr)); } .finder .f-q { grid-column: 1 / -1; } .finder .btn { grid-column: span 2; } }
+    @media (max-width: 520px) { .finder { grid-template-columns: repeat(2, minmax(0, 1fr)); } .finder .btn { grid-column: 1 / -1; } }
   </style>
 </head>
 <body>
@@ -117,6 +129,17 @@
       <a class="cat" href="./"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>Alle</span></a>
     </div>
     </nav>
+    <form class="finder" id="finder" aria-label="Artikel genauer suchen">
+      <label class="f-q"><span>Was suchst du?</span><input id="s-q" name="q" placeholder="z. B. Dunk Low Panda" maxlength="120" /></label>
+      <label><span>Kategorie</span><select id="s-cat" name="cat"><option value="">Alle</option><option>Sneaker</option><option>Jacke</option><option>Hose</option><option>Pullover</option><option>Tasche</option></select></label>
+      <label><span>Marke</span><input id="s-brand" name="brand" placeholder="z. B. Nike" maxlength="60" /></label>
+      <label><span>Größe</span><input id="s-size" name="size" placeholder="z. B. 43" maxlength="40" /></label>
+      <label><span>Preis von</span><input id="s-min" name="min" type="number" min="1" step="1" placeholder="€" /></label>
+      <label><span>Preis bis</span><input id="s-max" name="max" type="number" min="1" step="1" placeholder="€" /></label>
+      <label><span>Zustand</span><select id="s-cond" name="cond"><option value="">Egal</option><option value="new_tags">Neu mit Etikett</option><option value="new">Neu</option><option value="very_good">Sehr gut oder besser</option><option value="good">Gut oder besser</option></select></label>
+      <button class="btn" type="submit">Live suchen</button>
+      <p class="f-err" id="s-err" hidden></p>
+    </form>
   </div>
   <div class="wrap">
 
@@ -191,5 +214,24 @@
       © 2026 watchr. Ein unabhängiges Projekt, nicht mit Vinted verbunden oder von Vinted unterstützt. „Vinted“ ist eine Marke der Vinted UAB.
     </div>
   </footer>
+  <script>
+    // Suchleiste: Filter ans Dashboard übergeben, dort wird daraus ein Suchauftrag
+    document.getElementById("finder").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const f = e.target, err = document.getElementById("s-err");
+      // Die Kategorie nur als Suchwort nutzen, wenn sonst nichts angegeben ist (Titel enthalten selten „Sneaker“)
+      const q = [f.brand.value.trim(), f.q.value.trim()].filter(Boolean).join(" ") || f.cat.value;
+      const min = Number(f.min.value), max = Number(f.max.value);
+      err.hidden = true;
+      if (!q) { err.textContent = "Gib einen Suchbegriff, eine Marke oder eine Kategorie an."; err.hidden = false; return; }
+      if (min && max && min > max) { err.textContent = "„Preis von“ ist höher als „Preis bis“. Bitte tausch die Werte."; err.hidden = false; return; }
+      const p = new URLSearchParams({ q });
+      if (min) p.set("min", String(min));
+      if (max) p.set("max", String(max));
+      if (f.size.value.trim()) p.set("size", f.size.value.trim());
+      if (f.cond.value) p.set("cond", f.cond.value);
+      location.href = "./?" + p.toString();
+    });
+  </script>
 </body>
 </html>

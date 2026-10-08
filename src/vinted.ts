@@ -1,4 +1,12 @@
-import type { Search } from "./types.ts";
+import type { Condition, Search } from "./types.ts";
+
+/** Vinted-Zustands-IDs: 6 = neu mit Etikett, 1 = neu ohne Etikett, 2 = sehr gut, 3 = gut. */
+const STATUS_IDS: Record<Condition, number[]> = {
+  new_tags: [6],
+  new: [6, 1],
+  very_good: [6, 1, 2],
+  good: [6, 1, 2, 3],
+};
 
 /** Ein Listing, so wie der Watcher es aus der Datenquelle liest. */
 export interface Listing {
@@ -67,7 +75,9 @@ export class VintedSource implements Source {
       per_page: "30",
       page: "1",
     });
+    if (s.minPrice) params.set("price_from", String(s.minPrice));
     if (s.maxPrice) params.set("price_to", String(s.maxPrice));
+    for (const id of s.condition ? STATUS_IDS[s.condition] : []) params.append("status_ids[]", String(id));
 
     const res = await fetch(`https://${this.domain}/api/v2/catalog/items?${params}`, {
       headers: {
@@ -139,6 +149,7 @@ export class MockSource implements Source {
 /** Prüft, ob ein Listing zu Preis- und Größenfilter des Suchauftrags passt. */
 export function matches(s: Search, l: Listing): boolean {
   if (!Number.isFinite(l.price)) return false;
+  if (s.minPrice != null && l.price < s.minPrice) return false;
   if (s.maxPrice != null && l.price > s.maxPrice) return false;
   if (s.size) {
     if (!l.size) return false;

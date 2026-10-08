@@ -32,6 +32,9 @@ export function openDb(path: string) {
     );
     CREATE INDEX IF NOT EXISTS hits_detected_at ON hits(detected_at DESC);
   `);
+  const searchCols = (db.prepare("PRAGMA table_info(searches)").all() as { name: string }[]).map((c) => c.name);
+  if (!searchCols.includes("min_price")) db.exec("ALTER TABLE searches ADD COLUMN min_price REAL");
+  if (!searchCols.includes("condition")) db.exec("ALTER TABLE searches ADD COLUMN condition TEXT");
   // Ältere Datenbanken: Spalte für mehrere Bilder nachrüsten
   const cols = db.prepare("PRAGMA table_info(hits)").all() as { name: string }[];
   if (!cols.some((c) => c.name === "photo_urls")) db.exec("ALTER TABLE hits ADD COLUMN photo_urls TEXT");
@@ -39,7 +42,9 @@ export function openDb(path: string) {
   const toSearch = (r: any): Search => ({
     id: r.id,
     query: r.query,
+    minPrice: r.min_price ?? null,
     maxPrice: r.max_price,
+    condition: r.condition ?? null,
     size: r.size,
     active: !!r.active,
     createdAt: r.created_at,
@@ -70,20 +75,22 @@ export function openDb(path: string) {
       const r = db.prepare("SELECT * FROM searches WHERE id = ?").get(id);
       return r ? toSearch(r) : null;
     },
-    createSearch(query: string, maxPrice: number | null, size: string | null): Search {
+    createSearch(f: Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition">): Search {
       const res = db
-        .prepare("INSERT INTO searches (query, max_price, size, created_at) VALUES (?, ?, ?, ?)")
-        .run(query, maxPrice, size, new Date().toISOString());
+        .prepare("INSERT INTO searches (query, min_price, max_price, size, condition, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+        .run(f.query, f.minPrice, f.maxPrice, f.size, f.condition, new Date().toISOString());
       return this.getSearch(Number(res.lastInsertRowid))!;
     },
-    updateSearch(id: number, patch: Partial<Pick<Search, "query" | "maxPrice" | "size" | "active">>): Search | null {
+    updateSearch(id: number, patch: Partial<Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition" | "active">>): Search | null {
       const cur = this.getSearch(id);
       if (!cur) return null;
       const next = { ...cur, ...patch };
-      db.prepare("UPDATE searches SET query = ?, max_price = ?, size = ?, active = ? WHERE id = ?").run(
+      db.prepare("UPDATE searches SET query = ?, min_price = ?, max_price = ?, size = ?, condition = ?, active = ? WHERE id = ?").run(
         next.query,
+        next.minPrice,
         next.maxPrice,
         next.size,
+        next.condition,
         next.active ? 1 : 0,
         id,
       );

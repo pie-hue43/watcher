@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { WebSocketServer, WebSocket } from "ws";
 import { config } from "./config.ts";
 import { openDb, type Db } from "./db.ts";
-import type { HitInput, ServerMessage } from "./types.ts";
+import { CONDITIONS, type Condition, type HitInput, type ServerMessage } from "./types.ts";
 
 const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
 const MIME: Record<string, string> = {
@@ -35,15 +35,27 @@ async function readJson(req: http.IncomingMessage): Promise<any> {
 }
 
 function parseSearchBody(b: any, partial: boolean) {
-  const out: { query?: string; maxPrice?: number | null; size?: string | null; active?: boolean } = {};
+  const out: {
+    query?: string; minPrice?: number | null; maxPrice?: number | null;
+    size?: string | null; condition?: Condition | null; active?: boolean;
+  } = {};
   if (b.query !== undefined || !partial) {
     if (typeof b.query !== "string" || !b.query.trim()) throw new HttpError(400, "query fehlt");
     out.query = b.query.trim().slice(0, 200);
   }
-  if (b.maxPrice !== undefined) {
-    if (b.maxPrice === null || b.maxPrice === "") out.maxPrice = null;
-    else if (Number.isFinite(Number(b.maxPrice)) && Number(b.maxPrice) > 0) out.maxPrice = Number(b.maxPrice);
-    else throw new HttpError(400, "maxPrice muss eine positive Zahl sein");
+  const price = (v: any, name: string) => {
+    if (v === null || v === "") return null;
+    if (Number.isFinite(Number(v)) && Number(v) > 0) return Number(v);
+    throw new HttpError(400, `${name} muss eine positive Zahl sein`);
+  };
+  if (b.minPrice !== undefined) out.minPrice = price(b.minPrice, "minPrice");
+  if (b.maxPrice !== undefined) out.maxPrice = price(b.maxPrice, "maxPrice");
+  if (out.minPrice != null && out.maxPrice != null && out.minPrice > out.maxPrice)
+    throw new HttpError(400, "Der Mindestpreis ist höher als der Maximalpreis");
+  if (b.condition !== undefined) {
+    if (b.condition === null || b.condition === "") out.condition = null;
+    else if ((CONDITIONS as readonly string[]).includes(b.condition)) out.condition = b.condition;
+    else throw new HttpError(400, "Unbekannter Zustand");
   }
   if (b.size !== undefined) out.size = typeof b.size === "string" && b.size.trim() ? b.size.trim().slice(0, 40) : null;
   if (b.active !== undefined) out.active = !!b.active;
@@ -109,7 +121,10 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
         if (path === "/searches" && req.method === "GET") return send(200, db.listSearches());
         if (path === "/searches" && req.method === "POST") {
           const b = parseSearchBody(await readJson(req), false);
-          const s = db.createSearch(b.query!, b.maxPrice ?? null, b.size ?? null);
+          const s = db.createSearch({
+            query: b.query!, minPrice: b.minPrice ?? null, maxPrice: b.maxPrice ?? null,
+            size: b.size ?? null, condition: b.condition ?? null,
+          });
           broadcastSearches();
           return send(201, s);
         }
