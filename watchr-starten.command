@@ -5,6 +5,11 @@ if ! command -v node >/dev/null; then
   echo "Node.js fehlt. Bitte die LTS-Version von https://nodejs.org installieren und danach erneut starten."
   open https://nodejs.org; read -r; exit 1
 fi
+if ! node -e "const [a,b]=process.versions.node.split('.').map(Number);process.exit(a>22||(a===22&&b>=13)?0:1)"; then
+  echo "Deine Node.js-Version ist $(node -v). watchr braucht 22.13 oder neuer."
+  echo "Bitte die aktuelle LTS-Version von https://nodejs.org installieren und danach erneut starten."
+  open https://nodejs.org; read -r; exit 1
+fi
 if [ ! -f .env ]; then
   sed "s/WATCHER_TOKEN=bitte-aendern/WATCHER_TOKEN=watchr-$RANDOM$RANDOM$RANDOM/" .env.example > .env
   echo "Einstellungen in .env angelegt."

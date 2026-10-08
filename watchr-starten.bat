@@ -8,6 +8,14 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
+node -e "const [a,b]=process.versions.node.split('.').map(Number);process.exit(a>22||(a===22&&b>=13)?0:1)"
+if errorlevel 1 (
+  for /f %%v in ('node -v') do echo Deine Node.js-Version ist %%v. watchr braucht 22.13 oder neuer.
+  echo Bitte die aktuelle LTS-Version von https://nodejs.org installieren, dann diese Datei erneut doppelklicken.
+  start https://nodejs.org
+  pause
+  exit /b 1
+)
 if not exist .env (
   copy .env.example .env >nul
   powershell -NoProfile -Command "(Get-Content .env) -replace 'WATCHER_TOKEN=bitte-aendern','WATCHER_TOKEN=watchr-%RANDOM%%RANDOM%%RANDOM%' | Set-Content .env"
