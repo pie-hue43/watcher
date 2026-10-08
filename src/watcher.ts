@@ -41,13 +41,13 @@ export class Watcher {
   }
 
   /** Normale Suchen laufen einmal, #archive-Suchen reihum über mehrere Designer. */
-  private queriesFor(s: Search): Search[] {
-    if (s.kind !== "archive") return [s];
+  private queriesFor(s: Search): (Search & { keywords: string })[] {
+    if (s.kind !== "archive") return [{ ...s, keywords: s.query }];
     const start = this.rotation.get(s.id) ?? 0;
     this.rotation.set(s.id, (start + DESIGNERS_PER_RUN) % DESIGNERS.length);
     return Array.from({ length: DESIGNERS_PER_RUN }, (_, i) => {
       const d = DESIGNERS[(start + i) % DESIGNERS.length];
-      return { ...s, query: `${d.name} ${s.query}`.trim() };
+      return { ...s, query: `${d.name} ${s.query}`.trim(), keywords: s.query };
     });
   }
 
@@ -93,7 +93,7 @@ export class Watcher {
         if (seen.has(l.id)) continue;
         seen.add(l.id);
         // Beim ersten Durchlauf nur merken, was schon online ist. Gemeldet werden neue Listings.
-        if (firstRun || !matches(s, l)) continue;
+        if (firstRun || !matches(s, l, s.keywords)) continue;
         // Archive-Modus: Teile ohne Chance auf den Mindest-Score gar nicht erst bewerten (spart Anfragen)
         if (s.kind === "archive" && archiveScore(l).score + 15 < ARCHIVE_MIN_SCORE) continue;
         const ref = await this.resale(l);

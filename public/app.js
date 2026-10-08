@@ -20,7 +20,7 @@ const isToday = (iso) => new Date(iso).toDateString() === new Date().toDateStrin
 let hits = [];
 let searches = [];
 
-// Geöffnete Treffer ans Backend melden (für Missed Flips)
+// Geöffnete Treffer ans Backend melden (für Snipes)
 function markOpened(h) {
   if (h.openedAt) return;
   h.openedAt = new Date().toISOString();

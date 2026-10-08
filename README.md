@@ -21,7 +21,7 @@ Voraussetzung: Node.js 22.13 oder neuer (nutzt das eingebaute `node:sqlite`).
 ```bash
 npm install
 cp .env.example .env      # WATCHER_TOKEN ändern!
-npm start                 # Backend + Watcher, Website auf http://localhost:3000, Live Monitor unter /monitor
+npm start                 # Backend + Watcher, Website auf http://localhost:3000, Live Listings unter /monitor
 ```
 
 Ohne Vinted testen: `WATCHER_SOURCE=mock npm start` erzeugt Fake-Listings.
@@ -38,6 +38,8 @@ Im Dashboard und im Live Listings Monitor der Landingpage gibt man Wünsche als 
 - `#min20` / `#over20` und `#max80` / `#under80` setzen die Preisspanne
 - `#newtags`, `#new`, `#verygood`, `#good` setzen den Mindestzustand
 - `#archive` schaltet den Designer- & Archiv-Modus ein (Suchbegriffe sind dann optional)
+
+Der Snipebot gleicht jeden Hashtag selbst mit dem Artikel ab (`src/tags.ts`), denn Vinted liefert bei einer Suche auch lose verwandte Listings. Jedes Stichwort muss in Titel, Marke oder Größe vorkommen, auch in zusammengesetzten Wörtern („Poloshirt“). Deutsch und Englisch zählen gleich (#jacket findet „Jacke“, #black findet „schwarz“), Designer-Kürzel ebenso (#cdg findet „Comme des Garçons“). Liefert Vinted den Zustand mit, wird auch der Mindestzustand geprüft.
 
 Die Landingpage übergibt die Hashtags per `/?tags=…` an das Dashboard. Die Oberfläche ist auf Englisch.
 
@@ -69,7 +71,7 @@ Jeder Treffer bekommt einen Archive-Score von 0 bis 100 (Designer-Rang + Signale
 | PATCH | `/api/searches/:id` | z. B. `{ "active": false }` zum Pausieren |
 | DELETE | `/api/searches/:id` | löschen |
 | GET | `/api/hits?limit=50` | letzte Treffer (mit `openedAt`) |
-| POST | `/api/hits/:id/open` | Treffer als geöffnet markieren (für Missed Flips) |
+| POST | `/api/hits/:id/open` | Treffer als geöffnet markieren (für Snipes) |
 | POST | `/api/hits` | nur Watcher, Header `Authorization: Bearer <WATCHER_TOKEN>` |
 | WS | `/ws` | Push: `hello` (Startzustand), `hit` (neuer Treffer), `searches` (Änderung) |
 
@@ -83,7 +85,7 @@ Ein Treffer sieht so aus:
 
 ## In die eigene Website einbauen
 
-**Variante A, Live Monitor übernehmen:** `public/monitor.html`, `app.js`, `tags.js`, `site.css` in deine Seite kopieren und vor `app.js` die Backend-Adresse setzen:
+**Variante A, Live Listings übernehmen:** `public/monitor.html`, `app.js`, `tags.js`, `site.css` in deine Seite kopieren und vor `app.js` die Backend-Adresse setzen:
 
 ```html
 <script>window.WATCHER_BACKEND = "https://watcher.deine-seite.de";</script>

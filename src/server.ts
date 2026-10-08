@@ -177,9 +177,10 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
 
       // Dashboard (statische Dateien)
       if (req.method !== "GET") throw new HttpError(405, "Method not allowed");
-      // Alte Adresse der Landingpage weiterleiten
-      if (url.pathname === "/landing.html") {
-        res.writeHead(301, { Location: "/" });
+      // alte Adressen weiterleiten
+      const moved: Record<string, string> = { "/landing.html": "/", "/missed-flips": "/snipes", "/missed-flips.html": "/snipes" };
+      if (moved[url.pathname]) {
+        res.writeHead(301, { Location: moved[url.pathname] });
         return void res.end();
       }
       const rel = normalize(url.pathname === "/" ? "/index.html" : url.pathname).replace(/^(\.\.[/\\])+/, "");

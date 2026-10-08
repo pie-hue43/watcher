@@ -1,4 +1,5 @@
 import type { Condition, Search } from "./types.ts";
+import { missingKeywords } from "./tags.ts";
 
 /** Vinted-Zustands-IDs: 6 = neu mit Etikett, 1 = neu ohne Etikett, 2 = sehr gut, 3 = gut. */
 const STATUS_IDS: Record<Condition, number[]> = {
@@ -18,6 +19,8 @@ export interface Listing {
   brand: string | null;
   url: string;
   photoUrls: string[];
+  /** Zustand laut Vinted, falls die Suche ihn mitliefert */
+  condition?: Condition | "satisfactory" | null;
 }
 
 export interface Source {
@@ -133,8 +136,23 @@ function toListing(it: any): Listing {
     brand: it.brand_title || null,
     url: it.url || `https://www.vinted.de/items/${it.id}`,
     photoUrls: photoList(it),
+    condition: parseCondition(it.status),
   };
 }
+
+/** Vinted liefert den Zustand als Text in der Sprache der Domain. */
+function parseCondition(status: unknown): Listing["condition"] {
+  if (typeof status !== "string") return null;
+  const t = status.toLowerCase();
+  if (/etikett|with tags|avec étiquette/.test(t) && !/ohne|without|sans/.test(t)) return "new_tags";
+  if (/neu|new|neuf/.test(t)) return "new";
+  if (/sehr gut|very good|très bon/.test(t)) return "very_good";
+  if (/gut|good|bon/.test(t)) return "good";
+  if (/zufrieden|satisf/.test(t)) return "satisfactory";
+  return null;
+}
+
+const CONDITION_RANK = { new_tags: 4, new: 3, very_good: 2, good: 1, satisfactory: 0 } as const;
 
 /** Testdaten ohne Vinted: erzeugt bei jedem Durchlauf ab und zu ein neues Listing. */
 export class MockSource implements Source {
@@ -155,6 +173,7 @@ export class MockSource implements Source {
         brand: s.query.split(" ")[0],
         url: `https://www.vinted.de/items/${id}`,
         photoUrls: [],
+        condition: (["new_tags", "new", "very_good", "good"] as const)[Math.floor(Math.random() * 4)],
       });
     }
     return out;
@@ -169,9 +188,15 @@ export class MockSource implements Source {
 
 const MOCK_EXTRAS = ["", "vintage", "archive FW03", "90s", "made in Italy", "jacket", "hoodie"];
 
-/** Prüft, ob ein Listing zu Preis- und Größenfilter des Suchauftrags passt. */
-export function matches(s: Search, l: Listing): boolean {
+/**
+ * Prüft, ob ein Listing zu allen Hashtags des Suchauftrags passt:
+ * jedes Stichwort, Preisspanne, Größe und Mindestzustand.
+ * `keywords` ist im Archive-Modus die Eingabe ohne den automatisch ergänzten Designer.
+ */
+export function matches(s: Search, l: Listing, keywords: string = s.query): boolean {
   if (!Number.isFinite(l.price)) return false;
+  if (missingKeywords(keywords, l).length) return false;
+  if (s.condition && l.condition && CONDITION_RANK[l.condition] < CONDITION_RANK[s.condition]) return false;
   if (s.minPrice != null && l.price < s.minPrice) return false;
   if (s.maxPrice != null && l.price > s.maxPrice) return false;
   if (s.size) {
