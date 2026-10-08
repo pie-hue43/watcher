@@ -70,16 +70,16 @@ Die Seite **AI Tools** (`/tools`) bündelt zehn Werkzeuge. Alle laufen über `/a
 
 | Tool | Was es macht | Braucht |
 | --- | --- | --- |
-| AI Photo Enhancer | Licht, Kontrast, Zuschnitt und Studiohintergrund | Freistellen nur mit `REMOVE_BG_API_KEY` |
-| Price Estimator | Resellpreis aus vergleichbaren Vinted-Listings | Vinted-Verbindung |
-| Niche Finder | Produktgruppen, die für 2× oder mehr weiterverkauft werden | gesammelte Treffer |
-| Deal Finder | Treffer der letzten Tage nach Rendite sortiert | gesammelte Treffer |
-| Offer Finder | Listings, bei denen ein Angebot bis 30 % unter Preis noch Marge lässt | gesammelte Treffer |
-| Seller Intel | Kennzahlen eines Kleiderschranks, mit KI-Analyse | KI-Text nur mit `ANTHROPIC_API_KEY` |
-| AI Listings | Titel, Beschreibung und Hashtags | KI nur mit `ANTHROPIC_API_KEY`, sonst Vorlage |
-| Vinted Repost | Text und Fotos eines **eigenen** Listings, Fotos 3 % zugeschnitten | Vinted-Verbindung |
-| Wardrobe Tracker | Meldet, wenn beobachtete Artikel verkauft werden (alle 10 Minuten) | Vinted-Verbindung |
-| AI Filters | Beschreibung in Worten → Hashtags und Vinted-Link | KI nur mit `ANTHROPIC_API_KEY`, sonst Regeln |
+| Studio Shot | Licht, Kontrast, Zuschnitt und Studiohintergrund | Freistellen nur mit `REMOVE_BG_API_KEY` |
+| Resale Check | Resellpreis aus vergleichbaren Vinted-Listings | Vinted-Verbindung |
+| Niche Radar | Produktgruppen, die für 2× oder mehr weiterverkauft werden | gesammelte Treffer |
+| Flip Finder | Treffer der letzten Tage nach Rendite sortiert | gesammelte Treffer |
+| Offer Sniper | Listings, bei denen ein Angebot bis 30 % unter Preis noch Marge lässt | gesammelte Treffer |
+| Wardrobe Scan | Kennzahlen eines Kleiderschranks, mit KI-Analyse | KI-Text nur mit `ANTHROPIC_API_KEY` |
+| Listing Writer | Titel, Beschreibung und Hashtags | KI nur mit `ANTHROPIC_API_KEY`, sonst Vorlage |
+| Relist | Text und Fotos eines **eigenen** Listings, Fotos 3 % zugeschnitten | Vinted-Verbindung |
+| Sold Alerts | Meldet, wenn beobachtete Artikel verkauft werden (alle 10 Minuten) | Vinted-Verbindung |
+| Smart Search | Beschreibung in Worten → Hashtags und Vinted-Link | KI nur mit `ANTHROPIC_API_KEY`, sonst Regeln |
 
 ## API
 

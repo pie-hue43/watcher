@@ -120,7 +120,7 @@ const loadImage = (src) =>
 // ---------- Die zehn Tools ----------
 const TOOLS = [
   {
-    id: "photo-enhancer", name: "AI Photo Enhancer", desc: "Studio backgrounds for your listing photos", ai: true,
+    id: "photo-enhancer", name: "Studio Shot", desc: "Clean studio backgrounds for your listing photos", ai: true,
     render(box) {
       const file = Object.assign(el("input"), { type: "file", accept: "image/*", name: "photo", required: true });
       const bg = el("select");
@@ -147,7 +147,7 @@ const TOOLS = [
     },
   },
   {
-    id: "price-estimator", name: "Price Estimator", desc: "Resale price from comparable live Vinted listings",
+    id: "price-estimator", name: "Resale Check", desc: "What an item resells for, from live Vinted listings",
     render(box) {
       const out = el("div");
       box.append(
@@ -170,7 +170,7 @@ const TOOLS = [
     },
   },
   {
-    id: "niche-finder", name: "Niche Finder", desc: "Product groups where your finds sell for 2× or more",
+    id: "niche-finder", name: "Niche Radar", desc: "Product groups that resell for 2× or more",
     render(box) {
       const out = el("div");
       box.append(out);
@@ -195,7 +195,7 @@ const TOOLS = [
     },
   },
   {
-    id: "deal-finder", name: "Deal Finder", desc: "Underpriced listings ranked by return",
+    id: "deal-finder", name: "Flip Finder", desc: "Underpriced finds ranked by return",
     render(box) {
       const out = el("ul", "listings");
       box.append(out);
@@ -211,7 +211,7 @@ const TOOLS = [
     },
   },
   {
-    id: "offer-finder", name: "Offer Finder", desc: "Listings worth sending an offer on",
+    id: "offer-finder", name: "Offer Sniper", desc: "Listings worth sending an offer on",
     render(box) {
       const out = el("ul", "listings");
       box.append(out);
@@ -230,7 +230,7 @@ const TOOLS = [
     },
   },
   {
-    id: "seller-intel", name: "Seller Intel", desc: "Analyse any Vinted wardrobe", ai: true,
+    id: "seller-intel", name: "Wardrobe Scan", desc: "Analyse any seller's wardrobe", ai: true,
     render(box) {
       const out = el("div");
       box.append(
@@ -264,7 +264,7 @@ const TOOLS = [
     },
   },
   {
-    id: "ai-listings", name: "AI Listings", desc: "Title, description and hashtags in seconds", ai: true,
+    id: "ai-listings", name: "Listing Writer", desc: "Title, description and hashtags in seconds", ai: true,
     render(box) {
       const cond = el("select");
       cond.name = "condition";
@@ -312,7 +312,7 @@ const TOOLS = [
     },
   },
   {
-    id: "vinted-repost", name: "Vinted Repost", desc: "Copy, crop and re-upload your own listing",
+    id: "vinted-repost", name: "Relist", desc: "Copy, crop and re-upload your own listing",
     render(box) {
       const out = el("div");
       box.append(
@@ -343,7 +343,7 @@ const TOOLS = [
     },
   },
   {
-    id: "wardrobe-tracker", name: "Wardrobe Tracker", desc: "Alerts when tracked items sell",
+    id: "wardrobe-tracker", name: "Sold Alerts", desc: "Get notified when tracked items sell",
     render(box) {
       const out = el("ul", "listings");
       const refresh = () =>
@@ -381,7 +381,7 @@ const TOOLS = [
     },
   },
   {
-    id: "ai-filters", name: "AI Filters", desc: "Describe what you want, get Vinted links", ai: true,
+    id: "ai-filters", name: "Smart Search", desc: "Describe what you want, get Vinted links", ai: true,
     render(box) {
       const out = el("div");
       box.append(
@@ -514,7 +514,7 @@ api("/status").then(
     $("tools-status").hidden = !parts.length;
   },
   () => {
-    $("tools-status").textContent = "Preview mode: start watchr with npm start to use the tools with your own data. The Photo Enhancer also works here.";
+    $("tools-status").textContent = "Preview mode: start watchr with npm start to use the tools with your own data. Studio Shot also works here.";
     $("tools-status").hidden = false;
   },
 );
