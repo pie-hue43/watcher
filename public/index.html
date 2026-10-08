@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snipe Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Snipe Dashboard</h1>
+    <div class="header-actions">
+      <button id="notify-btn" class="ghost" type="button">🔔 Benachrichtigungen</button>
+      <span id="conn" class="conn off">Verbinde…</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>🔥 Neue Treffer <span id="hit-count" class="muted"></span></h2>
+      <ul id="hits" class="hits"></ul>
+      <p id="hits-empty" class="empty">Noch keine Treffer. Sobald der Watcher ein neues Listing findet, erscheint es hier sofort.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Meine Suchaufträge</h2>
+      <form id="search-form" class="search-form">
+        <input name="query" placeholder="Suchbegriff, z. B. Nike Dunk" required maxlength="200" />
+        <input name="maxPrice" type="number" min="1" step="1" placeholder="Max. €" />
+        <input name="size" placeholder="Größe" maxlength="40" />
+        <button type="submit">+ Hinzufügen</button>
+      </form>
+      <p id="form-error" class="error" hidden></p>
+      <ul id="searches" class="searches"></ul>
+      <p id="searches-empty" class="empty">Noch keine Suchaufträge.</p>
+    </section>
+  </main>
+
+  <template id="hit-tpl">
+    <li class="hit">
+      <div class="thumb"></div>
+      <div class="info">
+        <a class="title" target="_blank" rel="noopener"></a>
+        <div class="meta"></div>
+      </div>
+      <div class="price"></div>
+      <a class="cta" target="_blank" rel="noopener">Jetzt ansehen</a>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

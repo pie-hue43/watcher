@@ -1,0 +1,25 @@
+{
+  "name": "vinted-watcher",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vinted Watcher mit Backend, SQLite und Echtzeit-Dashboard per WebSocket",
+  "type": "module",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "server": "tsx src/server.ts",
+    "watcher": "tsx src/watcher.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.7.2"
+  }
+}
