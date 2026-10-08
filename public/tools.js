@@ -11,19 +11,26 @@ const eur = (p, cur = "EUR") =>
   new Intl.NumberFormat("en-IE", { style: "currency", currency: cur || "EUR", maximumFractionDigits: p % 1 ? 2 : 0 }).format(p);
 const signed = (d, cur) => (d >= 0 ? "+" : "−") + eur(Math.abs(Math.round(d)), cur);
 
-let status = { ai: false, vinted: false, cutout: false, online: false };
+let status = { ai: false, vinted: false, cutout: false, online: false, demo: false };
 
 async function api(path, body) {
   let res;
   try {
     res = await fetch(BACKEND + "/api/tools" + path, body === undefined ? {} : { method: body === null ? "DELETE" : "POST", headers: { "Content-Type": "application/json" }, body: body === null ? undefined : JSON.stringify(body) });
   } catch {
-    throw new Error("watchr isn't reachable right now. Start it with npm start and open this page from there.");
+    return demo(path, body);
   }
   if (res.status === 204) return null;
+  // Kein watchr-Backend (z. B. in der Vorschau): Antwort ist kein JSON -> Beispieldaten
+  if (!(res.headers.get("content-type") || "").includes("application/json")) return demo(path, body);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `Something went wrong (HTTP ${res.status}).`);
   return data;
+}
+function demo(path, body) {
+  if (!window.DEMO_API) throw new Error("watchr isn't reachable right now. Start it with npm start and open this page from there.");
+  status.demo = true;
+  return window.DEMO_API(path, body);
 }
 
 // Kleine Bausteine
@@ -514,7 +521,7 @@ api("/status").then(
     $("tools-status").hidden = !parts.length;
   },
   () => {
-    $("tools-status").textContent = "Preview mode: start watchr with npm start to use the tools with your own data. Studio Shot also works here.";
+    $("tools-status").textContent = "Preview: the tools show example data here. Start watchr with npm start to use them with your own Vinted data.";
     $("tools-status").hidden = false;
   },
 );
