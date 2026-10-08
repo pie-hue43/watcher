@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { WebSocketServer, WebSocket } from "ws";
 import { config } from "./config.ts";
 import { openDb, type Db } from "./db.ts";
-import { CONDITIONS, type Condition, type HitInput, type ServerMessage } from "./types.ts";
+import { CONDITIONS, KINDS, type Condition, type HitInput, type SearchKind, type ServerMessage } from "./types.ts";
 
 const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
 const MIME: Record<string, string> = {
@@ -37,11 +37,18 @@ async function readJson(req: http.IncomingMessage): Promise<any> {
 function parseSearchBody(b: any, partial: boolean) {
   const out: {
     query?: string; minPrice?: number | null; maxPrice?: number | null;
-    size?: string | null; condition?: Condition | null; active?: boolean;
+    size?: string | null; condition?: Condition | null; kind?: SearchKind; active?: boolean;
   } = {};
+  if (b.kind !== undefined || !partial) {
+    const k = b.kind ?? "standard";
+    if (!(KINDS as readonly string[]).includes(k)) throw new HttpError(400, "Unknown kind");
+    out.kind = k;
+  }
   if (b.query !== undefined || !partial) {
-    if (typeof b.query !== "string" || !b.query.trim()) throw new HttpError(400, "Add at least one keyword");
-    out.query = b.query.trim().slice(0, 200);
+    // Im Archive-Modus sind Stichwörter optional: der Watcher sucht dann reihum nach Designern
+    const q = typeof b.query === "string" ? b.query.trim() : "";
+    if (!q && out.kind !== "archive") throw new HttpError(400, "Add at least one keyword");
+    out.query = q.slice(0, 200);
   }
   const price = (v: any, name: string) => {
     if (v === null || v === "") return null;
@@ -63,7 +70,8 @@ function parseSearchBody(b: any, partial: boolean) {
 }
 
 function parseHit(b: any): HitInput {
-  const str = (v: any) => (typeof v === "string" && v ? v : null);
+  const str = (v: any) => (typeof v === "string" && v ? v.slice(0, 80) : null);
+  const num = (v: any) => (v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
   if (!b || (typeof b.vintedId !== "string" && typeof b.vintedId !== "number")) throw new HttpError(400, "vintedId fehlt");
   if (typeof b.title !== "string" || typeof b.url !== "string" || !Number.isFinite(Number(b.price)))
     throw new HttpError(400, "title, url und price sind Pflicht");
@@ -79,6 +87,12 @@ function parseHit(b: any): HitInput {
     photoUrls: (Array.isArray(b.photoUrls) ? b.photoUrls : [])
       .filter((u: unknown): u is string => typeof u === "string" && /^https?:\/\//.test(u))
       .slice(0, 3),
+    resaleEstimate: num(b.resaleEstimate),
+    resaleLow: num(b.resaleLow),
+    resaleHigh: num(b.resaleHigh),
+    resaleSamples: num(b.resaleSamples),
+    archiveScore: b.archiveScore == null ? null : Math.max(0, Math.min(100, Math.round(Number(b.archiveScore)) || 0)),
+    designer: str(b.designer),
   };
 }
 
@@ -123,7 +137,7 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
           const b = parseSearchBody(await readJson(req), false);
           const s = db.createSearch({
             query: b.query!, minPrice: b.minPrice ?? null, maxPrice: b.maxPrice ?? null,
-            size: b.size ?? null, condition: b.condition ?? null,
+            size: b.size ?? null, condition: b.condition ?? null, kind: b.kind,
           });
           broadcastSearches();
           return send(201, s);

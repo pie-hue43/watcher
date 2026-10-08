@@ -14,6 +14,7 @@ const el = (tag, cls, text) => {
 const fmtPrice = (p, cur) =>
   new Intl.NumberFormat("en-IE", { style: "currency", currency: cur || "EUR", maximumFractionDigits: p % 1 ? 2 : 0 }).format(p);
 const fmtTime = (iso) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+const fmtDiff = (d, cur) => (d >= 0 ? "+" : "−") + fmtPrice(Math.abs(Math.round(d)), cur);
 const isToday = (iso) => new Date(iso).toDateString() === new Date().toDateString();
 
 let hits = [];
@@ -47,13 +48,35 @@ function hitNode(h, fresh) {
     pics.append(a);
   }
   const info = el("div");
-  const prefTags = h.searchQuery ? watchrTags.toTags({ query: h.searchQuery }).join(" ") : null;
+  const prefTags = h.searchKind || h.searchQuery ? watchrTags.toTags({ query: h.searchQuery || "", kind: h.searchKind }).join(" ") : null;
   info.append(
     link("title", h.title),
     el("span", "meta", [h.size && `Size ${h.size}`, h.brand, prefTags, fmtTime(h.detectedAt)].filter(Boolean).join(" · ")),
   );
-  li.append(pics, info, el("span", "price", fmtPrice(h.price, h.currency)), link("btn small", "View"));
+  if (h.archiveScore >= 50) info.append(archBadge(h));
+  li.append(pics, info, pricing(h), link("btn small", "View"));
   return li;
+}
+
+// Archive-Score als schwarzes Abzeichen, z. B. „Archive 85 · Raf Simons“
+function archBadge(h) {
+  const b = el("span", "arch");
+  b.title = "Archive score: how strongly this looks like a designer or archive piece (0 to 100)";
+  b.append("Archive ", el("b", null, String(h.archiveScore)), h.designer ? ` · ${h.designer}` : "");
+  return b;
+}
+
+// Vinted-Preis, geschätzter Resellpreis und Differenz
+function pricing(h) {
+  const box = el("div", "pricing");
+  box.append(el("span", "price", fmtPrice(h.price, h.currency)));
+  if (h.resaleEstimate) {
+    const r = el("span", "resale", `Resale ~${fmtPrice(h.resaleEstimate, h.currency)}`);
+    r.title = `Median of ${h.resaleSamples ?? "several"} comparable Vinted listings` + (h.resaleLow ? ` (typical range ${fmtPrice(h.resaleLow, h.currency)} to ${fmtPrice(h.resaleHigh, h.currency)})` : "");
+    const d = h.resaleEstimate - h.price;
+    box.append(r, el("span", "diff " + (d >= 0 ? "up" : "down"), fmtDiff(d, h.currency)));
+  }
+  return box;
 }
 
 function renderStats() {
@@ -127,8 +150,9 @@ $("search-form").addEventListener("submit", async (e) => {
   const f = watchrTags.parse(e.target.tags.value);
   $("form-error").hidden = true;
   try {
-    if (!f.keywords.length) throw new Error("Add at least one keyword, for example #nike.");
+    if (!f.keywords.length && f.kind !== "archive") throw new Error("Add at least one keyword, for example #nike, or use #archive.");
     await api("/api/searches", "POST", {
+      kind: f.kind,
       query: f.keywords.join(" "),
       minPrice: f.minPrice,
       maxPrice: f.maxPrice,
@@ -157,7 +181,11 @@ $("search-form").addEventListener("submit", async (e) => {
 function notify(h) {
   if (!("Notification" in window) || Notification.permission !== "granted" || document.hasFocus()) return;
   const n = new Notification(`watchr · New match: ${h.title}`, {
-    body: [fmtPrice(h.price, h.currency), h.size && `Size ${h.size}`].filter(Boolean).join(" — "),
+    body: [
+      fmtPrice(h.price, h.currency),
+      h.resaleEstimate && `resale ~${fmtPrice(h.resaleEstimate, h.currency)} (${fmtDiff(h.resaleEstimate - h.price, h.currency)})`,
+      h.size && `Size ${h.size}`,
+    ].filter(Boolean).join(" — "),
     icon: (h.photoUrls && h.photoUrls[0]) || "logo.svg",
   });
   n.onclick = () => {

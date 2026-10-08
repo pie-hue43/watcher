@@ -24,6 +24,13 @@
     .day { margin-top: 24px; }
     .day h2 { font-size: 15px; letter-spacing: .06em; text-transform: uppercase; font-family: var(--font-body); font-weight: 800; color: var(--muted); margin-bottom: 8px; }
     .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+    .m-price { display: none; }
+    /* Handy: Preis, Resell und Differenz unter den Titel statt in eigene Spalten */
+    @media (max-width: 640px) {
+      th:nth-child(1), td:nth-child(1), th:nth-child(3), td:nth-child(3), th:nth-child(4), td:nth-child(4),
+      th:nth-child(5), td:nth-child(5), th:nth-child(6), td:nth-child(6) { display: none; }
+      .m-price { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 4px; font-size: 13px; }
+    }
     table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 15px; }
     th { text-align: left; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--surface); padding: 10px 14px; }
     td { padding: 12px 14px; border-top: 1px solid var(--line); vertical-align: middle; }
@@ -43,11 +50,11 @@
   </style>
 </head>
 <body>
-  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Up to 3 photos per listing</span><span>Missed Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Up to 3 photos per listing</span><span aria-hidden="true">Missed Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
+  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Designer &amp; archive pieces</span><span>Resale estimate on every listing</span><span>Missed Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Designer &amp; archive pieces</span><span aria-hidden="true">Resale estimate on every listing</span><span aria-hidden="true">Missed Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Monitor</a><a href="missed-flips.html" aria-current="page">Missed Flips</a><a href="features.html">Features</a><a href="index.html#how-it-works">How it works</a><a href="faq.html">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Monitor</a><a href="missed-flips.html" aria-current="page">Missed Flips</a><a href="index.html#archive">Archive</a><a href="features.html">Features</a><a href="index.html#how-it-works">How it works</a><a href="faq.html">FAQ</a></nav>
       <a class="btn small" href="monitor.html">Open Live Monitor</a>
     </div>
   </header>
@@ -60,9 +67,9 @@
       </div>
       <div class="stats" aria-label="Ledger totals">
         <div class="stat"><b id="m-total">0</b><span>Listings found</span></div>
-        <div class="stat"><b id="m-missed">0</b><span>Missed</span></div>
-        <div class="stat"><b id="m-opened">0</b><span>Opened</span></div>
+        <div class="stat"><b id="m-missed">0</b><span>Missed · <span id="m-opened">0</span> opened</span></div>
         <div class="stat"><b id="m-value">€0</b><span>Asking prices missed</span></div>
+        <div class="stat"><b id="m-margin">€0</b><span>Est. resale margin missed</span></div>
       </div>
       <div class="filters" id="filters" aria-label="Filter by preference"></div>
       <div class="ledger" id="ledger"></div>
@@ -71,7 +78,7 @@
         <p id="ledger-empty-text">Once watchr finds listings for your Individual Preferences, they appear here. Start with your first preferences in the Live Monitor.</p>
         <a class="btn" href="monitor.html">Open Live Monitor</a>
       </div>
-      <p class="note">Prices are the asking prices at the moment watchr found the listing. watchr doesn't know whether or for how much an item sold. "Opened" means you clicked the listing in your Live Monitor.</p>
+      <p class="note">Prices are the asking prices at the moment watchr found the listing. watchr doesn't know whether or for how much an item sold. The resale estimate is the median asking price of comparable listings on Vinted (same brand and type of item), so the difference and margin are estimates, not profit. "Opened" means you clicked the listing in your Live Monitor.</p>
     </div>
   </main>
   <footer class="site-footer">

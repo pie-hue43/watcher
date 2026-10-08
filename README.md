@@ -37,8 +37,28 @@ Im Dashboard und im Live Listings Monitor der Landingpage gibt man Wünsche als 
 - `#size43`, `#sizeM` setzt die Größe
 - `#min20` / `#over20` und `#max80` / `#under80` setzen die Preisspanne
 - `#newtags`, `#new`, `#verygood`, `#good` setzen den Mindestzustand
+- `#archive` schaltet den Designer- & Archiv-Modus ein (Suchbegriffe sind dann optional)
 
 Die Landingpage übergibt die Hashtags per `/?tags=…` an das Dashboard. Die Oberfläche ist auf Englisch.
+
+## Resellpreis
+
+Für jeden neuen Treffer schätzt der Watcher einen Resellpreis (`src/pricing.ts`):
+
+- Aus dem Titel wird ein Produktschlüssel aus Marke und Artikelart gebildet, z. B. `ralph lauren|polo`.
+- Für diesen Schlüssel holt der Watcher bis zu 60 vergleichbare Vinted-Listings, schneidet oben und unten je 15 % ab und nimmt den Median (dazu die typische Spanne).
+- Der Wert wird 24 Stunden pro Produkt in `data/price-cache.json` gespeichert. Häufige Teile wie Ralph-Lauren-Polos werden so immer mit ungefähr demselben Wert gerechnet und kosten keine zusätzlichen Anfragen.
+- Unter 5 Vergleichen gibt es keinen Wert statt einer Schätzung ins Blaue.
+- Es sind Angebotspreise, keine Verkaufspreise. Die Differenz ist eine Orientierung, kein Gewinn.
+
+## Designer & Archive
+
+`src/designers.ts` ist die Wissensbasis für den Archiv-Modus. Das ist kein maschinelles Lernen, sondern eine kuratierte Liste, die du direkt erweitern kannst:
+
+- rund 40 Designer in drei Rängen (Archiv-Häuser wie Raf Simons, Helmut Lang, Rick Owens, Margiela; Luxushäuser; Premium-Labels) mit Schreibvarianten
+- Archiv-Signale im Titel: archive, vintage, rare, grail, runway, sample, deadstock, Saisoncodes wie AW02, Epochen wie 90s oder Y2K, „made in Italy/Japan“
+
+Jeder Treffer bekommt einen Archive-Score von 0 bis 100 (Designer-Rang + Signale + Bonus, wenn der Preis bei höchstens 60 % des Resellpreises liegt). Eine `#archive`-Präferenz fragt pro Durchlauf drei Designer der Reihe nach ab und meldet nur Teile mit Score ab 50.
 
 ## API
 

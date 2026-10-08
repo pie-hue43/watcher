@@ -19,6 +19,10 @@
     .trust { display: flex; gap: 8px 20px; flex-wrap: wrap; list-style: none; padding: 0; margin: 24px 0 0; color: var(--muted); font-size: 14px; font-weight: 600; }
     .trust li::before { content: "✓"; color: var(--green-deep); font-weight: 800; margin-right: 6px; }
     .monitor .dot { position: absolute; top: 22px; right: 22px; }
+    .hero .monitor .pic { width: 34px; height: 34px; }
+    .hero .monitor .pic svg { width: 20px; height: 20px; }
+    .hero .monitor .pics { gap: 3px; }
+    .hero .monitor .listing { gap: 10px; }
     .mon-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
     .mon-foot span { color: var(--muted); font-size: 13px; }
     .cats-band { padding-block: 0 56px; border: 0; }
@@ -26,12 +30,19 @@
     .cats { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
     .cat { position: relative; display: block; width: 104px; height: 104px; border-radius: 50%; border: 2px solid var(--text);
       background: radial-gradient(circle at 50% 40%, #fff, var(--green-soft)); text-decoration: none; color: #000; transition: transform .2s, box-shadow .2s; flex: none; }
+    .cat-archive { background: radial-gradient(circle at 50% 40%, #fff, #c7f0d4); }
+    .cat-archive span { background: #000; color: var(--green); }
     .cat:hover, .cat:focus-visible { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(21,128,61,.18); }
     .cat svg { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 46px; height: 46px; stroke-width: 3; }
     .cat span { position: absolute; left: -2px; right: -2px; top: 62%; background: var(--green); text-align: center; font-weight: 800; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; padding: 2px 0; }
     .hub { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
     .hub .card { display: flex; flex-direction: column; gap: 14px; padding: 28px; }
     .hub .card.main { background: var(--green-soft); border-color: #c7f0d4; }
+    .hub .card.dark { background: var(--text); color: #fff; border: 0; }
+    .hub .card.dark p, .hub .card.dark li { color: #e6efe8; }
+    .hub .card.dark b { color: var(--green); }
+    .hub .card.dark .badge { background: var(--green); color: #000; }
+    .hub p { margin: 0; color: var(--muted); }
     .hub-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .hub h3 { font-size: 28px; }
     .hub ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
@@ -55,11 +66,11 @@
   </style>
 </head>
 <body>
-  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Up to 3 photos per listing</span><span>Missed Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Up to 3 photos per listing</span><span aria-hidden="true">Missed Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
+  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Designer &amp; archive pieces</span><span>Resale estimate on every listing</span><span>Missed Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Designer &amp; archive pieces</span><span aria-hidden="true">Resale estimate on every listing</span><span aria-hidden="true">Missed Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Monitor</a><a href="missed-flips.html">Missed Flips</a><a href="features.html">Features</a><a href="index.html#how-it-works">How it works</a><a href="faq.html">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Monitor</a><a href="missed-flips.html">Missed Flips</a><a href="index.html#archive">Archive</a><a href="features.html">Features</a><a href="index.html#how-it-works">How it works</a><a href="faq.html">FAQ</a></nav>
       <a class="btn small" href="monitor.html">Open Live Monitor</a>
     </div>
   </header>
@@ -68,12 +79,12 @@
       <div>
         <span class="eyebrow"><span class="dot"></span>Live Listings Monitor</span>
         <h1>Every Vinted listing you want. <em>The moment it goes live.</em></h1>
-        <p class="lead">watchr watches Vinted around the clock. Tell it what you're after with a few hashtags, and every new listing that fits lands in your Live Monitor in seconds, with photos, price and size.</p>
+        <p class="lead">watchr watches Vinted around the clock, specialised in high fashion designers and rare archive pieces. Every new listing that fits lands in your Live Monitor in seconds, with photos, an estimated resale price and the difference to the asking price.</p>
         <div class="ctas">
           <a class="btn" href="monitor.html">Open Live Monitor</a>
           <a class="btn ghost" href="#how-it-works">See how it works</a>
         </div>
-        <ul class="trust"><li>Hashtag preferences</li><li>Up to 3 photos per listing</li><li>Instant browser alerts</li></ul>
+        <ul class="trust"><li>Designer &amp; Archive mode</li><li>Resale estimate on every listing</li><li>Instant browser alerts</li></ul>
       </div>
 
       <div class="monitor" aria-label="Live Listings Monitor preview">
@@ -81,8 +92,8 @@
         <div class="monitor-head"><h2>Live Listings Monitor</h2></div>
         <div class="prefs">
           <label for="prefs">Individual Preferences</label>
-          <input id="prefs" value="#nike #size43 #max80" autocomplete="off" spellcheck="false" />
-          <small>Try #nike #sizeM #min20 #max80 #new #verygood</small>
+          <input id="prefs" value="#archive #max400" autocomplete="off" spellcheck="false" />
+          <small>Try #archive #max400, #ralph #lauren #polo or #nike #size43</small>
           <div class="chips" id="chips"></div>
         </div>
         <ul class="listings" id="demo-list"></ul>
@@ -97,7 +108,40 @@
     <section class="cats-band" aria-label="Snipe categories">
       <div class="wrap">
         <h2>Snipe categories</h2>
-        <div class="cats"><a class="cat" href="monitor.html?tags=%23Sneaker"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/><path d="M30 34l4 3M34 31l4 3"/></svg><span>Sneakers</span></a><a class="cat" href="monitor.html?tags=%23Jacke"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/><path d="M18 34h6M40 34h6"/></svg><span>Jackets</span></a><a class="cat" href="monitor.html?tags=%23Hose"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Pants</span></a><a class="cat" href="monitor.html?tags=%23Pullover"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a><a class="cat" href="monitor.html?tags=%23Tasche"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="26" width="40" height="28" rx="5"/><path d="M24 26v-6a8 8 0 0 1 16 0v6"/></svg><span>Bags</span></a><a class="cat" href="monitor.html"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>All</span></a></div>
+        <div class="cats"><a class="cat cat-archive" href="monitor.html?tags=%23archive"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M18 12h28l10 14-24 28L8 26z"/><path d="M8 26h48M26 12l-4 14 10 28 10-28-4-14"/></svg><span>Archive</span></a><a class="cat" href="monitor.html?tags=%23Sneaker"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/><path d="M30 34l4 3M34 31l4 3"/></svg><span>Sneakers</span></a><a class="cat" href="monitor.html?tags=%23Jacke"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/><path d="M18 34h6M40 34h6"/></svg><span>Jackets</span></a><a class="cat" href="monitor.html?tags=%23Hose"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Pants</span></a><a class="cat" href="monitor.html?tags=%23Pullover"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a><a class="cat" href="monitor.html?tags=%23Tasche"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="26" width="40" height="28" rx="5"/><path d="M24 26v-6a8 8 0 0 1 16 0v6"/></svg><span>Bags</span></a><a class="cat" href="monitor.html"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>All</span></a></div>
+      </div>
+    </section>
+
+    <section id="archive">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Designer &amp; Archive</span>
+          <h2>Trained on high fashion.<span>Knows what a grail looks like.</span></h2>
+        </div>
+        <div class="hub">
+          <article class="card main dark">
+            <div class="hub-top"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M18 12h28l10 14-24 28L8 26z"/><path d="M8 26h48M26 12l-4 14 10 28 10-28-4-14"/></svg></div><span class="badge">#archive</span></div>
+            <h3>Archive score</h3>
+            <p>Add <b>#archive</b> and watchr hunts on its own, rotating through 40+ designers like Raf Simons, Helmut Lang, Rick Owens, Maison Margiela, Comme des Garçons, Yohji Yamamoto and Jean Paul Gaultier.</p>
+            <ul>
+              <li>Each listing gets a score from 0 to 100</li>
+              <li>Points for the designer, for signals like archive, runway, sample, AW02 or 90s, and for a price far below resale</li>
+              <li>Only pieces scoring 50 or more reach your monitor</li>
+            </ul>
+            <a class="btn" href="monitor.html?tags=%23archive">Hunt archive pieces</a>
+          </article>
+          <article class="card">
+            <div class="hub-top"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M10 46l14-14 10 10 20-20"/><path d="M42 22h12v12"/></svg></div><span class="badge">Every listing</span></div>
+            <h3>Resale estimate</h3>
+            <p>Next to every Vinted price you see what comparable pieces usually go for, and the difference.</p>
+            <ul>
+              <li>Median of comparable listings of the same brand and type, outliers removed</li>
+              <li>Remembered per product for 24 hours, so a Ralph Lauren polo is always priced about the same</li>
+              <li>An estimate from asking prices, not a guaranteed sale price</li>
+            </ul>
+            <a class="btn ghost" href="faq.html#resale">How it's calculated</a>
+          </article>
+        </div>
       </div>
     </section>
 
@@ -114,7 +158,7 @@
             <ul>
               <li>New listings appear the second watchr finds them, no reloading</li>
               <li>Individual Preferences as hashtags: keywords, size, price range, condition</li>
-              <li>Up to three photos, price and size at a glance</li>
+              <li>Up to three photos, price, size and an estimated resale price at a glance</li>
               <li>One click takes you straight to the listing on Vinted</li>
             </ul>
             <a class="btn" href="monitor.html">Open Live Monitor</a>
@@ -160,7 +204,8 @@
           <h2>Questions people ask.</h2>
         </div>
         <details><summary>How quickly will I see new listings?</summary><p>watchr checks each set of preferences about once a minute. A match shows up in your Live Monitor right after that, without reloading.</p></details>
-        <details><summary>Which hashtags can I use?</summary><p>Any word becomes a keyword, like #nike or #dunk. Add #size43 or #sizeM for the size, #min20 and #max80 for the price range, and #newtags, #new, #verygood or #good for the minimum condition.</p></details>
+        <details><summary>Which hashtags can I use?</summary><p>Any word becomes a keyword, like #nike or #dunk. Add #size43 or #sizeM for the size, #min20 and #max80 for the price range, and #newtags, #new, #verygood or #good for the minimum condition. #archive switches on Designer &amp; Archive mode.</p></details>
+        <details><summary>How is the resale estimate calculated?</summary><p>watchr looks up comparable listings on Vinted (same brand, same type of item, for example Ralph Lauren polos), removes outliers and takes the median. That value is kept for 24 hours, so frequent items are always priced the same way. It's based on asking prices, so treat it as a guide, not a promise.</p></details>
         <details><summary>What are Missed Flips?</summary><p>A ledger of every listing watchr found for you, marked by whether you opened it in the Live Monitor. It shows asking prices only. watchr doesn't know whether or for how much an item sold.</p></details>
         <details><summary>Does watchr buy items for me?</summary><p>No. watchr finds the listings. You decide and buy on Vinted yourself.</p></details>
         <p class="faq-more"><a class="btn ghost" href="faq.html">All questions</a></p>
@@ -182,7 +227,7 @@
       <div class="footer-grid">
         <div>
           <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-          <p class="muted">The live listings monitor for Vinted. watchr spots new listings that match your preferences and shows them the moment they go live.</p>
+          <p class="muted">The live listings monitor for Vinted, built for designer and archive fashion. watchr spots new listings that match your preferences and shows them the moment they go live.</p>
         </div>
         <div>
           <h4>Product</h4>
@@ -199,7 +244,7 @@
   <script src="tags.js"></script>
   <script>
     // Preview of the Live Listings Monitor: example listings filtered by the hashtags typed above
-    const SAMPLES = [{"title": "Nike Dunk Low Panda", "price": 65, "size": "43", "cond": "very_good", "icon": "sneaker", "ago": "just now"}, {"title": "Nike Air Max 90", "price": 70, "size": "43", "cond": "new", "icon": "sneaker", "ago": "1 min ago"}, {"title": "Adidas Samba OG", "price": 45, "size": "42", "cond": "good", "icon": "sneaker", "ago": "2 min ago"}, {"title": "Nike Tech Fleece Hoodie", "price": 55, "size": "M", "cond": "new_tags", "icon": "top", "ago": "3 min ago"}, {"title": "Stone Island Overshirt", "price": 120, "size": "M", "cond": "very_good", "icon": "jacket", "ago": "5 min ago"}, {"title": "Carhartt Detroit Jacket", "price": 95, "size": "L", "cond": "good", "icon": "jacket", "ago": "7 min ago"}, {"title": "Levi's 501 Jeans", "price": 30, "size": "W32", "cond": "very_good", "icon": "pants", "ago": "9 min ago"}, {"title": "Prada Re-Edition Bag", "price": 380, "size": null, "cond": "very_good", "icon": "bag", "ago": "12 min ago"}];
+    const SAMPLES = [{"title": "Raf Simons AW02 archive bomber", "price": 340, "size": "M", "cond": "very_good", "icon": "jacket", "ago": "just now", "resale": 900, "arch": 95, "designer": "Raf Simons"}, {"title": "Helmut Lang 1999 painter jeans", "price": 120, "size": "W31", "cond": "good", "icon": "pants", "ago": "1 min ago", "resale": 260, "arch": 85, "designer": "Helmut Lang"}, {"title": "Ralph Lauren Polo slim fit", "price": 18, "size": "M", "cond": "very_good", "icon": "top", "ago": "2 min ago", "resale": 30, "arch": 0, "designer": null}, {"title": "Maison Margiela Tabi boots vintage", "price": 210, "size": "41", "cond": "very_good", "icon": "sneaker", "ago": "3 min ago", "resale": 380, "arch": 65, "designer": "Maison Margiela"}, {"title": "Nike Dunk Low Panda", "price": 65, "size": "43", "cond": "very_good", "icon": "sneaker", "ago": "4 min ago", "resale": 85, "arch": 0, "designer": null}, {"title": "Rick Owens Geobasket", "price": 260, "size": "43", "cond": "good", "icon": "sneaker", "ago": "6 min ago", "resale": 420, "arch": 55, "designer": "Rick Owens"}, {"title": "Polo Ralph Lauren polo shirt", "price": 35, "size": "L", "cond": "new_tags", "icon": "top", "ago": "8 min ago", "resale": 30, "arch": 0, "designer": null}, {"title": "Prada Re-Edition Bag", "price": 380, "size": null, "cond": "very_good", "icon": "bag", "ago": "12 min ago", "resale": 520, "arch": 40, "designer": "Prada"}];
     const ICONS = {"sneaker": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z\"/><path d=\"M6 48h52\"/><path d=\"M30 34l4 3M34 31l4 3\"/></svg>", "jacket": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M22 12l10 7 10-7 12 8v32H10V20z\"/><path d=\"M32 19v33\"/><path d=\"M18 34h6M40 34h6\"/></svg>", "pants": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M20 8h24l4 48H36l-4-32-4 32H16z\"/><path d=\"M20 15h24\"/></svg>", "top": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z\"/></svg>", "bag": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><rect x=\"12\" y=\"26\" width=\"40\" height=\"28\" rx=\"5\"/><path d=\"M24 26v-6a8 8 0 0 1 16 0v6\"/></svg>"};
     const RANK = { new_tags: 4, new: 3, very_good: 2, good: 1 };
     const CONDITION_LABEL = { new_tags: "New with tags", new: "New", very_good: "Very good", good: "Good" };
@@ -214,13 +259,14 @@
       if (f.maxPrice != null && item.price > f.maxPrice) return false;
       if (f.size && (!item.size || norm(item.size) !== norm(f.size))) return false;
       if (f.condition && RANK[item.cond] < RANK[f.condition]) return false;
+      if (f.kind === "archive" && item.arch < 50) return false;
       return true;
     }
 
     function render() {
       const f = watchrTags.parse(input.value);
       document.getElementById("chips").replaceChildren(...f.tags.map((t, i) => {
-        const chip = el("span", "chip" + (i < f.keywords.length ? " kw" : ""), t);
+        const chip = el("span", "chip" + (t !== "#archive" && f.keywords.includes(t.slice(1)) ? " kw" : ""), t);
         const x = el("button", null, "×");
         x.type = "button";
         x.setAttribute("aria-label", "Remove " + t);
@@ -236,7 +282,11 @@
         for (let n = 0; n < 3; n++) { const t = el("i", "pic"); t.innerHTML = ICONS[h.icon]; pics.append(t); }
         const txt = el("div");
         txt.append(el("span", "title", h.title), el("span", "meta", [h.size && "Size " + h.size, CONDITION_LABEL[h.cond], h.ago].filter(Boolean).join(" · ")));
-        row.append(pics, txt, el("span", "price", "€" + h.price), el("span", "btn small", "View"));
+        if (h.arch >= 50) { const b = el("span", "arch"); b.append("Archive ", el("b", null, String(h.arch)), " · " + h.designer); txt.append(b); }
+        const pr = el("div", "pricing");
+        const d = h.resale - h.price;
+        pr.append(el("span", "price", "€" + h.price), el("span", "resale", "Resale ~€" + h.resale), el("span", "diff " + (d >= 0 ? "up" : "down"), (d >= 0 ? "+€" : "−€") + Math.abs(d)));
+        row.append(pics, txt, pr, el("span", "btn small", "View"));
         return row;
       }));
       document.getElementById("demo-empty").hidden = hits.length > 0;

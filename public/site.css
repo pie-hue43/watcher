@@ -110,6 +110,15 @@ section + section { border-top: 1px solid var(--line); }
 .listing a.title:hover { text-decoration: underline; }
 .listing .meta { color: var(--muted); font-size: 13px; }
 .listing .price { font-weight: 800; font-variant-numeric: tabular-nums; }
+/* Resellpreis und Differenz neben dem Vinted-Preis */
+.pricing { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right; }
+.resale { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.diff { display: inline-block; font-size: 12px; font-weight: 800; padding: 1px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.diff.up { background: var(--green-soft); color: var(--green-deep); border: 1px solid #c7f0d4; }
+.diff.down { background: #fff1ef; color: #b42318; border: 1px solid #f9d0c9; }
+.arch { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; background: #000; color: #fff;
+  padding: 2px 8px; border-radius: 999px; margin: 3px 6px 0 0; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: top; }
+.arch b { color: var(--green); }
 .pics { display: flex; gap: 4px; }
 .pics a { display: block; }
 .pic { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 8px; background: var(--surface); object-fit: cover; }
@@ -119,6 +128,7 @@ section + section { border-top: 1px solid var(--line); }
 @media (max-width: 560px) {
   .listing { grid-template-columns: minmax(0, 1fr) auto; }
   .listing .pics { grid-column: 1 / -1; }
+  .pricing { align-items: flex-end; }
   .listing .btn { grid-column: 1 / -1; }
 }
 
@@ -149,3 +159,7 @@ details p { color: var(--muted); margin: 10px 0 0; }
   html { scroll-behavior: auto; }
   .ticker-track, .dot, .site-nav a.live::before, .listing.fresh { animation: none; }
 }
+
+/* Ankerziele nicht unter der fixierten Kopfzeile verstecken */
+section[id], details[id] { scroll-margin-top: 96px; }
+.listing .arch { display: block; width: fit-content; }

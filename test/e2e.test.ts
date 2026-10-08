@@ -15,7 +15,7 @@ const listing = (id: string, price: number, size: string | null): Listing => ({
 });
 
 test("matches: Preis und Größe", () => {
-  const s: Search = { id: 1, query: "nike", minPrice: null, maxPrice: 80, size: "43", condition: null, active: true, createdAt: "" };
+  const s: Search = { id: 1, query: "nike", minPrice: null, maxPrice: 80, size: "43", condition: null, kind: "standard", active: true, createdAt: "" };
   assert.equal(matches(s, listing("1", 65, "43")), true);
   assert.equal(matches(s, listing("2", 85, "43")), false);
   assert.equal(matches(s, listing("3", 65, "42")), false);
@@ -61,6 +61,7 @@ test("Watcher → Backend → Datenbank → WebSocket", async () => {
     },
   };
   const w = new Watcher(source, base, "t", 60_000, () => {});
+  w.gapMs = 0;
   assert.equal(await w.runOnce(), 0, "Bestand wird nicht gemeldet");
   assert.equal(await w.runOnce(), 1, "nur das neue, passende Listing");
   assert.equal(await w.runOnce(), 0, "keine Dubletten");

@@ -24,6 +24,8 @@ export interface Source {
   search(s: Search): Promise<Listing[]>;
   /** Optional: weitere Bilder eines Listings nachladen (nur für neue Treffer). */
   photos?(l: Listing): Promise<string[]>;
+  /** Optional: Preise vergleichbarer Listings für die Resell-Schätzung. */
+  comparables?(query: string): Promise<number[]>;
 }
 
 export class RateLimitError extends Error {}
@@ -63,6 +65,19 @@ export class VintedSource implements Source {
     const data: any = await res.json();
     const more = photoList(data.item ?? data);
     return [...new Set([...l.photoUrls, ...more])].slice(0, 3);
+  }
+
+  /** Preise der relevantesten Listings zu einer Suche (z. B. „ralph lauren polo“). */
+  async comparables(query: string): Promise<number[]> {
+    if (!this.cookie || Date.now() - this.cookieFetchedAt > 3600_000) await this.refreshCookie();
+    const params = new URLSearchParams({ search_text: query, order: "relevance", per_page: "60", page: "1" });
+    const res = await fetch(`https://${this.domain}/api/v2/catalog/items?${params}`, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json", Cookie: this.cookie! },
+    });
+    if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
+    if (!res.ok) return [];
+    const data: any = await res.json();
+    return (data.items ?? []).map((it: any) => toListing(it).price).filter((p: number) => Number.isFinite(p) && p > 0);
   }
 
   async search(s: Search): Promise<Listing[]> {
@@ -133,7 +148,7 @@ export class MockSource implements Source {
       const cap = s.maxPrice ?? 150;
       out.push({
         id,
-        title: `${s.query} (Test ${id.slice(-4)})`,
+        title: `${s.query} ${MOCK_EXTRAS[Math.floor(Math.random() * MOCK_EXTRAS.length)]} (Test ${id.slice(-4)})`,
         price: Math.round(cap * (0.5 + Math.random() * 0.6)),
         currency: "EUR",
         size: s.size && Math.random() < 0.7 ? s.size : sizes[Math.floor(Math.random() * sizes.length)],
@@ -144,7 +159,15 @@ export class MockSource implements Source {
     }
     return out;
   }
+
+  async comparables(query: string): Promise<number[]> {
+    // stabile Fantasiepreise je Suchbegriff, damit gleiche Produkte gleich bewertet werden
+    const base = 40 + ([...query].reduce((a, c) => a + c.charCodeAt(0), 0) % 160);
+    return Array.from({ length: 24 }, () => Math.round(base * (0.6 + Math.random() * 0.8)));
+  }
 }
+
+const MOCK_EXTRAS = ["", "vintage", "archive FW03", "90s", "made in Italy", "jacket", "hoodie"];
 
 /** Prüft, ob ein Listing zu Preis- und Größenfilter des Suchauftrags passt. */
 export function matches(s: Search, l: Listing): boolean {

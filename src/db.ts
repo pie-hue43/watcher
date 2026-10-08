@@ -35,10 +35,13 @@ export function openDb(path: string) {
   const searchCols = (db.prepare("PRAGMA table_info(searches)").all() as { name: string }[]).map((c) => c.name);
   if (!searchCols.includes("min_price")) db.exec("ALTER TABLE searches ADD COLUMN min_price REAL");
   if (!searchCols.includes("condition")) db.exec("ALTER TABLE searches ADD COLUMN condition TEXT");
+  if (!searchCols.includes("kind")) db.exec("ALTER TABLE searches ADD COLUMN kind TEXT NOT NULL DEFAULT 'standard'");
   // Ältere Datenbanken: Spalte für mehrere Bilder nachrüsten
   const cols = db.prepare("PRAGMA table_info(hits)").all() as { name: string }[];
   if (!cols.some((c) => c.name === "photo_urls")) db.exec("ALTER TABLE hits ADD COLUMN photo_urls TEXT");
   if (!cols.some((c) => c.name === "opened_at")) db.exec("ALTER TABLE hits ADD COLUMN opened_at TEXT");
+  for (const [col, type] of [["resale_estimate", "REAL"], ["resale_low", "REAL"], ["resale_high", "REAL"], ["resale_samples", "INTEGER"], ["archive_score", "INTEGER"], ["designer", "TEXT"]])
+    if (!cols.some((c) => c.name === col)) db.exec(`ALTER TABLE hits ADD COLUMN ${col} ${type}`);
 
   const toSearch = (r: any): Search => ({
     id: r.id,
@@ -47,6 +50,7 @@ export function openDb(path: string) {
     maxPrice: r.max_price,
     condition: r.condition ?? null,
     size: r.size,
+    kind: r.kind === "archive" ? "archive" : "standard",
     active: !!r.active,
     createdAt: r.created_at,
   });
@@ -56,6 +60,7 @@ export function openDb(path: string) {
     vintedId: r.vinted_id,
     searchId: r.search_id,
     searchQuery: r.search_query ?? null,
+    searchKind: r.search_kind ?? null,
     title: r.title,
     price: r.price,
     currency: r.currency,
@@ -65,9 +70,15 @@ export function openDb(path: string) {
     photoUrls: r.photo_urls ? JSON.parse(r.photo_urls) : r.photo_url ? [r.photo_url] : [],
     detectedAt: r.detected_at,
     openedAt: r.opened_at ?? null,
+    resaleEstimate: r.resale_estimate ?? null,
+    resaleLow: r.resale_low ?? null,
+    resaleHigh: r.resale_high ?? null,
+    resaleSamples: r.resale_samples ?? null,
+    archiveScore: r.archive_score ?? null,
+    designer: r.designer ?? null,
   });
 
-  const hitSelect = `SELECT h.*, s.query AS search_query FROM hits h LEFT JOIN searches s ON s.id = h.search_id`;
+  const hitSelect = `SELECT h.*, s.query AS search_query, s.kind AS search_kind FROM hits h LEFT JOIN searches s ON s.id = h.search_id`;
 
   return {
     listSearches(): Search[] {
@@ -77,22 +88,23 @@ export function openDb(path: string) {
       const r = db.prepare("SELECT * FROM searches WHERE id = ?").get(id);
       return r ? toSearch(r) : null;
     },
-    createSearch(f: Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition">): Search {
+    createSearch(f: Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition"> & { kind?: Search["kind"] }): Search {
       const res = db
-        .prepare("INSERT INTO searches (query, min_price, max_price, size, condition, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-        .run(f.query, f.minPrice, f.maxPrice, f.size, f.condition, new Date().toISOString());
+        .prepare("INSERT INTO searches (query, min_price, max_price, size, condition, kind, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .run(f.query, f.minPrice, f.maxPrice, f.size, f.condition, f.kind ?? "standard", new Date().toISOString());
       return this.getSearch(Number(res.lastInsertRowid))!;
     },
-    updateSearch(id: number, patch: Partial<Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition" | "active">>): Search | null {
+    updateSearch(id: number, patch: Partial<Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition" | "kind" | "active">>): Search | null {
       const cur = this.getSearch(id);
       if (!cur) return null;
       const next = { ...cur, ...patch };
-      db.prepare("UPDATE searches SET query = ?, min_price = ?, max_price = ?, size = ?, condition = ?, active = ? WHERE id = ?").run(
+      db.prepare("UPDATE searches SET query = ?, min_price = ?, max_price = ?, size = ?, condition = ?, kind = ?, active = ? WHERE id = ?").run(
         next.query,
         next.minPrice,
         next.maxPrice,
         next.size,
         next.condition,
+        next.kind,
         next.active ? 1 : 0,
         id,
       );
@@ -106,10 +118,15 @@ export function openDb(path: string) {
       const res = db
         .prepare(
           `INSERT OR IGNORE INTO hits
-             (vinted_id, search_id, title, price, currency, size, brand, url, photo_url, photo_urls, detected_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (vinted_id, search_id, title, price, currency, size, brand, url, photo_url, photo_urls, detected_at,
+              resale_estimate, resale_low, resale_high, resale_samples, archive_score, designer)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
-        .run(h.vintedId, h.searchId, h.title, h.price, h.currency, h.size, h.brand, h.url, h.photoUrls[0] ?? null, JSON.stringify(h.photoUrls.slice(0, 3)), new Date().toISOString());
+        .run(
+          h.vintedId, h.searchId, h.title, h.price, h.currency, h.size, h.brand, h.url, h.photoUrls[0] ?? null,
+          JSON.stringify(h.photoUrls.slice(0, 3)), new Date().toISOString(),
+          h.resaleEstimate, h.resaleLow, h.resaleHigh, h.resaleSamples, h.archiveScore, h.designer,
+        );
       if (res.changes === 0) return null;
       return toHit(db.prepare(`${hitSelect} WHERE h.id = ?`).get(Number(res.lastInsertRowid)));
     },

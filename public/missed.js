@@ -9,6 +9,8 @@ const el = (tag, cls, text) => {
 };
 const fmtPrice = (p, cur = "EUR") =>
   new Intl.NumberFormat("en-IE", { style: "currency", currency: cur, maximumFractionDigits: p % 1 ? 2 : 0 }).format(p);
+const fmtDiff = (d, cur) => (d >= 0 ? "+" : "−") + fmtPrice(Math.abs(Math.round(d)), cur);
+const prefLabel = (h) => watchrTags.toTags({ query: h.searchQuery || "", kind: h.searchKind }).join(" ");
 const fmtDay = (iso) => {
   const d = new Date(iso);
   const today = new Date();
@@ -29,9 +31,12 @@ function render() {
   $("m-missed").textContent = missed.length;
   $("m-opened").textContent = hits.length - missed.length;
   $("m-value").textContent = fmtPrice(missed.reduce((sum, h) => sum + h.price, 0));
+  // geschätzte Spanne nur aus verpassten Treffern mit Resellpreis über dem Vinted-Preis
+  $("m-margin").textContent = fmtPrice(missed.reduce((sum, h) => sum + (h.resaleEstimate > h.price ? h.resaleEstimate - h.price : 0), 0));
 
   // Filter: eine Schaltfläche pro Präferenz, die Treffer hat
-  const prefs = [...new Set(hits.map((h) => h.searchQuery).filter(Boolean))];
+  const prefOf = (h) => (h.searchKind || h.searchQuery ? prefLabel(h) : null);
+  const prefs = [...new Set(hits.map(prefOf).filter(Boolean))];
   const box = $("filters");
   const btn = (label, value, count) => {
     const b = el("button", null, `${label} (${count})`);
@@ -52,11 +57,11 @@ function render() {
   toggle.append(cb, "Missed only");
   box.replaceChildren(
     btn("All", null, hits.length),
-    ...prefs.map((p) => btn(watchrTags.toTags({ query: p }).join(" "), p, hits.filter((h) => h.searchQuery === p).length)),
+    ...prefs.map((p) => btn(p, p, hits.filter((h) => prefOf(h) === p).length)),
     toggle,
   );
 
-  const shown = hits.filter((h) => (filter === null || h.searchQuery === filter) && (!missedOnly || !h.openedAt));
+  const shown = hits.filter((h) => (filter === null || prefOf(h) === filter) && (!missedOnly || !h.openedAt));
   const days = new Map();
   for (const h of shown) {
     const key = new Date(h.detectedAt).toDateString();
@@ -69,7 +74,7 @@ function render() {
       day.append(el("h2", null, `${fmtDay(list[0].detectedAt)} · ${list.length}`));
       const wrap = el("div", "table-wrap");
       const table = el("table");
-      table.innerHTML = "<thead><tr><th>Found</th><th>Listing</th><th>Preference</th><th>Price</th><th>Status</th></tr></thead>";
+      table.innerHTML = "<thead><tr><th>Found</th><th>Listing</th><th>Preference</th><th>Price</th><th>Resale est.</th><th>Difference</th><th>Status</th></tr></thead>";
       const body = el("tbody");
       for (const h of list) {
         const tr = el("tr");
@@ -79,16 +84,35 @@ function render() {
         const text = el("div");
         const a = Object.assign(el("a", null, h.title), { href: h.url, target: "_blank", rel: "noopener" });
         text.append(a, el("small", null, [h.size && `Size ${h.size}`, h.brand].filter(Boolean).join(" · ")));
+        if (h.archiveScore >= 50) {
+          const b = el("span", "arch");
+          b.append("Archive ", el("b", null, String(h.archiveScore)), h.designer ? ` · ${h.designer}` : "");
+          text.append(b);
+        }
+        // kompakte Preiszeile für schmale Bildschirme
+        const mp = el("div", "m-price");
+        mp.append(el("b", null, fmtPrice(h.price, h.currency)));
+        if (h.resaleEstimate) {
+          const d = h.resaleEstimate - h.price;
+          mp.append(el("span", "resale", `Resale ~${fmtPrice(h.resaleEstimate, h.currency)}`), el("span", "diff " + (d >= 0 ? "up" : "down"), fmtDiff(d, h.currency)));
+        }
+        text.append(mp);
         item.append(text);
         const cells = [
           el("td", "time", fmtTime(h.detectedAt)),
           Object.assign(el("td"), {}),
-          el("td", "muted", h.searchQuery ? watchrTags.toTags({ query: h.searchQuery }).join(" ") : "–"),
+          el("td", "muted", prefOf(h) || "–"),
           el("td", "num", fmtPrice(h.price, h.currency)),
+          el("td", "num muted", h.resaleEstimate ? `~${fmtPrice(h.resaleEstimate, h.currency)}` : "–"),
+          el("td", "num"),
           el("td"),
         ];
         cells[1].append(item);
-        cells[4].append(el("span", "status " + (h.openedAt ? "opened" : "missed"), h.openedAt ? "Opened" : "Missed"));
+        if (h.resaleEstimate) {
+          const d = h.resaleEstimate - h.price;
+          cells[5].append(el("span", "diff " + (d >= 0 ? "up" : "down"), fmtDiff(d, h.currency)));
+        } else cells[5].textContent = "–";
+        cells[6].append(el("span", "status " + (h.openedAt ? "opened" : "missed"), h.openedAt ? "Opened" : "Missed"));
         tr.append(...cells);
         body.append(tr);
       }

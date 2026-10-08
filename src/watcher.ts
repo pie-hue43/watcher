@@ -1,10 +1,18 @@
 import { pathToFileURL } from "node:url";
 import { config } from "./config.ts";
-import { MockSource, RateLimitError, VintedSource, matches, type Source } from "./vinted.ts";
+import { join, dirname } from "node:path";
+import { DESIGNERS, archiveScore } from "./designers.ts";
+import { PriceEstimator, type PriceRef } from "./pricing.ts";
+import { MockSource, RateLimitError, VintedSource, matches, type Listing, type Source } from "./vinted.ts";
 import type { HitInput, Search } from "./types.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const jitter = (ms: number, pct = 0.15) => ms * (1 - pct + Math.random() * 2 * pct);
+
+/** Ab diesem Archive-Score meldet eine #archive-Suche ein Teil. */
+export const ARCHIVE_MIN_SCORE = 50;
+/** So viele Designer fragt eine #archive-Suche pro Durchlauf ab (reihum, damit Vinted nicht überlastet wird). */
+const DESIGNERS_PER_RUN = 3;
 
 /**
  * Der Watcher holt die Suchaufträge vom Backend, fragt die Datenquelle ab
@@ -15,6 +23,11 @@ export class Watcher {
   private seen = new Map<string, Set<string>>();
   private backoffMs = 0;
   private stopped = false;
+  /** Pause zwischen zwei Anfragen an Vinted (in Tests 0) */
+  gapMs = 3000;
+  /** Position in der Designerliste je #archive-Suche */
+  private rotation = new Map<number, number>();
+  private estimator: PriceEstimator | null;
 
   constructor(
     private source: Source,
@@ -22,7 +35,29 @@ export class Watcher {
     private token: string,
     private intervalMs: number,
     private log = (msg: string) => console.log(`[watcher] ${msg}`),
-  ) {}
+    priceCacheFile: string | null = null,
+  ) {
+    this.estimator = source.comparables ? new PriceEstimator((q) => source.comparables!(q), priceCacheFile) : null;
+  }
+
+  /** Normale Suchen laufen einmal, #archive-Suchen reihum über mehrere Designer. */
+  private queriesFor(s: Search): Search[] {
+    if (s.kind !== "archive") return [s];
+    const start = this.rotation.get(s.id) ?? 0;
+    this.rotation.set(s.id, (start + DESIGNERS_PER_RUN) % DESIGNERS.length);
+    return Array.from({ length: DESIGNERS_PER_RUN }, (_, i) => {
+      const d = DESIGNERS[(start + i) % DESIGNERS.length];
+      return { ...s, query: `${d.name} ${s.query}`.trim() };
+    });
+  }
+
+  private async resale(l: Listing): Promise<PriceRef | null> {
+    if (!this.estimator) return null;
+    return this.estimator.estimate(l).catch((err) => {
+      if (err instanceof RateLimitError) throw err;
+      return null;
+    });
+  }
 
   private async getSearches(): Promise<Search[]> {
     const res = await fetch(`${this.backendUrl}/api/searches`);
@@ -43,12 +78,12 @@ export class Watcher {
 
   /** Ein Durchlauf über alle aktiven Suchaufträge. Gibt die Zahl neuer Treffer zurück. */
   async runOnce(): Promise<number> {
-    const searches = (await this.getSearches()).filter((s) => s.active);
+    const searches = (await this.getSearches()).filter((s) => s.active).flatMap((s) => this.queriesFor(s));
     let found = 0;
     for (const [i, s] of searches.entries()) {
       if (this.stopped) break;
-      if (i > 0) await sleep(jitter(3000)); // höflich: Anfragen nicht bündeln
-      const key = `${s.id}|${s.query}|${s.minPrice}|${s.maxPrice}|${s.size}|${s.condition}`;
+      if (i > 0) await sleep(jitter(this.gapMs)); // höflich: Anfragen nicht bündeln
+      const key = `${s.id}|${s.kind}|${s.query}|${s.minPrice}|${s.maxPrice}|${s.size}|${s.condition}`;
       const listings = await this.source.search(s);
       const firstRun = !this.seen.has(key);
       const seen = this.seen.get(key) ?? new Set<string>();
@@ -59,9 +94,14 @@ export class Watcher {
         seen.add(l.id);
         // Beim ersten Durchlauf nur merken, was schon online ist. Gemeldet werden neue Listings.
         if (firstRun || !matches(s, l)) continue;
+        // Archive-Modus: Teile ohne Chance auf den Mindest-Score gar nicht erst bewerten (spart Anfragen)
+        if (s.kind === "archive" && archiveScore(l).score + 15 < ARCHIVE_MIN_SCORE) continue;
+        const ref = await this.resale(l);
+        const arch = archiveScore(l, ref?.median ?? null);
+        if (s.kind === "archive" && arch.score < ARCHIVE_MIN_SCORE) continue;
         let photoUrls = l.photoUrls;
         if (photoUrls.length < 3 && this.source.photos) {
-          await sleep(jitter(1500)); // höflich bleiben
+          await sleep(jitter(this.gapMs / 2)); // höflich bleiben
           photoUrls = await this.source.photos(l).catch((err) => {
             if (err instanceof RateLimitError) throw err;
             return l.photoUrls;
@@ -77,10 +117,17 @@ export class Watcher {
           brand: l.brand,
           url: l.url,
           photoUrls,
+          resaleEstimate: ref?.median ?? null,
+          resaleLow: ref?.low ?? null,
+          resaleHigh: ref?.high ?? null,
+          resaleSamples: ref?.samples ?? null,
+          archiveScore: arch.score,
+          designer: arch.designer,
         });
         if (isNew) {
           found++;
-          this.log(`🔥 Neuer Treffer: ${l.title} — ${l.price} ${l.currency}${l.size ? ` — Größe ${l.size}` : ""}`);
+          const diff = ref ? ` — Resell ~${ref.median} (${l.price <= ref.median ? "+" : ""}${Math.round(ref.median - l.price)})` : "";
+          this.log(`🔥 Neuer Treffer: ${l.title} — ${l.price} ${l.currency}${l.size ? ` — Größe ${l.size}` : ""}${diff}`);
         }
       }
       if (firstRun) this.log(`"${s.query}": ${listings.length} bestehende Listings gemerkt, ab jetzt wird nur Neues gemeldet`);
@@ -114,7 +161,8 @@ export class Watcher {
 
 export function startWatcher() {
   const source = config.source === "mock" ? new MockSource() : new VintedSource(config.vintedDomain);
-  const w = new Watcher(source, config.backendUrl, config.watcherToken, config.pollIntervalSec * 1000);
+  const priceCache = join(dirname(config.dbPath), "price-cache.json");
+  const w = new Watcher(source, config.backendUrl, config.watcherToken, config.pollIntervalSec * 1000, undefined, priceCache);
   void w.start();
   return w;
 }
