@@ -15,6 +15,17 @@
     .hero h1 { font-size: clamp(34px, 4.6vw, 56px); margin: 0 0 20px; letter-spacing: -.02em; }
     .hero h1 .free { display: block; color: var(--green-deep); }
     .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--green) 62%); }
+    .hero { align-items: center; }
+    .snipe-big-wrap { display: grid; place-items: center; min-height: 360px; }
+    .snipe-big { position: relative; width: 300px; height: 300px; border-radius: 50%; background: var(--green); color: #000; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      font-family: var(--font-display); font-weight: 800; font-size: 34px; letter-spacing: -.01em; box-shadow: 0 0 0 14px rgba(134,239,172,.35), 0 0 0 30px rgba(134,239,172,.15), 0 24px 50px rgba(21,128,61,.25); transition: transform .2s, box-shadow .2s; }
+    .snipe-big svg { width: 84px; height: 84px; }
+    .snipe-big:hover, .snipe-big:focus-visible { transform: scale(1.04); background: var(--green-hover); }
+    .snipe-big::after { content: ""; position: absolute; inset: -30px; border-radius: 50%; border: 2px solid rgba(21,128,61,.35); animation: ping 2.4s ease-out infinite; }
+    @keyframes ping { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.15); opacity: 0; } }
+    .snipe-mobile { display: none; margin-top: 0 !important; }
+    @media (max-width: 860px) { .snipe-big-wrap { display: none; } .snipe-mobile { display: inline-flex; } }
+    @media (prefers-reduced-motion: reduce) { .snipe-big::after { animation: none; } }
     .lead { font-size: 18px; color: var(--muted); max-width: 32em; margin: 0; }
     .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 0 20px; }
     .trust { display: flex; gap: 8px 20px; flex-wrap: wrap; list-style: none; padding: 0; margin: 24px 0 0; color: var(--muted); font-size: 14px; font-weight: 600; }
@@ -78,28 +89,18 @@
       <div>
         <h1>Every Vinted listing you want. <em>The moment it goes live.</em> <span class="free">Completely free.</span></h1>
         <div class="ctas">
-          <a class="btn" href="monitor.html">Open Live Sniper</a>
+          <a class="btn snipe-now snipe-mobile" href="monitor.html"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>Snipe now</a>
           <a class="btn ghost" href="#how-it-works">See how it works</a>
         </div>
         <p class="lead">watchr watches Vinted around the clock, specialised in high fashion designers and rare archive pieces. Every new listing that fits lands in Live Sniper in seconds, with photos, an estimated resale price and the difference to the asking price.</p>
         <ul class="trust"><li>Designer &amp; Archive mode</li><li>Resale estimate on every listing</li><li>Instant browser alerts</li></ul>
       </div>
 
-      <div class="monitor" aria-label="Live Sniper preview">
-        <span class="dot" title="Live"></span>
-        <div class="monitor-head"><h2>Live Sniper</h2></div>
-        <div class="prefs">
-          <label for="prefs">Individual Preferences</label>
-          <input id="prefs" value="#archive #max400" autocomplete="off" spellcheck="false" />
-          <small>Try #archive #max400, #ralph #lauren #polo or #nike #size43</small>
-          <div class="chips" id="chips"></div>
-        </div>
-        <ul class="listings" id="demo-list"></ul>
-        <p class="empty" id="demo-empty" hidden>Nothing matches yet. watchr keeps watching and shows new listings the moment they appear.</p>
-        <div class="mon-foot">
-          <span id="demo-count"></span>
-          <a class="btn small" id="watch-btn" href="monitor.html">Watch these preferences</a>
-        </div>
+      <div class="snipe-big-wrap">
+        <a class="snipe-big" href="monitor.html" aria-label="Snipe now: open Live Sniper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+          <span>Snipe now</span>
+        </a>
       </div>
     </div>
 
@@ -239,62 +240,5 @@
       <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
     </div>
   </footer>
-  <script src="tags.js"></script>
-  <script>
-    // Preview of the Live Sniper: example listings filtered by the hashtags typed above
-    const SAMPLES = [{"title": "Raf Simons AW02 archive bomber", "price": 340, "size": "M", "cond": "very_good", "icon": "jacket", "ago": "just now", "resale": 900, "arch": 95, "designer": "Raf Simons"}, {"title": "Helmut Lang 1999 painter jeans", "price": 120, "size": "W31", "cond": "good", "icon": "pants", "ago": "1 min ago", "resale": 260, "arch": 85, "designer": "Helmut Lang"}, {"title": "Ralph Lauren Polo slim fit", "price": 18, "size": "M", "cond": "very_good", "icon": "top", "ago": "2 min ago", "resale": 30, "arch": 0, "designer": null}, {"title": "Maison Margiela Tabi boots vintage", "price": 210, "size": "41", "cond": "very_good", "icon": "sneaker", "ago": "3 min ago", "resale": 380, "arch": 65, "designer": "Maison Margiela"}, {"title": "Nike Dunk Low Panda", "price": 65, "size": "43", "cond": "very_good", "icon": "sneaker", "ago": "4 min ago", "resale": 85, "arch": 0, "designer": null}, {"title": "Rick Owens Geobasket", "price": 260, "size": "43", "cond": "good", "icon": "sneaker", "ago": "6 min ago", "resale": 420, "arch": 55, "designer": "Rick Owens"}, {"title": "Polo Ralph Lauren polo shirt", "price": 35, "size": "L", "cond": "new_tags", "icon": "top", "ago": "8 min ago", "resale": 30, "arch": 0, "designer": null}, {"title": "Prada Re-Edition Bag", "price": 380, "size": null, "cond": "very_good", "icon": "bag", "ago": "12 min ago", "resale": 520, "arch": 40, "designer": "Prada"}];
-    const ICONS = {"sneaker": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M6 43V26c0-1.7 1.3-3 3-3h7c2 0 3 1.5 3 3.5 0 3 3 4.5 6 3.5l6-3c3 4.5 8.5 6.5 14.5 7.5C53 36.5 57 39 58 43z\"/><path d=\"M4 43h56v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z\"/><path d=\"M45 43c0-3.5 3.5-6 9-5.5\"/><path d=\"M26 31l3 4M31 28.5l3 4\"/><path d=\"M12 38c8 1.5 17 0 25-5\"/></svg>", "jacket": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M22 9 11 14 5 49l8 2 4-20v25h30V31l4 20 8-2-6-35-11-5-10 8z\"/><path d=\"M22 9l4 10 6-2 6 2 4-10\"/><path d=\"M32 17v39\"/><path d=\"M21 42h6M37 42h6\"/></svg>", "pants": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M20 8h24l4 48H36l-4-32-4 32H16z\"/><path d=\"M20 15h24\"/></svg>", "top": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z\"/></svg>", "bag": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><rect x=\"12\" y=\"26\" width=\"40\" height=\"28\" rx=\"5\"/><path d=\"M24 26v-6a8 8 0 0 1 16 0v6\"/></svg>"};
-    const RANK = { new_tags: 4, new: 3, very_good: 2, good: 1 };
-    const CONDITION_LABEL = { new_tags: "New with tags", new: "New", very_good: "Very good", good: "Good" };
-    const norm = (v) => String(v).trim().toLowerCase().replace(",", ".").replace(/^eu\s*/, "");
-    const input = document.getElementById("prefs");
-    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
-
-    function matches(item, f) {
-      // wie der Snipebot: jeder Hashtag muss zum Artikel passen
-      const flat = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
-      const GROUPS = { accessories: ["bag", "belt", "ring", "necklace", "bracelet", "wallet", "sunglasses", "cap", "scarf"], tops: ["shirt", "hoodie", "polo", "sweater", "tee"] };
-      if (!f.keywords.every((k) => (GROUPS[flat(k)] || [k]).some((w) => flat(item.title).includes(flat(w))))) return false;
-      if (f.minPrice != null && item.price < f.minPrice) return false;
-      if (f.maxPrice != null && item.price > f.maxPrice) return false;
-      if (f.size && (!item.size || norm(item.size) !== norm(f.size))) return false;
-      if (f.condition && RANK[item.cond] < RANK[f.condition]) return false;
-      if (f.kind === "archive" && item.arch < 50) return false;
-      return true;
-    }
-
-    function render() {
-      const f = watchrTags.parse(input.value);
-      document.getElementById("chips").replaceChildren(...f.tags.map((t, i) => {
-        const chip = el("span", "chip" + (t !== "#archive" && f.keywords.includes(t.slice(1)) ? " kw" : ""), t);
-        const x = el("button", null, "×");
-        x.type = "button";
-        x.setAttribute("aria-label", "Remove " + t);
-        x.onclick = () => { input.value = f.tags.filter((o) => o !== t).join(" "); render(); input.focus(); };
-        chip.append(x);
-        return chip;
-      }));
-      const hits = SAMPLES.filter((s) => matches(s, f));
-      document.getElementById("demo-list").replaceChildren(...hits.map((h, i) => {
-        const row = el("li", "listing" + (i === 0 ? " first" : ""));
-        const pics = el("div", "pics");
-        pics.setAttribute("aria-hidden", "true");
-        for (let n = 0; n < 3; n++) { const t = el("i", "pic"); t.innerHTML = ICONS[h.icon]; pics.append(t); }
-        const txt = el("div");
-        txt.append(el("span", "title", h.title), el("span", "meta", [h.size && "Size " + h.size, CONDITION_LABEL[h.cond], h.ago].filter(Boolean).join(" · ")));
-        if (h.arch >= 50) { const b = el("span", "arch"); b.append("Archive ", el("b", null, String(h.arch)), " · " + h.designer); txt.append(b); }
-        const pr = el("div", "pricing");
-        const d = h.resale - h.price;
-        pr.append(el("span", "price", "€" + h.price), el("span", "resale", "Resale ~€" + h.resale), el("span", "diff " + (d >= 0 ? "up" : "down"), (d >= 0 ? "+€" : "−€") + Math.abs(d)));
-        row.append(pics, txt, pr, el("span", "btn small", "View"));
-        return row;
-      }));
-      document.getElementById("demo-empty").hidden = hits.length > 0;
-      document.getElementById("demo-count").textContent = (hits.length === 1 ? "1 example match" : hits.length + " example matches") + " · example data";
-      document.getElementById("watch-btn").href = "monitor.html?tags=" + encodeURIComponent(f.tags.join(" "));
-    }
-    input.addEventListener("input", render);
-    render();
-  </script>
 </body>
 </html>
