@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snipe Watcher – Neue Vinted-Listings in Echtzeit</title>
+  <meta name="description" content="Snipe Watcher beobachtet Vinted für dich und zeigt neue Treffer zu deinen Suchaufträgen sofort an." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --line: #262b36;
+      --text: #e8eaf0; --muted: #8b93a7; --accent: #ff6b2c; --ok: #2fbf71;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    a { color: inherit; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+    .logo { font-weight: 800; letter-spacing: .04em; text-transform: uppercase; text-decoration: none; }
+    .logo span { color: var(--accent); }
+    .btn { display: inline-block; padding: 12px 20px; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 600; text-decoration: none; }
+    .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+    .btn.small { padding: 8px 14px; font-size: 14px; }
+
+    .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; padding: 56px 0 72px; }
+    .pill { display: inline-block; font-size: 13px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
+    .pill::before { content: "●"; color: var(--ok); margin-right: 6px; }
+    h1 { font-size: clamp(34px, 5vw, 54px); line-height: 1.1; margin: 16px 0; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lead { color: var(--muted); font-size: 18px; max-width: 34em; }
+    .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+
+    .preview { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+    .preview h3 { margin: 0 0 12px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .hit { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; margin-top: 8px; }
+    .hit.new { border-color: var(--accent); background: rgba(255,107,44,.12); }
+    .hit b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hit small { color: var(--muted); }
+    .hit .price { font-weight: 700; }
+    .hit .go { font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--accent); color: #fff; }
+
+    section { padding: 64px 0; border-top: 1px solid var(--line); }
+    h2 { font-size: clamp(26px, 3.5vw, 36px); margin: 0 0 8px; }
+    .sub { color: var(--muted); margin: 0 0 32px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+    .card .icon { font-size: 26px; }
+    .card h3 { margin: 10px 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); }
+    .step { counter-increment: step; }
+    .step .icon::before { content: counter(step); display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; }
+    .steps { counter-reset: step; }
+
+    .cta-box { text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 48px 24px; }
+    .cta-box p { color: var(--muted); max-width: 36em; margin: 0 auto 24px; }
+
+    details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-top: 10px; }
+    summary { cursor: pointer; font-weight: 600; }
+    details p { color: var(--muted); margin: 10px 0 0; }
+
+    footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+
+    @media (max-width: 820px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; padding-top: 24px; }
+      .grid { grid-template-columns: 1fr; }
+      section { padding: 48px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="#">🔥 Snipe <span>Watcher</span></a>
+      <a class="btn small" href="./">Zum Dashboard</a>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <span class="pill">Live-Treffer in Echtzeit</span>
+        <h1>Schnapp dir die besten Vinted-Deals, <em>bevor es andere tun.</em></h1>
+        <p class="lead">Snipe Watcher beobachtet Vinted rund um die Uhr für dich. Sobald ein neues Listing zu deiner Suche, deinem Budget und deiner Größe passt, siehst du es sofort im Dashboard.</p>
+        <div class="ctas">
+          <a class="btn" href="./">Jetzt loslegen</a>
+          <a class="btn ghost" href="#so-funktionierts">So funktioniert’s</a>
+        </div>
+      </div>
+
+      <div class="preview" aria-label="Beispielansicht des Dashboards">
+        <h3>🔥 Neue Treffer</h3>
+        <div class="hit new"><div><b>Nike Dunk Low</b><small>Größe 43 · gerade eben</small></div><span class="price">65 €</span><span class="go">Ansehen</span></div>
+        <div class="hit"><div><b>Adidas Samba</b><small>Größe 42 · vor 2 Min.</small></div><span class="price">45 €</span><span class="go">Ansehen</span></div>
+        <div class="hit"><div><b>Stone Island Overshirt</b><small>Größe M · vor 5 Min.</small></div><span class="price">120 €</span><span class="go">Ansehen</span></div>
+      </div>
+    </header>
+  </div>
+
+  <section id="so-funktionierts">
+    <div class="wrap">
+      <h2>So funktioniert’s</h2>
+      <p class="sub">In drei Schritten zu deinem persönlichen Deal-Radar.</p>
+      <div class="grid steps">
+        <div class="card step"><div class="icon"></div><h3>Suchauftrag anlegen</h3><p>Gib ein, was du suchst, dazu deinen Maximalpreis und deine Größe. Zum Beispiel: Nike Dunk, bis 80 €, Größe 43.</p></div>
+        <div class="card step"><div class="icon"></div><h3>Watcher sucht für dich</h3><p>Der Watcher prüft regelmäßig die neuesten Listings und filtert alles heraus, was nicht zu deinen Vorgaben passt.</p></div>
+        <div class="card step"><div class="icon"></div><h3>Sofort zuschlagen</h3><p>Neue Treffer erscheinen ohne Neuladen in deinem Dashboard. Ein Klick auf „Ansehen“ bringt dich direkt zum Angebot.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Alles, was ein Sniper braucht</h2>
+      <p class="sub">Schlank, schnell und auf das Wesentliche reduziert.</p>
+      <div class="grid">
+        <div class="card"><div class="icon">⚡</div><h3>Echtzeit-Dashboard</h3><p>Treffer werden per WebSocket direkt in deinen Browser gepusht. Kein Aktualisieren, kein Warten.</p></div>
+        <div class="card"><div class="icon">🎯</div><h3>Genaue Filter</h3><p>Suchbegriff, Maximalpreis und Größe. Du siehst nur, was wirklich für dich in Frage kommt.</p></div>
+        <div class="card"><div class="icon">🔔</div><h3>Benachrichtigungen</h3><p>Auf Wunsch meldet sich dein Browser, sobald ein neuer Treffer reinkommt, auch wenn der Tab im Hintergrund ist.</p></div>
+        <div class="card"><div class="icon">🧹</div><h3>Keine Dubletten</h3><p>Jedes Listing wird nur einmal gemeldet. Was du schon gesehen hast, taucht nicht wieder auf.</p></div>
+        <div class="card"><div class="icon">⏸️</div><h3>Suchen im Griff</h3><p>Suchaufträge jederzeit anlegen, pausieren oder löschen, alles direkt im Dashboard.</p></div>
+        <div class="card"><div class="icon">📱</div><h3>Auch am Handy</h3><p>Das Dashboard passt sich jedem Bildschirm an. So bist du auch unterwegs schneller als die anderen.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Häufige Fragen</h2>
+      <details><summary>Wie schnell sehe ich neue Listings?</summary><p>Der Watcher prüft deine Suchen etwa einmal pro Minute. Neue Treffer stehen danach sofort in deinem Dashboard.</p></details>
+      <details><summary>Wie viele Suchaufträge kann ich anlegen?</summary><p>So viele du möchtest. Für eine schnelle Prüfung empfehlen wir aber, dich auf die Suchen zu konzentrieren, die dir wirklich wichtig sind.</p></details>
+      <details><summary>Kauft der Watcher automatisch für mich?</summary><p>Nein. Snipe Watcher findet die Angebote, die Entscheidung und den Kauf machst du selbst auf Vinted.</p></details>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta-box">
+        <h2>Bereit für deinen nächsten Fund?</h2>
+        <p>Leg deinen ersten Suchauftrag an und lass den Watcher die Arbeit machen.</p>
+        <a class="btn" href="./">Zum Dashboard</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      © 2026 Snipe Watcher. Ein unabhängiges Projekt, nicht mit Vinted verbunden oder von Vinted unterstützt. „Vinted“ ist eine Marke der Vinted UAB.
+    </div>
+  </footer>
+</body>
+</html>
