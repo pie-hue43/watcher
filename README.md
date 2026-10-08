@@ -1,4 +1,6 @@
-# Vinted Watcher + Snipe Dashboard
+# watchr
+
+Vinted Watcher mit Backend und Echtzeit-Dashboard.
 
 ```
 Vinted → Watcher → Backend/API → SQLite + WebSocket → Dashboard (Browser)
@@ -7,7 +9,7 @@ Vinted → Watcher → Backend/API → SQLite + WebSocket → Dashboard (Browser
 - **Watcher** (`src/watcher.ts`): fragt pro Suchauftrag die öffentliche Vinted-Katalogsuche ab (neueste zuerst), filtert nach Max-Preis und Größe und meldet neue Listings per `POST /api/hits` ans Backend. Beim ersten Durchlauf einer Suche merkt er sich nur den Bestand, gemeldet wird danach nur, was neu online kommt.
 - **Backend** (`src/server.ts`): speichert Treffer in SQLite (doppelte Vinted-IDs werden ignoriert) und pusht jeden neuen Treffer sofort per WebSocket an alle offenen Dashboards.
 - **Dashboard** (`public/`): zeigt Treffer live, verwaltet Suchaufträge, optional Browser-Benachrichtigungen.
-- **Landingpage** (`public/landing.html`): stellt Snipe Watcher als Produkt vor, erreichbar unter `/landing.html`. Funktioniert auch eigenständig auf deiner Website (die Buttons verlinken auf das Dashboard `./`).
+- **Landingpage** (`public/landing.html`): stellt watchr als Produkt vor, erreichbar unter `/landing.html`. Funktioniert auch eigenständig auf deiner Website (die Buttons verlinken auf das Dashboard `./`).
 
 ## Starten
 

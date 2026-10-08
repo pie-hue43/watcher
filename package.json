@@ -1,5 +1,5 @@
 {
-  "name": "vinted-watcher",
+  "name": "watchr",
   "version": "0.1.0",
   "private": true,
   "description": "Vinted Watcher mit Backend, SQLite und Echtzeit-Dashboard per WebSocket",
