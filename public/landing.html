@@ -26,7 +26,7 @@
     .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
     .btn.small { padding: 8px 14px; font-size: 14px; }
 
-    .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; padding: 56px 0 72px; }
+    .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; padding: 48px 0 56px; }
     .pill { display: inline-block; font-size: 13px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
     .pill::before { content: "●"; color: var(--ok); margin-right: 6px; }
     h1 { font-size: clamp(34px, 5vw, 54px); line-height: 1.1; margin: 16px 0; }
@@ -77,6 +77,8 @@
     @keyframes ticker { to { transform: translateX(-50%); } }
 
     /* Kategorie-Kreise */
+    .cats-wrap { padding: 0 0 56px; }
+    .cats-title { text-align: center; margin: 0 0 20px; }
     .cats { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 8px 0 28px; }
     .cat { position: relative; display: grid; place-items: center; width: 132px; height: 132px; border-radius: 50%;
       border: 3px solid var(--text); background: radial-gradient(circle at 50% 40%, #fff, #fde8f0); text-decoration: none; color: #000;
@@ -106,14 +108,6 @@
     <nav>
       <a class="logo" href="#"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#f14187"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
     </nav>
-    <div class="cats" id="kategorien" aria-label="Kategorien">
-      <a class="cat" href="./?q=Sneaker"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/><path d="M30 34l4 3M34 31l4 3"/></svg><span>Sneaker</span></a>
-      <a class="cat" href="./?q=Jacke"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/><path d="M18 34h6M40 34h6"/></svg><span>Jacken</span></a>
-      <a class="cat" href="./?q=Hose"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Hosen</span></a>
-      <a class="cat" href="./?q=Pullover"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a>
-      <a class="cat" href="./?q=Tasche"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="26" width="40" height="28" rx="5"/><path d="M24 26v-6a8 8 0 0 1 16 0v6"/></svg><span>Taschen</span></a>
-      <a class="cat" href="./"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>Alle</span></a>
-    </div>
   </div>
   <div class="menu">
     <ul>
@@ -144,6 +138,17 @@
         <div class="hit"><div><b>Stone Island Overshirt</b><small>Größe M · vor 5 Min.</small></div><span class="price">120 €</span><span class="go">Ansehen</span></div>
       </div>
     </header>
+    <div class="cats-wrap">
+      <h2 class="cats-title">Snipe-Kategorien</h2>
+      <div class="cats" id="kategorien" aria-label="Kategorien">
+      <a class="cat" href="./?q=Sneaker"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 42h20l6-12 8 6h10a8 8 0 0 1 8 8v4H6z"/><path d="M6 48h52"/><path d="M30 34l4 3M34 31l4 3"/></svg><span>Sneaker</span></a>
+      <a class="cat" href="./?q=Jacke"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l10 7 10-7 12 8v32H10V20z"/><path d="M32 19v33"/><path d="M18 34h6M40 34h6"/></svg><span>Jacken</span></a>
+      <a class="cat" href="./?q=Hose"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Hosen</span></a>
+      <a class="cat" href="./?q=Pullover"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a>
+      <a class="cat" href="./?q=Tasche"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="26" width="40" height="28" rx="5"/><path d="M24 26v-6a8 8 0 0 1 16 0v6"/></svg><span>Taschen</span></a>
+      <a class="cat" href="./"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>Alle</span></a>
+    </div>
+    </div>
   </div>
 
   <section id="so-funktionierts">
