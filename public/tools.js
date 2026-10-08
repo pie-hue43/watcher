@@ -201,7 +201,7 @@ const TOOLS = [
       box.append(out);
       loadInto(out, async () => {
         const list = await api("/deals?days=7");
-        if (!list.length) return [empty("No deals in the last 7 days yet. Add preferences in Live Listings and check back.")];
+        if (!list.length) return [empty("No deals in the last 7 days yet. Add preferences in Live Sniper and check back.")];
         return list.map((h) => {
           const r = el("div", "pricing");
           r.append(el("span", "price", eur(h.price, h.currency)), el("span", "resale", `Resale ~${eur(h.resaleEstimate, h.currency)}`), el("span", "diff up", `${h.roi}% · ${signed(h.profit, h.currency)}`));
@@ -392,7 +392,7 @@ const TOOLS = [
           const actions = el("div", "ctas");
           actions.append(
             Object.assign(el("a", "btn", "Open on Vinted"), { href: r.vintedUrl, target: "_blank", rel: "noopener" }),
-            Object.assign(el("a", "btn ghost", "Watch in Live Listings"), { href: "monitor.html?tags=" + encodeURIComponent(r.tags.join(" ")) }),
+            Object.assign(el("a", "btn ghost", "Watch in Live Sniper"), { href: "monitor.html?tags=" + encodeURIComponent(r.tags.join(" ")) }),
           );
           out.replaceChildren(chips, actions, note(r.ai ? "Filters built by AI from your description." : "Filters built with simple rules. Add an ANTHROPIC_API_KEY on the server for AI understanding."));
         }),

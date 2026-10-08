@@ -1,4 +1,4 @@
-// Snipes: alle gefundenen Listings, gruppiert nach Tag; nicht geöffnete gelten als verpasst.
+// Flips: alle gefundenen Listings, gruppiert nach Tag; nicht geöffnete gelten als verpasst.
 const BACKEND = (window.WATCHER_BACKEND || location.origin).replace(/\/$/, "");
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => {
@@ -132,7 +132,7 @@ async function load() {
     hits = await res.json();
   } catch {
     $("ledger-empty-text").textContent =
-      "watchr isn't reachable right now. Start it with npm start, then reload this page to see your Snipes.";
+      "watchr isn't reachable right now. Start it with npm start, then reload this page to see your Flips.";
   }
   render();
 }

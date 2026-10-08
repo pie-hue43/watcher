@@ -10,7 +10,7 @@ Vinted → Watcher → Backend/API → SQLite + WebSocket → Dashboard (Browser
 - **Backend** (`src/server.ts`): speichert Treffer in SQLite (doppelte Vinted-IDs werden ignoriert) und pusht jeden neuen Treffer sofort per WebSocket an alle offenen Dashboards.
 - **Website** (`public/`, Englisch, Hellgrün):
   - `/` Startseite mit Live-Listings-Monitor-Vorschau, Snipe-Kategorien, Produktübersicht, How it works, FAQ
-  - `/monitor` **Live Listings Monitor**: Treffer in Echtzeit, Individual Preferences (Hashtags), Tageszahlen
+  - `/monitor` **Live Sniper**: Treffer in Echtzeit, Individual Preferences (Hashtags), Tageszahlen
   - `/missed-flips` Liste aller gefundenen Listings, nicht geöffnete gelten als verpasst
   - `/features`, `/faq` Unterseiten
 
@@ -21,7 +21,7 @@ Voraussetzung: Node.js 22.13 oder neuer (nutzt das eingebaute `node:sqlite`).
 ```bash
 npm install
 cp .env.example .env      # WATCHER_TOKEN ändern!
-npm start                 # Backend + Watcher, Website auf http://localhost:3000, Live Listings unter /monitor
+npm start                 # Backend + Watcher, Website auf http://localhost:3000, Live Sniper unter /monitor
 ```
 
 Ohne Vinted testen: `WATCHER_SOURCE=mock npm start` erzeugt Fake-Listings.
@@ -31,7 +31,7 @@ Tests: `npm test` (spielt Watcher → Backend → DB → WebSocket einmal komple
 
 ## Individual Preferences (Hashtags)
 
-Im Dashboard und im Live Listings Monitor der Landingpage gibt man Wünsche als Hashtags ein, z. B. `#nike #dunk #size43 #min20 #max80 #verygood`:
+Im Dashboard und im Live Sniper der Landingpage gibt man Wünsche als Hashtags ein, z. B. `#nike #dunk #size43 #min20 #max80 #verygood`:
 
 - normale Wörter werden Suchbegriffe (`#nike #dunk`)
 - `#size43`, `#sizeM` setzt die Größe
@@ -90,7 +90,7 @@ Die Seite **AI Tools** (`/tools`) bündelt zehn Werkzeuge. Alle laufen über `/a
 | PATCH | `/api/searches/:id` | z. B. `{ "active": false }` zum Pausieren |
 | DELETE | `/api/searches/:id` | löschen |
 | GET | `/api/hits?limit=50` | letzte Treffer (mit `openedAt`) |
-| POST | `/api/hits/:id/open` | Treffer als geöffnet markieren (für Snipes) |
+| POST | `/api/hits/:id/open` | Treffer als geöffnet markieren (für Flips) |
 | POST | `/api/hits` | nur Watcher, Header `Authorization: Bearer <WATCHER_TOKEN>` |
 | WS | `/ws` | Push: `hello` (Startzustand), `hit` (neuer Treffer), `searches` (Änderung) |
 
@@ -104,7 +104,7 @@ Ein Treffer sieht so aus:
 
 ## In die eigene Website einbauen
 
-**Variante A, Live Listings übernehmen:** `public/monitor.html`, `app.js`, `tags.js`, `site.css` in deine Seite kopieren und vor `app.js` die Backend-Adresse setzen:
+**Variante A, Live Sniper übernehmen:** `public/monitor.html`, `app.js`, `tags.js`, `site.css` in deine Seite kopieren und vor `app.js` die Backend-Adresse setzen:
 
 ```html
 <script>window.WATCHER_BACKEND = "https://watcher.deine-seite.de";</script>

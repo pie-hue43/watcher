@@ -197,7 +197,7 @@ export function createServer(
       // Dashboard (statische Dateien)
       if (req.method !== "GET") throw new HttpError(405, "Method not allowed");
       // alte Adressen weiterleiten
-      const moved: Record<string, string> = { "/landing.html": "/", "/missed-flips": "/snipes", "/missed-flips.html": "/snipes" };
+      const moved: Record<string, string> = { "/landing.html": "/", "/missed-flips": "/flips", "/missed-flips.html": "/flips", "/snipes": "/flips", "/snipes.html": "/flips" };
       if (moved[url.pathname]) {
         res.writeHead(301, { Location: moved[url.pathname] });
         return void res.end();

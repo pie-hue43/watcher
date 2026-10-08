@@ -1,4 +1,4 @@
-// Live Listings Monitor: verbindet sich per WebSocket mit dem Backend und zeigt Treffer live an.
+// Live Sniper: verbindet sich per WebSocket mit dem Backend und zeigt Treffer live an.
 // Läuft die Seite auf einer anderen Domain als das Backend, vorher setzen:
 //   <script>window.WATCHER_BACKEND = "https://watcher.meine-seite.de";</script>
 const BACKEND = (window.WATCHER_BACKEND || location.origin).replace(/\/$/, "");
@@ -20,7 +20,7 @@ const isToday = (iso) => new Date(iso).toDateString() === new Date().toDateStrin
 let hits = [];
 let searches = [];
 
-// Geöffnete Treffer ans Backend melden (für Snipes)
+// Geöffnete Treffer ans Backend melden (für Flips)
 function markOpened(h) {
   if (h.openedAt) return;
   h.openedAt = new Date().toISOString();

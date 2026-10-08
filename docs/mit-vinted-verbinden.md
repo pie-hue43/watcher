@@ -28,13 +28,13 @@ Dann im Browser http://localhost:3000 öffnen. Das ist die watchr-Website mit ec
 
 ## 3. Testen, ob Vinted antwortet
 
-1. Auf **Live Listings** eine breite Präferenz anlegen, damit schnell etwas kommt, z. B. `#ralph #lauren #polo`.
+1. Auf **Live Sniper** eine breite Präferenz anlegen, damit schnell etwas kommt, z. B. `#ralph #lauren #polo`.
 2. Im Terminal sollte nach spätestens einer Minute stehen:
    `[watcher] "ralph lauren polo": 30 bestehende Listings gemerkt, ab jetzt wird nur Neues gemeldet`
    **Damit ist die Verbindung zu Vinted bestätigt.** Bestehende Angebote werden bewusst nicht gemeldet, nur neue.
-3. Nach ein paar Minuten erscheinen neue Polos in Live Listings, im Terminal als `🔥 Neuer Treffer: … — Resell ~30 (+12)`.
+3. Nach ein paar Minuten erscheinen neue Polos in Live Sniper, im Terminal als `🔥 Neuer Treffer: … — Resell ~30 (+12)`.
 4. Danach `#archive` (optional mit `#max300`) anlegen und schauen, ob Archivteile mit Score und Resellpreis kommen.
-5. Einen Treffer anklicken und prüfen, ob er unter **Snipes** als „Opened“ steht.
+5. Einen Treffer anklicken und prüfen, ob er unter **Flips** als „Opened“ steht.
 
 ## Wenn etwas nicht klappt
 
