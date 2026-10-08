@@ -19,13 +19,21 @@
     .feature h2 { font-size: clamp(26px, 3.2vw, 36px); margin: 12px 0; }
     .feature p { color: var(--muted); margin: 0 0 12px; }
     .feature ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+    .soon { background: var(--green-soft); border: 1px solid #c7f0d4; border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+    .soon-head h2 { font-size: clamp(26px, 3.2vw, 36px); margin: 12px 0 6px; }
+    .soon-head p { margin: 0; color: var(--muted); }
+    .soon-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .soon-card { position: relative; background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+    .soon-card h3 { margin: 0; font-size: 20px; }
+    .soon-card p { margin: 0; color: var(--muted); }
+    .soon-tag { position: absolute; top: 20px; right: 20px; font-size: 12px; font-weight: 800; letter-spacing: .04em; padding: 4px 10px; border-radius: 999px; background: var(--text); color: #e8fbef; }
     .feature.main { background: var(--green-soft); border: 1px solid #c7f0d4; border-radius: 20px; padding: 32px; }
     table { width: 100%; border-collapse: collapse; font-size: 15px; }
     th, td { text-align: left; padding: 10px 12px; border-top: 1px solid var(--line); }
     th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-top: 0; }
     td code { font-weight: 700; background: var(--green-soft); padding: 2px 6px; border-radius: 6px; }
     pre { margin: 0; background: var(--text); color: #e8fbef; border-radius: 14px; padding: 20px; overflow-x: auto; font-size: 14px; line-height: 1.55; }
-    @media (max-width: 860px) { .feature { grid-template-columns: minmax(0, 1fr); } .feature.main { padding: 22px; } }
+    @media (max-width: 860px) { .feature { grid-template-columns: minmax(0, 1fr); } .feature.main, .soon { padding: 22px; } .soon-grid { grid-template-columns: minmax(0, 1fr); } }
   </style>
 </head>
 <body>
@@ -45,22 +53,28 @@
       </div>
     </div>
 
-    <section>
+    <section id="coming-soon">
       <div class="wrap">
-        <div class="feature main">
-          <div>
-            <span class="badge"><span class="dot"></span>Live</span>
-            <h2>Live Listings Monitor</h2>
-            <p>The heart of watchr. Matches are pushed to your browser over a live connection the moment watchr finds them.</p>
-            <ul>
-              <li>New matches slide in at the top, highlighted for a few seconds</li>
-              <li>Photos, price, size and brand in one row</li>
-              <li>Estimated resale price and the difference to the Vinted price on every listing</li>
-              <li>Today at a glance: matches, active preferences, unopened listings</li>
-              <li>Reconnects on its own if your connection drops</li>
-            </ul>
+        <div class="soon">
+          <div class="soon-head">
+            <span class="badge"><span class="dot"></span>Coming soon</span>
+            <h2>What's next for watchr.</h2>
+            <p>New features we're working on. They'll show up here first.</p>
           </div>
-          <div class="icon-box" style="width:100%;height:220px;border-radius:16px"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="8" y="12" width="48" height="34" rx="5"/><path d="M24 54h16M32 46v8"/><path d="M16 30h8l4-8 6 14 4-6h10"/></svg></div>
+          <div class="soon-grid">
+            <div class="soon-card">
+              <div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M10 22h44l-4 30H14z"/><path d="M22 22a10 10 0 0 1 20 0"/></svg></div>
+              <span class="soon-tag">Coming soon</span>
+              <h3>Top 20 Suppliers</h3>
+              <p>The 20 best suppliers for reselling, handpicked and checked, so you can buy stock cheaper and in bulk.</p>
+            </div>
+            <div class="soon-card">
+              <div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M32 8l7 14 15 2-11 11 3 15-14-7-14 7 3-15L10 24l15-2z"/></svg></div>
+              <span class="soon-tag">Coming soon</span>
+              <h3>Premium Supplier Bundle</h3>
+              <p>30 premium suppliers for designer and archive pieces in one bundle, for the items with the biggest margins.</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
