@@ -110,6 +110,8 @@ Läuft deine Website auf einer anderen Domain als das Backend, trag sie in `.env
 
 **Wichtig:** Die Verwaltung der Suchaufträge hat noch keinen Login. Online also nur hinter Passwortschutz (z. B. Basic Auth im Reverse Proxy) betreiben.
 
+Schritt-für-Schritt-Anleitung zum Testen mit dem echten Vinted: [docs/mit-vinted-verbinden.md](docs/mit-vinted-verbinden.md)
+
 ## Hinweise zu Vinted
 
 - Es gibt keine offizielle Vinted-API. Der Watcher nutzt dieselbe Suche wie die Website. Automatisiertes Abfragen ist laut Vinted-AGB nicht vorgesehen, also nur für den Eigengebrauch und sparsam nutzen.
