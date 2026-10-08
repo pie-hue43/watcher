@@ -47,7 +47,9 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; text-wrap: bala
 .site-nav a.live::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--live); margin-right: 7px; vertical-align: 1px; animation: blink 1.2s ease-in-out infinite; }
 @media (max-width: 860px) {
   .site-header .wrap { flex-wrap: wrap; gap: 4px 12px; padding-block: 10px; }
-  .site-header .btn { margin-left: auto; }
+  .site-header .head-btns { margin-left: auto; }
+  .head-btns .btn { padding: 7px 10px; font-size: 13px; }
+  .head-btns { gap: 6px; }
   .site-nav { order: 3; flex-basis: 100%; margin-inline: -12px; }
 }
 
@@ -164,6 +166,11 @@ details p { color: var(--muted); margin: 10px 0 0; }
 /* Ankerziele nicht unter der fixierten Kopfzeile verstecken */
 section[id], details[id] { scroll-margin-top: 96px; }
 .listing .arch { display: block; width: fit-content; }
+.head-btns { display: flex; gap: 8px; flex: none; }
+.charts-btn { flex: none; background: var(--green); color: var(--text); padding: 8px 14px; }
+.charts-btn:hover { background: #6ee7a0; }
+.charts-btn[aria-current="page"], .upgrades-btn[aria-current="page"] { box-shadow: 0 0 0 2px var(--text); }
+.head-btns .btn svg { margin-right: 6px; vertical-align: -3px; }
 .upgrades-btn { flex: none; background: var(--text); color: var(--green); padding: 8px 14px; }
 .upgrades-btn:hover { background: #1f2a22; }
 .upgrades-btn[aria-current="page"] { box-shadow: 0 0 0 2px var(--green); }
@@ -202,3 +209,5 @@ section[id], details[id] { scroll-margin-top: 96px; }
 .rarity-filter button { font: inherit; font-size: 12px; cursor: pointer; padding: 3px 10px; opacity: .45; filter: grayscale(.6); transition: opacity .15s, filter .15s; }
 .rarity-filter button[aria-pressed="true"] { opacity: 1; filter: none; }
 .sold-tag { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; background: var(--text); color: var(--green); margin-left: 6px; vertical-align: 2px; }
+
+@media (max-width: 420px) { .head-btns .btn svg { display: none; } .head-btns .btn { padding: 6px 9px; } }

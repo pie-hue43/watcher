@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import type { Hit, HitInput, Search, Tracked } from "./types.ts";
+import type { Hit, HitInput, Sale, Search, Tracked } from "./types.ts";
 
 export function openDb(path: string) {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
@@ -44,6 +44,16 @@ export function openDb(path: string) {
       added_at   TEXT NOT NULL,
       checked_at TEXT,
       sold_at    TEXT
+    );
+  `);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS sales (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      title     TEXT NOT NULL,
+      price     REAL NOT NULL,
+      buy_price REAL,
+      country   TEXT,
+      sold_at   TEXT NOT NULL
     );
   `);
   const searchCols = (db.prepare("PRAGMA table_info(searches)").all() as { name: string }[]).map((c) => c.name);
@@ -99,6 +109,8 @@ export function openDb(path: string) {
     id: r.id, vintedId: r.vinted_id, url: r.url, title: r.title, price: r.price, currency: r.currency,
     photoUrl: r.photo_url, seller: r.seller, status: r.status, addedAt: r.added_at, checkedAt: r.checked_at, soldAt: r.sold_at,
   });
+
+  const toSale = (r: any): Sale => ({ id: r.id, title: r.title, price: r.price, buyPrice: r.buy_price ?? null, country: r.country ?? null, soldAt: r.sold_at });
 
   const hitSelect = `SELECT h.*, s.query AS search_query, s.kind AS search_kind FROM hits h LEFT JOIN searches s ON s.id = h.search_id`;
 
@@ -206,6 +218,16 @@ export function openDb(path: string) {
     },
     untrack(id: number): boolean {
       return db.prepare("DELETE FROM tracked WHERE id = ?").run(id).changes > 0;
+    },
+    listSales(): Sale[] {
+      return db.prepare("SELECT * FROM sales ORDER BY sold_at DESC, id DESC").all().map(toSale);
+    },
+    addSale(x: Omit<Sale, "id">): Sale {
+      const r = db.prepare("INSERT INTO sales (title, price, buy_price, country, sold_at) VALUES (?, ?, ?, ?, ?)").run(x.title, x.price, x.buyPrice, x.country, x.soldAt);
+      return toSale(db.prepare("SELECT * FROM sales WHERE id = ?").get(Number(r.lastInsertRowid)));
+    },
+    deleteSale(id: number): boolean {
+      return db.prepare("DELETE FROM sales WHERE id = ?").run(id).changes > 0;
     },
     close() {
       db.close();

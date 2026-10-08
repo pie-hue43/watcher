@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>My Charts · watchr</title>
+  <meta name="description" content="Your own Vinted sales at a glance: revenue, orders, average order value, profit and where your buyers are." />
+  <link rel="icon" href="logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    .page-head { padding-block: 24px 20px; display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: flex-end; justify-content: space-between; }
+    .page-head h1 { font-size: clamp(34px, 4.6vw, 54px); letter-spacing: -.02em; }
+    .page-head h1 span { display: block; color: var(--muted); font-weight: 600; }
+    .page-head p { margin: 8px 0 0; color: var(--muted); max-width: 36em; }
+    .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+    .seg button { font: inherit; font-size: 14px; font-weight: 700; border: 0; background: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: var(--muted); }
+    .seg button[aria-pressed="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .demo-note { margin: 0 0 16px; padding: 8px 12px; border-radius: 10px; background: var(--green-soft); border: 1px solid #c7f0d4; font-size: 13px; }
+    /* Kennzahlen: Umsatz groß links, die anderen als Raster rechts */
+    .kpis { display: grid; grid-template-columns: 1.3fr 2fr; gap: 12px; }
+    .hero-kpi { background: var(--text); color: #fff; border-radius: 16px; padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+    .hero-kpi .label { color: #b9c4bc; font-weight: 700; font-size: 14px; }
+    .hero-kpi b { font-family: var(--font-display); font-size: clamp(40px, 5vw, 58px); line-height: 1; font-variant-numeric: tabular-nums; }
+    .delta { display: inline-block; font-size: 13px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+    .delta.up { background: var(--green); color: var(--text); }
+    .delta.down { background: #fde2df; color: var(--danger); }
+    .hero-kpi .sub { color: #b9c4bc; font-size: 13px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .kpi-grid .stat small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .panel { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .panel h2 { font-size: 20px; }
+    .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); }
+    .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--green-deep); margin-right: 6px; vertical-align: -1px; }
+    .legend i.prev { background: none; border-top: 2px dashed #8a948d; height: 0; border-radius: 0; vertical-align: 3px; }
+    .chart-wrap { position: relative; }
+    .chart-wrap svg { display: block; width: 100%; height: 260px; }
+    .chart-foot { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; margin-top: 6px; flex-wrap: wrap; }
+    .tip { position: absolute; pointer-events: none; background: var(--text); color: #fff; font-size: 13px; padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); }
+    .tip b { color: var(--green); }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .countries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+    .countries li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+    .countries .bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--surface); overflow: hidden; }
+    .countries .bar span { display: block; height: 100%; border-radius: 4px; background: var(--green-deep); }
+    .countries .val { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+    .countries .val small { color: var(--muted); font-weight: 600; margin-left: 6px; }
+    table.sales { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.sales th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 6px 8px; }
+    table.sales td { padding: 9px 8px; border-top: 1px solid var(--line); }
+    table.sales td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+    table.sales .pos { color: var(--green-deep); }
+    table.sales button { font: inherit; font-size: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 3px 8px; cursor: pointer; color: var(--muted); }
+    .add-form { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr auto; gap: 8px; align-items: end; }
+    .add-form label { min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
+    .add-form input, .add-form select { font: inherit; font-size: 15px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); min-width: 0; }
+    .form-msg { margin: 8px 0 0; font-size: 13px; color: var(--danger); min-height: 1em; }
+    .stack { display: flex; flex-direction: column; gap: 12px; padding-bottom: 72px; }
+    .note { color: var(--muted); font-size: 13px; margin: 0; }
+    @media (max-width: 900px) { .kpis, .two { grid-template-columns: 1fr; } .add-form { grid-template-columns: 1fr 1fr; } .add-form label.title { grid-column: 1 / -1; } }
+    @media (max-width: 560px) { .add-form { grid-template-columns: 1fr; } .table-scroll { overflow-x: auto; } .chart-wrap svg { height: 220px; } }
+  </style>
+</head>
+  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Designer &amp; archive pieces</span><span>Resale estimate on every listing</span><span>Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Designer &amp; archive pieces</span><span aria-hidden="true">Resale estimate on every listing</span><span aria-hidden="true">Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="features.html">Features</a><a href="how-it-works.html">How it works</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <div class="head-btns"><a class="btn small charts-btn" href="charts.html" aria-current="page"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn"  href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <div class="page-head">
+        <div>
+          <span class="eyebrow">My Charts · your resale business</span>
+          <h1>Your sales.<span>At a glance.</span></h1>
+          <p>Log what you sell on Vinted and see revenue, profit and where your buyers are. Add the buy price and watchr works out your margin too.</p>
+        </div>
+        <div class="toolbar">
+          <div class="seg" role="group" aria-label="Time range"><button type="button" data-days="7">7 days</button><button type="button" data-days="30" aria-pressed="true">30 days</button><button type="button" data-days="90">90 days</button></div>
+          <a class="btn small" href="#add">Add a sale</a>
+        </div>
+      </div>
+      <p id="demo-note" class="demo-note" hidden>Example data: watchr isn't running here. Start it with npm start and your own sales show up.</p>
+      <div class="stack">
+        <div class="kpis">
+          <div class="hero-kpi">
+            <span class="label">Revenue · <span id="range-label">last 30 days</span></span>
+            <b id="k-revenue">€0</b>
+            <div><span class="delta up" id="k-delta">+0%</span> <span class="sub" id="k-prev">vs previous period</span></div>
+          </div>
+          <div class="kpi-grid">
+            <div class="stat"><b id="k-orders">0</b><span>Orders</span><small id="k-orders-sub"></small></div>
+            <div class="stat"><b id="k-aov">€0</b><span>Average order value</span><small id="k-aov-sub"></small></div>
+            <div class="stat"><b id="k-profit">–</b><span>Profit</span><small id="k-profit-sub">Add buy prices to see it</small></div>
+            <div class="stat"><b id="k-countries">0</b><span>Countries reached</span><small id="k-top"></small></div>
+          </div>
+        </div>
+
+        <section class="panel" aria-labelledby="c-title">
+          <div class="panel-head">
+            <h2 id="c-title">Revenue per day</h2>
+            <div class="legend"><span><i></i>This period</span><span><i class="prev"></i>Previous period</span></div>
+          </div>
+          <div class="chart-wrap" id="chart-wrap"><svg id="chart" role="img" aria-labelledby="c-title"></svg><div class="tip" id="tip" hidden></div></div>
+          <div class="chart-foot"><span id="c-peak"></span><span id="c-avg"></span></div>
+        </section>
+
+        <div class="two">
+          <section class="panel" aria-labelledby="w-title">
+            <div class="panel-head"><h2 id="w-title">Where your buyers are</h2><span class="note" id="w-sub"></span></div>
+            <ol class="countries" id="countries"></ol>
+          </section>
+          <section class="panel" aria-labelledby="t-title">
+            <div class="panel-head"><h2 id="t-title">Recent sales</h2><span class="note" id="t-sub"></span></div>
+            <div class="table-scroll"><table class="sales"><thead><tr><th>Item</th><th>Country</th><th style="text-align:right">Price</th><th style="text-align:right">Profit</th><th></th></tr></thead><tbody id="sales"></tbody></table></div>
+          </section>
+        </div>
+
+        <section class="panel" id="add" aria-labelledby="a-title">
+          <div class="panel-head"><h2 id="a-title">Add a sale</h2><span class="note">Stays on your computer, in watchr's database.</span></div>
+          <form class="add-form" id="add-form">
+            <label class="title">Item<input name="title" required maxlength="200" placeholder="Raf Simons bomber jacket" /></label>
+            <label>Sold for (€)<input name="price" type="number" step="0.01" min="0.01" required placeholder="120" /></label>
+            <label>Bought for (€)<input name="buyPrice" type="number" step="0.01" min="0" placeholder="optional" /></label>
+            <label>Buyer country<select name="country"><option value="">Unknown</option><option>Germany</option><option>France</option><option>Austria</option><option>Italy</option><option>Belgium</option><option>Netherlands</option><option>Spain</option><option>Poland</option><option>Czechia</option><option>Lithuania</option><option>Luxembourg</option><option>Portugal</option><option>Other</option></select></label>
+            <label>Date<input name="soldAt" type="date" /></label>
+            <button class="btn" type="submit">Add</button>
+          </form>
+          <p class="form-msg" id="form-msg" role="status"></p>
+        </section>
+        <p class="note">Vinted doesn't share your shop statistics with other apps, so My Charts uses the sales you log here. Profit is sale price minus buy price; Vinted's buyer protection is paid by the buyer, and selling has no fee.</p>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+          <p class="muted">The live sniper for Vinted. watchr spots new listings that match your preferences and shows them the moment they go live.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="features.html">Features</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
+        </div>
+        <div>
+          <h4>Help</h4>
+          <ul><li><a href="how-it-works.html">How it works</a></li><li><a href="faq.html">FAQ</a></li><li><a href="features.html#embed">Use it on your website</a></li></ul>
+        </div>
+      </div>
+      <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
+    </div>
+  </footer>
+  <script src="charts.js"></script>
+</body>
+</html>

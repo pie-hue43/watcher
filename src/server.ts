@@ -182,6 +182,25 @@ export function createServer(
           broadcast({ type: "hit", hit });
           return send(201, hit);
         }
+        // My Charts: eigene Verkäufe
+        if (path === "/sales" && req.method === "GET") return send(200, db.listSales());
+        if (path === "/sales" && req.method === "POST") {
+          const b = await readJson(req);
+          const title = String(b.title ?? "").trim().slice(0, 200);
+          const price = Number(b.price);
+          if (!title || !(price > 0) || price > 1_000_000) throw new HttpError(400, "Add a title and a price above 0");
+          const buy = b.buyPrice == null || b.buyPrice === "" ? null : Number(b.buyPrice);
+          if (buy != null && !(buy >= 0)) throw new HttpError(400, "Buy price must be 0 or more");
+          const when = b.soldAt ? new Date(b.soldAt) : new Date();
+          if (isNaN(when.getTime())) throw new HttpError(400, "Invalid date");
+          const country = b.country ? String(b.country).trim().slice(0, 60) : null;
+          return send(201, db.addSale({ title, price, buyPrice: buy, country, soldAt: when.toISOString() }));
+        }
+        const saleMatch = path.match(/^\/sales\/(\d+)$/);
+        if (saleMatch && req.method === "DELETE") {
+          if (!db.deleteSale(Number(saleMatch[1]))) throw new HttpError(404, "Sale not found");
+          return send(204);
+        }
         // AI Tools (Fotos für den AI Listings-Upload dürfen größer sein)
         if (tools) {
           const r = await tools(req.method ?? "GET", path, url.searchParams, () => readJson(req, path === "/tools/listing" || path === "/tools/cutout" ? 12_000_000 : 100_000));

@@ -133,3 +133,21 @@ test("Verkaufsprüfung: verkaufte Snipes landen unter Flips", async () => {
   assert.equal(db.setSaleStatus(hits.find((h) => h.vintedId === "3")!.id, "sold"), null);
   await app.close();
 });
+
+test("My Charts: Verkäufe eintragen, auflisten und löschen", async () => {
+  const db = openDb(":memory:");
+  const app = createServer(db, { watcherToken: "t", allowedOrigins: [] });
+  await new Promise<void>((r) => app.server.listen(0, r));
+  const base = `http://localhost:${(app.server.address() as AddressInfo).port}/api/sales`;
+  const post = (b: object) => fetch(base, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+  assert.equal((await post({ title: "", price: 10 })).status, 400);
+  assert.equal((await post({ title: "Polo", price: -1 })).status, 400);
+  const res = await post({ title: "Raf Simons bomber", price: 820, buyPrice: 340, country: "Deutschland", soldAt: "2026-10-01" });
+  assert.equal(res.status, 201);
+  const sale = await res.json();
+  assert.equal(sale.buyPrice, 340);
+  assert.equal((await (await fetch(base)).json()).length, 1);
+  assert.equal((await fetch(`${base}/${sale.id}`, { method: "DELETE" })).status, 204);
+  assert.equal((await (await fetch(base)).json()).length, 0);
+  await app.close();
+});

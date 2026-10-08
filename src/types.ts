@@ -77,3 +77,13 @@ export type ServerMessage =
   | { type: "searches"; searches: Search[] }
   | { type: "sold"; item: Tracked }
   | { type: "hitSold"; hit: Hit };
+
+/** Eigener Verkauf (für My Charts), vom Nutzer eingetragen */
+export interface Sale {
+  id: number;
+  title: string;
+  price: number;
+  buyPrice: number | null;
+  country: string | null;
+  soldAt: string;
+}
