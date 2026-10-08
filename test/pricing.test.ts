@@ -80,7 +80,8 @@ test("#archive-Suche: Designer reihum, nur hoher Score, mit Resellpreis", async 
   };
   const w = new Watcher(source, base, "t", 60_000, () => {});
   w.gapMs = 0;
-  for (let i = 0; i < 15; i++) await w.runOnce(); // einmal komplett durch die Designerliste und wieder bei Raf Simons
+  // einmal komplett durch die Designerliste und wieder bei Raf Simons
+  for (let i = 0; i < 60 && queries.filter((q) => q === "Raf Simons").length < 2; i++) await w.runOnce();
   assert.equal(queries.filter((q) => q === "Raf Simons").length >= 2, true);
   const hits = db.listHits();
   assert.equal(hits.length, 1);
@@ -89,4 +90,10 @@ test("#archive-Suche: Designer reihum, nur hoher Score, mit Resellpreis", async 
   assert.ok(hits[0].archiveScore! >= 50);
 
   await app.close();
+});
+
+test("archiveScore erkennt seltene Stücke an Signalen, aber nicht an Größen", () => {
+  const ccp = archiveScore({ title: "Carol Christian Poell drip boots, limited prototype 2003", brand: null, price: 600 });
+  assert.ok(ccp.score >= 65, `score ${ccp.score}`);
+  assert.deepEqual(archiveScore({ title: "Levi's jeans 32/34", brand: "Levi's", price: 20 }).signals, []);
 });

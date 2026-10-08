@@ -30,8 +30,8 @@ function markOpened(h) {
 }
 
 function hitNode(h, fresh) {
-  const ev = watchrEval.evaluate(h);
-  const li = el("li", "listing" + (fresh ? " fresh" : "") + (ev ? " r-" + ev.verdict : ""));
+  const r = watchrEval.rarity(h);
+  const li = el("li", "listing" + (fresh ? " fresh" : "") + (r ? " r-" + r : ""));
   const link = (cls, text) => {
     const a = el("a", cls, text);
     a.href = h.url;
@@ -83,14 +83,22 @@ function pricing(h) {
   return box;
 }
 
+// Archive-Teil ohne Vergleichspreise: keine Rechnung möglich, aber trotzdem gezeigt
+function archiveNote() {
+  const p = el("p", "flip-check archive-note");
+  p.append(el("span", "verdict v-archive", "Archive"), el("span", "muted", " · too rare for a price estimate. Check sold prices on Grailed before you buy."));
+  return p;
+}
+
 // Aufklappbare Flip-Auswertung unter jedem Snipe
 function flipCheck(h) {
   const e = watchrEval.evaluate(h);
-  if (!e) return null;
+  if (!e) return watchrEval.isArchive(h) ? archiveNote() : null;
   const cur = h.currency;
   const d = el("details", "flip-check");
   const sum = el("summary");
-  sum.append(el("span", "verdict v-" + e.verdict, e.label), el("span", "muted", ` · ${e.roi}% ROI · ${e.confidence} confidence`));
+  if (e.qualifies) sum.append(el("span", "verdict v-" + e.verdict, e.label), el("span", "muted", ` · ${e.roi}% ROI · ${e.confidence} confidence`));
+  else sum.append(el("span", "verdict v-archive", "Archive"), el("span", "muted", ` · ${e.roi}% ROI · rare piece, shown anyway`));
   const rows = [
     ["Vinted price", fmtPrice(h.price, cur)],
     ["Buyer protection (0.70 € + 5%)", "+" + fmtPrice(e.fee, cur)],
@@ -124,7 +132,7 @@ function renderAnalysis() {
   );
   const body = $("an-top");
   body.replaceChildren(
-    ...s.ranked.slice(0, 10).map(({ h, e }, i) => {
+    ...s.ranked.filter(({ h }) => (h.saleStatus || "active") === "active").slice(0, 3).map(({ h, e }, i) => {
       const tr = el("tr");
       const a = Object.assign(el("a", null, h.title), { href: h.url, target: "_blank", rel: "noopener" });
       a.addEventListener("click", () => markOpened(h));
@@ -148,26 +156,26 @@ function renderAnalysis() {
 }
 
 // Rarity-Filter: der Nutzer wählt, welche Stufen er in Live Sniper sieht (im Browser gespeichert)
-const RARITY_KEY = "watchr.rarities";
-let shownRarities = new Set(watchrEval.LEVELS);
+const RARITY_KEY = "watchr.hiddenRarities"; // gespeichert wird, was ausgeblendet ist, damit neue Stufen sichtbar starten
+let hiddenRarities = new Set();
 try {
   const saved = JSON.parse(localStorage.getItem(RARITY_KEY));
-  if (Array.isArray(saved)) shownRarities = new Set(saved.filter((v) => watchrEval.LEVELS.includes(v)));
+  if (Array.isArray(saved)) hiddenRarities = new Set(saved);
 } catch {}
-const visible = (h) => shownRarities.has(watchrEval.evaluate(h)?.verdict);
+const visible = (h) => !hiddenRarities.has(watchrEval.rarity(h));
 const shownHits = () => hits.filter(visible);
 
 function renderRarityFilter() {
   $("rarity-filter").replaceChildren(
     el("span", null, "Show"),
-    ...watchrEval.LEVELS.map((v) => {
-      const n = hits.filter((h) => watchrEval.evaluate(h)?.verdict === v).length;
+    ...watchrEval.FILTERS.map((v) => {
+      const n = hits.filter((h) => watchrEval.rarity(h) === v).length;
       const b = el("button", "verdict v-" + v, `${watchrEval.LABEL[v]} ${n}`);
       b.type = "button";
-      b.setAttribute("aria-pressed", String(shownRarities.has(v)));
+      b.setAttribute("aria-pressed", String(!hiddenRarities.has(v)));
       b.onclick = () => {
-        shownRarities.has(v) ? shownRarities.delete(v) : shownRarities.add(v);
-        try { localStorage.setItem(RARITY_KEY, JSON.stringify([...shownRarities])); } catch {}
+        hiddenRarities.has(v) ? hiddenRarities.delete(v) : hiddenRarities.add(v);
+        try { localStorage.setItem(RARITY_KEY, JSON.stringify([...hiddenRarities])); } catch {}
         renderHits();
       };
       return b;

@@ -164,7 +164,7 @@ export function openDb(path: string) {
       const before = new Date(Date.now() - minGapMin * 60_000).toISOString();
       return db
         .prepare(
-          `${hitSelect} WHERE h.sale_status = 'active' AND h.resale_estimate IS NOT NULL AND h.detected_at >= ?
+          `${hitSelect} WHERE h.sale_status = 'active' AND (h.resale_estimate IS NOT NULL OR h.archive_score >= 65) AND h.detected_at >= ?
              AND (h.sale_checked_at IS NULL OR h.sale_checked_at <= ?) ORDER BY h.sale_checked_at IS NOT NULL, h.sale_checked_at, h.id DESC LIMIT ?`,
         )
         .all(since, before, limit)

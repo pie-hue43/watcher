@@ -21,7 +21,8 @@
   // Seltenheitsstufen wie in Games: Good bis Legendary. Unter MIN_ROI wird ein Snipe gar nicht gezeigt.
   const MIN_ROI = 20;
   const LEVELS = ["good", "rare", "epic", "legendary"];
-  const LABEL = { good: "Good", rare: "Rare", epic: "Epic", legendary: "Legendary" };
+  const LABEL = { good: "Good", rare: "Rare", epic: "Epic", legendary: "Legendary", archive: "Archive" };
+  const FILTERS = [...LEVELS, "archive"]; // Auswahl im Live Sniper
 
   function evaluate(h, costs = COSTS) {
     if (!h || !h.resaleEstimate || !(h.price > 0)) return null;
@@ -48,10 +49,19 @@
     return { fee, shipping: costs.shipping, cost, sale, saleLow, saleHigh, profit, profitLow, profitHigh, roi, confidence, verdict, qualifies, label: verdict ? LABEL[verdict] : null, samples: h.resaleSamples || null, notes };
   }
 
-  // Nur Snipes mit geschätzt mindestens MIN_ROI % Rendite werden angezeigt
-  function qualifies(h) {
+  // Seltene Archive-Teile (hoher Archive-Score vom Bot) werden immer gezeigt, auch ohne 20 % Rendite
+  // oder ohne Vergleichspreise. Sie bekommen dann die eigene Stufe „Archive“.
+  const ARCHIVE_MIN = 65;
+  const isArchive = (h) => !!h && (h.archiveScore || 0) >= ARCHIVE_MIN;
+  function rarity(h) {
     const e = evaluate(h);
-    return !!(e && e.qualifies);
+    if (e && e.qualifies) return e.verdict;
+    return isArchive(h) ? "archive" : null;
+  }
+
+  // Angezeigt wird: mindestens MIN_ROI % geschätzte Rendite oder ein seltenes Archive-Teil
+  function qualifies(h) {
+    return rarity(h) !== null;
   }
 
   // Zusammenfassung über mehrere (angezeigte) Snipes
@@ -70,7 +80,7 @@
     };
   }
 
-  const api = { COSTS, MIN_ROI, LEVELS, LABEL, evaluate, qualifies, summarize };
+  const api = { COSTS, MIN_ROI, ARCHIVE_MIN, LEVELS, FILTERS, LABEL, evaluate, isArchive, rarity, qualifies, summarize };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.watchrEval = api;
 })(typeof window !== "undefined" ? window : globalThis);

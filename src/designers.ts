@@ -36,6 +36,15 @@ export const DESIGNERS: Designer[] = [
   { name: "Thierry Mugler", aliases: ["thierry mugler", "mugler"], tier: 1 },
   { name: "Alexander McQueen", aliases: ["alexander mcqueen", "mcqueen"], tier: 1 },
   { name: "Walter Van Beirendonck", aliases: ["walter van beirendonck"], tier: 1 },
+  { name: "Hedi Slimane", aliases: ["hedi slimane", "hedi era"], tier: 1 },
+  { name: "Takahiro Miyashita The Soloist", aliases: ["the soloist", "soloist"], tier: 1 },
+  { name: "Maurizio Amadei", aliases: ["maurizio amadei", "m.a+", "ma+"], tier: 1 },
+  { name: "Craig Green", aliases: ["craig green"], tier: 2 },
+  { name: "Kiko Kostadinov", aliases: ["kiko kostadinov"], tier: 2 },
+  { name: "Sacai", aliases: ["sacai"], tier: 2 },
+  { name: "Vetements", aliases: ["vetements"], tier: 2 },
+  { name: "Martine Rose", aliases: ["martine rose"], tier: 2 },
+  { name: "Wtaps", aliases: ["wtaps"], tier: 3 },
   { name: "Prada", aliases: ["prada", "prada sport", "linea rossa"], tier: 2 },
   { name: "Miu Miu", aliases: ["miu miu"], tier: 2 },
   { name: "Gucci", aliases: ["gucci"], tier: 2 },
@@ -68,6 +77,10 @@ const ARCHIVE_SIGNALS: [RegExp, string][] = [
   [/\b(?:19[89]\d|200\d)s?\b|\b(?:80|90|00)s\b|\by2k\b/i, "era"],
   [/made in (?:italy|japan|italien|japan)/i, "made in"],
   [/\bdeadstock\b|\bdead stock\b/i, "deadstock"],
+  [/\blimited\b|\blimitiert\b|\bnumbered\b|\bnummeriert\b/i, "limited"],
+  [/\bmainline\b|\bhauptlinie\b|\bline 0\b|\bartisanal\b/i, "mainline"],
+  [/\bcollab\b|\bcollaboration\b/i, "collab"],
+  [/\bprototype\b|\bprototyp\b|\bone of one\b|\b1\/1\b/i, "one-off"],
 ];
 
 const TIER_POINTS = { 1: 55, 2: 40, 3: 25 } as const;

@@ -6,7 +6,7 @@ import vm from "node:vm";
 // public/flip-eval.js ist ein Browser-Skript; hier in einer Sandbox laden
 const ctx: any = { window: {} };
 vm.runInNewContext(readFileSync(new URL("../public/flip-eval.js", import.meta.url), "utf8"), ctx);
-const { evaluate, summarize, qualifies } = ctx.window.watchrEval;
+const { evaluate, summarize, qualifies, rarity } = ctx.window.watchrEval;
 
 const hit = (o: object) => ({ price: 100, resaleEstimate: 200, resaleLow: 170, resaleHigh: 240, resaleSamples: 30, ...o });
 
@@ -43,4 +43,13 @@ test("Flip-Auswertung: Stufen, Unsicherheit und fehlender Resellpreis", () => {
   assert.equal(s.byRarity.good, 1);
   assert.equal(s.potential, 108.1); // 69,80 + 38,30
   assert.equal(s.ranked[0].e.verdict, "epic");
+});
+
+test("Seltene Archive-Teile erscheinen auch ohne 20 % Rendite oder Vergleichspreis", () => {
+  assert.equal(qualifies(hit({ price: 180 })), false);
+  assert.equal(rarity(hit({ price: 180, archiveScore: 70 })), "archive");
+  assert.equal(rarity(hit({ resaleEstimate: null, archiveScore: 85 })), "archive");
+  assert.equal(qualifies(hit({ price: 180, archiveScore: 60 })), false); // Score zu niedrig
+  // Lohnt sich das Teil ohnehin, behält es seine normale Stufe
+  assert.equal(rarity(hit({ archiveScore: 90 })), "epic");
 });
