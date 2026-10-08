@@ -72,6 +72,13 @@ test("Watcher → Backend → Datenbank → WebSocket", async () => {
   assert.equal(db.listHits().length, 1);
   assert.deepEqual(db.listHits()[0].photoUrls, ["https://img.example/101-1.jpg", "https://img.example/101-2.jpg", "https://img.example/101-3.jpg"]);
 
+  // Treffer im Monitor öffnen: danach nicht mehr verpasst
+  const hitId = db.listHits()[0].id;
+  assert.equal(db.listHits()[0].openedAt, null);
+  const opened = await fetch(`${base}/api/hits/${hitId}/open`, { method: "POST" });
+  assert.equal(opened.status, 200);
+  assert.ok(db.listHits()[0].openedAt);
+
   // Ohne Token darf niemand Treffer einschleusen
   const bad = await fetch(`${base}/api/hits`, { method: "POST", body: "{}" });
   assert.equal(bad.status, 401);

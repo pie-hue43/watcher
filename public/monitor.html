@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Live Listings Monitor · watchr</title>
+  <meta name="description" content="Your Live Listings Monitor: new Vinted listings for your hashtag preferences, in real time." />
+  <link rel="icon" href="logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    .mon-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 32px 20px; }
+    .mon-top h1 { font-size: clamp(30px, 4vw, 42px); display: flex; align-items: center; gap: 12px; }
+    .mon-top p { margin: 6px 0 0; color: var(--muted); }
+    .mon-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .conn { font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; }
+    .conn::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+    .conn.on::before { background: var(--live); animation: blink 1.2s ease-in-out infinite; }
+    .mon-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; align-items: start; padding-block: 16px 64px; }
+    .mon-grid .monitor { box-shadow: none; }
+    .monitor-head .count { color: var(--muted); font-weight: 600; text-transform: none; letter-spacing: 0; }
+    .pref-form .prefs-row { margin-top: 2px; }
+    .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+    .error { color: var(--danger); font-size: 14px; margin: 8px 0 0; }
+    .saved { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .saved li { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+    .saved li.paused { opacity: .55; }
+    .saved .chips { flex: 1; min-width: 0; }
+    @media (max-width: 860px) { .mon-grid { grid-template-columns: minmax(0, 1fr); } }
+    @media (prefers-reduced-motion: reduce) { .conn.on::before { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Up to 3 photos per listing</span><span>Missed Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Up to 3 photos per listing</span><span aria-hidden="true">Missed Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live" aria-current="page">Live Monitor</a><a href="missed-flips.html">Missed Flips</a><a href="features.html">Features</a><a href="index.html#how-it-works">How it works</a><a href="faq.html">FAQ</a></nav>
+      <a class="btn small" href="monitor.html">Open Live Monitor</a>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <div class="mon-top">
+        <div>
+          <h1><span class="dot"></span>Live Listings Monitor</h1>
+          <p>New listings that match your Individual Preferences appear here the second watchr finds them.</p>
+        </div>
+        <div class="mon-actions">
+          <button id="notify-btn" class="btn ghost small" type="button">Turn on alerts</button>
+          <span id="conn" class="conn">Connecting…</span>
+        </div>
+      </div>
+      <div class="stats" aria-label="Today at a glance">
+        <div class="stat"><b id="st-today">0</b><span>Matches today</span></div>
+        <div class="stat"><b id="st-prefs">0</b><span>Active preferences</span></div>
+        <div class="stat"><b id="st-missed">0</b><span>Not opened yet</span></div>
+        <div class="stat"><b id="st-last">–</b><span>Latest match</span></div>
+      </div>
+      <div class="mon-grid">
+        <section class="monitor" aria-labelledby="live-title">
+          <div class="monitor-head"><h2 id="live-title">New matches <span id="hit-count" class="count"></span></h2><a class="btn ghost small" href="missed-flips.html">Missed Flips</a></div>
+          <ul id="hits" class="listings"></ul>
+          <p id="hits-empty" class="empty">No matches yet. As soon as watchr finds a new listing for your preferences, it shows up here.</p>
+        </section>
+        <aside class="monitor" aria-labelledby="prefs-title">
+          <div class="monitor-head"><h2 id="prefs-title">Individual Preferences</h2></div>
+          <form id="search-form" class="prefs pref-form">
+            <label for="f-tags">Add hashtags</label>
+            <div class="prefs-row">
+              <input id="f-tags" name="tags" placeholder="#nike #dunk #size43 #max80" required maxlength="300" autocomplete="off" spellcheck="false" />
+              <button class="btn" type="submit">Add</button>
+            </div>
+          </form>
+          <p class="hint">Words become keywords. Add #size43 or #sizeM, #min20, #max80 and #newtags, #new, #verygood or #good.</p>
+          <p id="form-error" class="error" hidden></p>
+          <ul id="searches" class="saved"></ul>
+          <p id="searches-empty" class="empty">No preferences yet. Add your first hashtags above.</p>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+          <p class="muted">The live listings monitor for Vinted. watchr spots new listings that match your preferences and shows them the moment they go live.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="monitor.html">Live Monitor</a></li><li><a href="missed-flips.html">Missed Flips</a></li><li><a href="features.html">Features</a></li></ul>
+        </div>
+        <div>
+          <h4>Help</h4>
+          <ul><li><a href="index.html#how-it-works">How it works</a></li><li><a href="faq.html">FAQ</a></li><li><a href="features.html#embed">Use it on your website</a></li></ul>
+        </div>
+      </div>
+      <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
+    </div>
+  </footer>
+  <script src="tags.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

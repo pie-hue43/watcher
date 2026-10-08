@@ -31,6 +31,8 @@ export interface Hit extends HitInput {
   id: number;
   searchQuery: string | null;
   detectedAt: string;
+  /** Wann der Treffer im Monitor geöffnet wurde (null = verpasst). */
+  openedAt: string | null;
 }
 
 /** Nachrichten, die das Backend per WebSocket an die Website pusht. */

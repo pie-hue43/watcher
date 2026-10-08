@@ -8,8 +8,11 @@ Vinted → Watcher → Backend/API → SQLite + WebSocket → Dashboard (Browser
 
 - **Watcher** (`src/watcher.ts`): holt pro neuem Treffer bis zu drei Bilder (falls vorhanden), fragt pro Suchauftrag die öffentliche Vinted-Katalogsuche ab (neueste zuerst), filtert nach Max-Preis und Größe und meldet neue Listings per `POST /api/hits` ans Backend. Beim ersten Durchlauf einer Suche merkt er sich nur den Bestand, gemeldet wird danach nur, was neu online kommt.
 - **Backend** (`src/server.ts`): speichert Treffer in SQLite (doppelte Vinted-IDs werden ignoriert) und pusht jeden neuen Treffer sofort per WebSocket an alle offenen Dashboards.
-- **Dashboard** (`public/`): zeigt Treffer live, verwaltet Suchaufträge, optional Browser-Benachrichtigungen.
-- **Landingpage** (`public/landing.html`): stellt watchr als Produkt vor, erreichbar unter `/landing.html`. Funktioniert auch eigenständig auf deiner Website (die Buttons verlinken auf das Dashboard `./`).
+- **Website** (`public/`, Englisch, Hellgrün):
+  - `/` Startseite mit Live-Listings-Monitor-Vorschau, Snipe-Kategorien, Produktübersicht, How it works, FAQ
+  - `/monitor` **Live Listings Monitor**: Treffer in Echtzeit, Individual Preferences (Hashtags), Tageszahlen
+  - `/missed-flips` Liste aller gefundenen Listings, nicht geöffnete gelten als verpasst
+  - `/features`, `/faq` Unterseiten
 
 ## Starten
 
@@ -18,7 +21,7 @@ Voraussetzung: Node.js 22.13 oder neuer (nutzt das eingebaute `node:sqlite`).
 ```bash
 npm install
 cp .env.example .env      # WATCHER_TOKEN ändern!
-npm start                 # Backend + Watcher, Dashboard auf http://localhost:3000
+npm start                 # Backend + Watcher, Website auf http://localhost:3000, Live Monitor unter /monitor
 ```
 
 Ohne Vinted testen: `WATCHER_SOURCE=mock npm start` erzeugt Fake-Listings.
@@ -45,7 +48,8 @@ Die Landingpage übergibt die Hashtags per `/?tags=…` an das Dashboard. Die Ob
 | POST | `/api/searches` | `{ "query": "Nike Dunk", "minPrice": 30, "maxPrice": 80, "size": "43", "condition": "very_good" }` (condition: `new_tags`, `new`, `very_good`, `good` oder leer) |
 | PATCH | `/api/searches/:id` | z. B. `{ "active": false }` zum Pausieren |
 | DELETE | `/api/searches/:id` | löschen |
-| GET | `/api/hits?limit=50` | letzte Treffer |
+| GET | `/api/hits?limit=50` | letzte Treffer (mit `openedAt`) |
+| POST | `/api/hits/:id/open` | Treffer als geöffnet markieren (für Missed Flips) |
 | POST | `/api/hits` | nur Watcher, Header `Authorization: Bearer <WATCHER_TOKEN>` |
 | WS | `/ws` | Push: `hello` (Startzustand), `hit` (neuer Treffer), `searches` (Änderung) |
 
@@ -59,7 +63,7 @@ Ein Treffer sieht so aus:
 
 ## In die eigene Website einbauen
 
-**Variante A, Dashboard übernehmen:** `public/index.html`, `app.js`, `style.css` in deine Seite kopieren und vor `app.js` die Backend-Adresse setzen:
+**Variante A, Live Monitor übernehmen:** `public/monitor.html`, `app.js`, `tags.js`, `site.css` in deine Seite kopieren und vor `app.js` die Backend-Adresse setzen:
 
 ```html
 <script>window.WATCHER_BACKEND = "https://watcher.deine-seite.de";</script>
@@ -73,7 +77,7 @@ ws.onmessage = (e) => {
   const msg = JSON.parse(e.data);
   if (msg.type === "hit") {
     const h = msg.hit;
-    console.log(`🔥 Neuer Treffer ${h.title} — ${h.price} € — Größe ${h.size}`, h.url);
+    console.log(h.title, h.price, h.size, h.url, h.photoUrls);
   }
 };
 ```

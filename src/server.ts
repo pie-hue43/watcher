@@ -144,6 +144,12 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
           const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit") ?? 50) || 50));
           return send(200, db.listHits(limit));
         }
+        const openMatch = path.match(/^\/hits\/(\d+)\/open$/);
+        if (openMatch && req.method === "POST") {
+          const hit = db.markOpened(Number(openMatch[1]));
+          if (!hit) throw new HttpError(404, "Listing not found");
+          return send(200, hit);
+        }
         if (path === "/hits" && req.method === "POST") {
           // Nur der Watcher darf Treffer melden.
           if (req.headers.authorization !== `Bearer ${opts.watcherToken}`) throw new HttpError(401, "Not authorized");
@@ -157,12 +163,18 @@ export function createServer(db: Db, opts = { watcherToken: config.watcherToken,
 
       // Dashboard (statische Dateien)
       if (req.method !== "GET") throw new HttpError(405, "Method not allowed");
+      // Alte Adresse der Landingpage weiterleiten
+      if (url.pathname === "/landing.html") {
+        res.writeHead(301, { Location: "/" });
+        return void res.end();
+      }
       const rel = normalize(url.pathname === "/" ? "/index.html" : url.pathname).replace(/^(\.\.[/\\])+/, "");
       const file = join(PUBLIC_DIR, rel);
       if (!file.startsWith(PUBLIC_DIR)) throw new HttpError(403, "Forbidden");
-      const data = await readFile(file).catch(() => null);
+      // Saubere Adressen: /monitor liefert monitor.html
+      const data = (await readFile(file).catch(() => null)) ?? (extname(file) ? null : await readFile(file + ".html").catch(() => null));
       if (!data) throw new HttpError(404, "Not found");
-      res.writeHead(200, { "Content-Type": MIME[extname(file)] ?? "application/octet-stream" });
+      res.writeHead(200, { "Content-Type": MIME[extname(file) || ".html"] ?? "application/octet-stream" });
       res.end(data);
     } catch (err) {
       if (err instanceof HttpError) return send(err.status, { error: err.message });

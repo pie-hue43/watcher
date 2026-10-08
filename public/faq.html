@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FAQ · watchr</title>
+  <meta name="description" content="Answers about the watchr Live Listings Monitor, hashtag preferences, Missed Flips and Vinted." />
+  <link rel="icon" href="logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    .page-head { padding-block: 48px 24px; display: flex; flex-direction: column; gap: 12px; }
+    .page-head h1 { font-size: clamp(34px, 4.6vw, 54px); letter-spacing: -.02em; }
+    .faq-wrap { max-width: 760px; padding-bottom: 72px; }
+    .faq-wrap h2 { font-size: 22px; margin: 32px 0 12px; }
+  </style>
+</head>
+<body>
+  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Up to 3 photos per listing</span><span>Missed Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Up to 3 photos per listing</span><span aria-hidden="true">Missed Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Monitor</a><a href="missed-flips.html">Missed Flips</a><a href="features.html">Features</a><a href="index.html#how-it-works">How it works</a><a href="faq.html" aria-current="page">FAQ</a></nav>
+      <a class="btn small" href="monitor.html">Open Live Monitor</a>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <div class="page-head"><span class="eyebrow">FAQ</span><h1>Questions people ask.</h1></div>
+      <div class="faq-wrap">
+        <h2>Live Listings Monitor</h2>
+        <details><summary>How quickly will I see new listings?</summary><p>watchr checks each set of preferences about once a minute. A match shows up in your Live Monitor right after that, without reloading.</p></details>
+        <details><summary>Do I need to keep the Live Monitor open?</summary><p>watchr keeps watching in the background. Matches found while the monitor is closed are saved and appear when you open it again, and in Missed Flips.</p></details>
+        <details><summary>Can I get alerts on my phone?</summary><p>Open the Live Monitor in your phone's browser and turn on alerts. Browser support for notifications varies by phone and browser.</p></details>
+        <h2>Individual Preferences</h2>
+        <details><summary>Which hashtags can I use?</summary><p>Any word becomes a keyword, like #nike or #dunk. Add #size43 or #sizeM for the size, #min20 and #max80 for the price range, and #newtags, #new, #verygood or #good for the minimum condition.</p></details>
+        <details><summary>How many preferences can I add?</summary><p>As many as you like. Each one is checked separately, so a few focused preferences find matches faster than many broad ones.</p></details>
+        <h2>Missed Flips</h2>
+        <details><summary>What counts as missed?</summary><p>A listing watchr found that you never opened from your Live Monitor.</p></details>
+        <details><summary>Does it show profit?</summary><p>No. Missed Flips shows the asking price when watchr found the listing. watchr doesn't know whether or for how much an item sold.</p></details>
+        <h2>Vinted</h2>
+        <details><summary>Does watchr buy items for me?</summary><p>No. watchr finds the listings. You decide and buy on Vinted yourself.</p></details>
+        <details><summary>Is watchr connected to Vinted?</summary><p>No. watchr is an independent project. It reads Vinted's public search like a visitor would and keeps its requests sparse. Vinted's terms don't provide for automated searching, so use watchr for your own purchases and in moderation.</p></details>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
+          <p class="muted">The live listings monitor for Vinted. watchr spots new listings that match your preferences and shows them the moment they go live.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="monitor.html">Live Monitor</a></li><li><a href="missed-flips.html">Missed Flips</a></li><li><a href="features.html">Features</a></li></ul>
+        </div>
+        <div>
+          <h4>Help</h4>
+          <ul><li><a href="index.html#how-it-works">How it works</a></li><li><a href="faq.html">FAQ</a></li><li><a href="features.html#embed">Use it on your website</a></li></ul>
+        </div>
+      </div>
+      <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
+    </div>
+  </footer>
+</body>
+</html>

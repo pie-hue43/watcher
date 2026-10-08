@@ -38,6 +38,7 @@ export function openDb(path: string) {
   // Ältere Datenbanken: Spalte für mehrere Bilder nachrüsten
   const cols = db.prepare("PRAGMA table_info(hits)").all() as { name: string }[];
   if (!cols.some((c) => c.name === "photo_urls")) db.exec("ALTER TABLE hits ADD COLUMN photo_urls TEXT");
+  if (!cols.some((c) => c.name === "opened_at")) db.exec("ALTER TABLE hits ADD COLUMN opened_at TEXT");
 
   const toSearch = (r: any): Search => ({
     id: r.id,
@@ -63,6 +64,7 @@ export function openDb(path: string) {
     url: r.url,
     photoUrls: r.photo_urls ? JSON.parse(r.photo_urls) : r.photo_url ? [r.photo_url] : [],
     detectedAt: r.detected_at,
+    openedAt: r.opened_at ?? null,
   });
 
   const hitSelect = `SELECT h.*, s.query AS search_query FROM hits h LEFT JOIN searches s ON s.id = h.search_id`;
@@ -110,6 +112,12 @@ export function openDb(path: string) {
         .run(h.vintedId, h.searchId, h.title, h.price, h.currency, h.size, h.brand, h.url, h.photoUrls[0] ?? null, JSON.stringify(h.photoUrls.slice(0, 3)), new Date().toISOString());
       if (res.changes === 0) return null;
       return toHit(db.prepare(`${hitSelect} WHERE h.id = ?`).get(Number(res.lastInsertRowid)));
+    },
+    /** Markiert einen Treffer als geöffnet (nur beim ersten Mal). */
+    markOpened(id: number): Hit | null {
+      db.prepare("UPDATE hits SET opened_at = COALESCE(opened_at, ?) WHERE id = ?").run(new Date().toISOString(), id);
+      const r = db.prepare(`${hitSelect} WHERE h.id = ?`).get(id);
+      return r ? toHit(r) : null;
     },
     listHits(limit = 50): Hit[] {
       return db.prepare(`${hitSelect} ORDER BY h.id DESC LIMIT ?`).all(limit).map(toHit);
