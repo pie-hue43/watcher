@@ -61,33 +61,96 @@ const USER_AGENT =
 
 /**
  * Liest die öffentliche Katalogsuche von Vinted (dieselbe, die die Website nutzt).
- * Vinted verlangt dafür ein Session-Cookie, das wir uns von der Startseite holen.
+ * Seit September 2026 liegt sie auf api.<domain>/svc-catalogue/items (die alte Adresse
+ * /api/v2/catalog/items liefert 404). Dafür braucht es das anonyme Session-Cookie
+ * access_token_web und die Kennung aus dem Header X-Anon-Id, beides von der Startseite.
  */
 export class VintedSource implements Source {
   private cookie: string | null = null;
+  private anonId: string | null = null;
   private cookieFetchedAt = 0;
 
   constructor(private domain: string) {}
 
+  private get site() {
+    return `https://${this.domain.startsWith("www.") ? this.domain : "www." + this.domain}`;
+  }
+  private get api() {
+    return `https://api.${this.domain.replace(/^www\./, "")}`;
+  }
+
   private async refreshCookie() {
-    const res = await fetch(`https://${this.domain}/`, {
-      headers: { "User-Agent": USER_AGENT, "Accept-Language": "de-DE,de;q=0.9" },
+    const res = await fetch(`${this.site}/`, {
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "de-DE,de;q=0.9,en;q=0.5",
+      },
       redirect: "follow",
     });
-    const cookies = res.headers.getSetCookie().map((c) => c.split(";")[0]);
-    if (!cookies.length) throw new Error(`Kein Session-Cookie von ${this.domain} erhalten (HTTP ${res.status})`);
-    this.cookie = cookies.join("; ");
+    // Vinted schickt erst ein Lösch-Cookie und danach das echte, deshalb gewinnt der letzte nicht leere Wert
+    const jar = new Map<string, string>();
+    for (const c of res.headers.getSetCookie()) {
+      const [pair] = c.split(";");
+      const i = pair.indexOf("=");
+      if (i < 1) continue;
+      const name = pair.slice(0, i).trim();
+      const value = pair.slice(i + 1).trim();
+      if (value) jar.set(name, value);
+    }
+    await res.body?.cancel().catch(() => {});
+    if (!jar.has("access_token_web")) throw new Error(`Kein Session-Cookie von ${this.domain} erhalten (HTTP ${res.status})`);
+    this.cookie = [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
+    this.anonId = res.headers.get("x-anon-id")?.trim() || null;
     this.cookieFetchedAt = Date.now();
   }
 
-  /** Die Suche liefert meist nur ein Bild. Für neue Treffer holen wir die Detailseite mit allen Bildern. */
+  private apiHeaders(): Record<string, string> {
+    const h: Record<string, string> = {
+      "User-Agent": USER_AGENT,
+      Accept: "application/json, text/plain, */*",
+      "Accept-Language": "de-DE,de;q=0.9,en;q=0.5",
+      Origin: this.site,
+      Referer: `${this.site}/`,
+      Locale: "de-DE",
+      Platform: "web",
+      "X-Next-App": "marketplace-web",
+      Cookie: this.cookie!,
+    };
+    if (this.anonId) h["X-Anon-Id"] = this.anonId;
+    return h;
+  }
+
+  /** Katalogsuche; holt bei abgelaufener Session einmal eine neue und versucht es erneut. */
+  private async catalogue(params: URLSearchParams): Promise<any[]> {
+    // Session spätestens nach 12 Stunden erneuern (das Token gilt 24 Stunden)
+    if (!this.cookie || Date.now() - this.cookieFetchedAt > 12 * 3600_000) await this.refreshCookie();
+    for (let attempt = 0; ; attempt++) {
+      const res = await fetch(`${this.api}/svc-catalogue/items?${params}`, { headers: this.apiHeaders() });
+      if ((res.status === 401 || res.status === 403) && attempt === 0) {
+        await this.refreshCookie();
+        continue;
+      }
+      if (res.status === 401) {
+        this.cookie = null;
+        throw new Error("Session abgelaufen (401)");
+      }
+      if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
+      if (!res.ok) throw new Error(`Vinted antwortet mit HTTP ${res.status} (${this.api}/svc-catalogue/items)`);
+      const data: any = await res.json();
+      return Array.isArray(data.items) ? data.items : [];
+    }
+  }
+
+  /** Die Suche liefert meist nur ein Bild. Für neue Treffer versuchen wir die Detailseite mit allen Bildern. */
   async photos(l: Listing): Promise<string[]> {
     if (!this.cookie) await this.refreshCookie();
-    const res = await fetch(`https://${this.domain}/api/v2/items/${l.id}`, {
+    const res = await fetch(`${this.site}/api/v2/items/${l.id}`, {
       headers: { "User-Agent": USER_AGENT, Accept: "application/json", Cookie: this.cookie! },
-    });
-    if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
-    if (!res.ok) return l.photoUrls;
+    }).catch(() => null);
+    if (res?.status === 429) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
+    // Die Detail-Schnittstelle ist für anonyme Abrufe oft gesperrt (403), dann bleibt es beim Bild aus der Suche
+    if (!res?.ok) return l.photoUrls;
     const data: any = await res.json();
     const more = photoList(data.item ?? data);
     return [...new Set([...l.photoUrls, ...more])].slice(0, 3);
@@ -95,20 +158,17 @@ export class VintedSource implements Source {
 
   /** Preise der relevantesten Listings zu einer Suche (z. B. „ralph lauren polo“). */
   async comparables(query: string): Promise<number[]> {
-    if (!this.cookie || Date.now() - this.cookieFetchedAt > 3600_000) await this.refreshCookie();
     const params = new URLSearchParams({ search_text: query, order: "relevance", per_page: "60", page: "1" });
-    const res = await fetch(`https://${this.domain}/api/v2/catalog/items?${params}`, {
-      headers: { "User-Agent": USER_AGENT, Accept: "application/json", Cookie: this.cookie! },
+    const items = await this.catalogue(params).catch((err) => {
+      if (err instanceof RateLimitError) throw err;
+      return [];
     });
-    if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
-    if (!res.ok) return [];
-    const data: any = await res.json();
-    return (data.items ?? []).map((it: any) => toListing(it).price).filter((p: number) => Number.isFinite(p) && p > 0);
+    return items.map((it: any) => toListing(it, this.site).price).filter((p: number) => Number.isFinite(p) && p > 0);
   }
 
   private async getJson(path: string): Promise<any | null> {
     if (!this.cookie || Date.now() - this.cookieFetchedAt > 3600_000) await this.refreshCookie();
-    const res = await fetch(`https://${this.domain}${path}`, {
+    const res = await fetch(`${this.site}${path}`, {
       headers: { "User-Agent": USER_AGENT, Accept: "application/json", "Accept-Language": "de-DE,de;q=0.9", Cookie: this.cookie! },
     });
     if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
@@ -151,9 +211,6 @@ export class VintedSource implements Source {
   }
 
   async search(s: Search): Promise<Listing[]> {
-    // Cookie spätestens nach einer Stunde erneuern
-    if (!this.cookie || Date.now() - this.cookieFetchedAt > 3600_000) await this.refreshCookie();
-
     const params = new URLSearchParams({
       search_text: s.query,
       order: "newest_first",
@@ -162,25 +219,9 @@ export class VintedSource implements Source {
     });
     if (s.minPrice) params.set("price_from", String(s.minPrice));
     if (s.maxPrice) params.set("price_to", String(s.maxPrice));
-    for (const id of s.condition ? STATUS_IDS[s.condition] : []) params.append("status_ids[]", String(id));
-
-    const res = await fetch(`https://${this.domain}/api/v2/catalog/items?${params}`, {
-      headers: {
-        "User-Agent": USER_AGENT,
-        Accept: "application/json",
-        "Accept-Language": "de-DE,de;q=0.9",
-        Cookie: this.cookie!,
-      },
-    });
-    if (res.status === 401) {
-      this.cookie = null; // Cookie abgelaufen, beim nächsten Mal neu holen
-      throw new Error("Session abgelaufen (401)");
-    }
-    if (res.status === 429 || res.status === 403) throw new RateLimitError(`Vinted bremst (HTTP ${res.status})`);
-    if (!res.ok) throw new Error(`Vinted antwortet mit HTTP ${res.status}`);
-
-    const data: any = await res.json();
-    return (data.items ?? []).map(toListing);
+    // leere Filter weglassen, die neue Schnittstelle antwortet darauf mit 400
+    if (s.condition) params.set("attribute_ids[status]", STATUS_IDS[s.condition].join(","));
+    return (await this.catalogue(params)).map((it) => toListing(it, this.site));
   }
 }
 
@@ -190,7 +231,7 @@ function photoList(it: any): string[] {
   return [...new Set(urls)].slice(0, 3);
 }
 
-function toListing(it: any): Listing {
+function toListing(it: any, site = "https://www.vinted.de"): Listing {
   // Vinted liefert den Preis je nach Version als String oder als {amount, currency_code}
   const price = typeof it.price === "object" && it.price ? Number(it.price.amount) : Number(it.price);
   const currency = (typeof it.price === "object" && it.price?.currency_code) || it.currency || "EUR";
@@ -201,11 +242,14 @@ function toListing(it: any): Listing {
     currency,
     size: it.size_title || null,
     brand: it.brand_title || null,
-    url: it.url || `https://www.vinted.de/items/${it.id}`,
+    url: absolute(it.url || it.path, site) || `${site}/items/${it.id}`,
     photoUrls: photoList(it),
     condition: parseCondition(it.status),
   };
 }
+
+const absolute = (u: unknown, site: string) =>
+  typeof u === "string" && u ? (/^https?:\/\//.test(u) ? u : site + (u.startsWith("/") ? u : "/" + u)) : null;
 
 /** Vinted liefert den Zustand als Text in der Sprache der Domain. */
 function parseCondition(status: unknown): Listing["condition"] {
