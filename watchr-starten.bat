@@ -1,10 +1,20 @@
 @echo off
 title watchr
 cd /d "%~dp0"
+rem Node ohne Installation: die Node-ZIP fuer Windows in diesen Ordner entpacken (auch doppelt verschachtelt ok)
+set "NODEDIR="
+for /d %%D in ("node-v*-win-*" "node") do (
+  if exist "%%~fD\node.exe" set "NODEDIR=%%~fD"
+  for /d %%E in ("%%~fD\node-v*-win-*") do if exist "%%~fE\node.exe" set "NODEDIR=%%~fE"
+)
+if defined NODEDIR set "PATH=%NODEDIR%;%PATH%"
 where node >nul 2>nul
 if errorlevel 1 (
-  echo Node.js fehlt. Bitte die LTS-Version von https://nodejs.org installieren und diese Datei danach erneut doppelklicken.
-  start https://nodejs.org
+  echo Node.js fehlt.
+  echo Ohne Installation: Auf nodejs.org "Windows Binary (.zip)" herunterladen und in diesen Ordner entpacken:
+  echo "%~dp0"
+  echo Danach diese Datei erneut doppelklicken.
+  start https://nodejs.org/en/download
   pause
   exit /b 1
 )
@@ -13,7 +23,7 @@ if errorlevel 1 (
   for /f %%v in ('node -v') do echo watchr findet Node.js %%v, braucht aber 22.13 oder neuer.
   echo Benutzt wird diese Node-Installation:
   where node
-  echo Bitte alle Node.js-Eintraege unter "Installierte Apps" deinstallieren, Node.js neu von https://nodejs.org installieren und den PC neu starten.
+  echo Bitte die aktuelle Node-ZIP in diesen Ordner entpacken oder alle Node.js-Eintraege unter "Installierte Apps" deinstallieren, Node.js neu von https://nodejs.org installieren und den PC neu starten.
   start https://nodejs.org
   pause
   exit /b 1

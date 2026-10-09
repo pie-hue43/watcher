@@ -2,6 +2,8 @@ watchr lokal starten
 ====================
 
 1. Node.js installieren (einmalig): https://nodejs.org, die "LTS"-Version, Version 22 oder neuer.
+   Ohne Installation (z. B. ohne Admin-Rechte): auf nodejs.org/en/download "Windows Binary (.zip)"
+   herunterladen und in diesen Ordner entpacken. watchr-starten.bat findet den Ordner node-v...-win-x64 selbst.
 2. Diesen Ordner entpacken, z. B. auf den Desktop. Nicht direkt aus der ZIP heraus starten.
 3. Doppelklick auf:
    - Windows: watchr-starten.bat
