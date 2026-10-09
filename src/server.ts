@@ -359,6 +359,12 @@ export function startServer() {
     startTracker(app.deps);
     startSaleChecker(app.deps);
   }
+  app.server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code !== "EADDRINUSE") throw err;
+    console.error(`\n[backend] Port ${config.port} ist schon belegt. Wahrscheinlich läuft watchr bereits in einem anderen Fenster.`);
+    console.error("[backend] Schließ alle anderen watchr-Fenster (oder starte den PC neu) und starte watchr dann noch einmal.\n");
+    process.exit(1);
+  });
   app.server.listen(config.port, () => console.log(`[backend] Dashboard: http://localhost:${config.port}`));
   return app;
 }
