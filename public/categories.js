@@ -47,10 +47,16 @@ function render() {
     ...open.map(({ h, e, r }, i) => {
       const li = el("li", `lb-row r-${r}` + (i < 3 ? ` podium p${i + 1}` : ""));
       li.append(el("span", "lb-rank", i < 3 ? ["🥇", "🥈", "🥉"][i] : String(i + 1)));
+      const open = (cls, text) => Object.assign(el("a", cls, text), { href: h.url, target: "_blank", rel: "noopener" });
+      const thumb = open("lb-thumb");
+      thumb.setAttribute("aria-label", h.title);
+      const photo = (h.photoUrls || [])[0];
+      if (photo) thumb.append(Object.assign(el("img"), { src: photo, alt: "", loading: "lazy", referrerPolicy: "no-referrer" }));
+      li.append(thumb);
       const name = el("div", "lb-name");
-      const a = Object.assign(el("a", null, h.title), { href: h.url, target: "_blank", rel: "noopener" });
       const resale = e ? ` → ~${fmtPrice(e.sale, h.currency)}` : " · too rare for a price estimate";
-      name.append(a, el("span", "meta", `${fmtPrice(h.price, h.currency)}${resale}${h.size ? ` · Size ${h.size}` : ""}`));
+      const platform = (watchrPlatforms.byId(h.source || "vinted") || {}).name || "Vinted";
+      name.append(open(null, h.title), el("span", "meta", `${fmtPrice(h.price, h.currency)}${resale}${h.size ? ` · Size ${h.size}` : ""}`), open("lb-open", `View on ${platform} ↗`));
       const showProfit = e && e.qualifies;
       li.append(
         name,

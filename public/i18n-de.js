@@ -1,6 +1,20 @@
 // Deutsche Texte für i18n.js. Schlüssel = englischer Originaltext (Zahlen als {0}), Wert = Deutsch.
 window.watchrDE = {
   texts: {
+ "View on Vinted ↗": "Auf Vinted ansehen ↗",
+ "View on eBay ↗": "Auf eBay ansehen ↗",
+ "View on Kleinanzeigen ↗": "Auf Kleinanzeigen ansehen ↗",
+ "View on Grailed ↗": "Auf Grailed ansehen ↗",
+ "View on Vestiaire Collective ↗": "Auf Vestiaire Collective ansehen ↗",
+ "View on Depop ↗": "Auf Depop ansehen ↗",
+ "View on Etsy ↗": "Auf Etsy ansehen ↗",
+ "View on willhaben ↗": "Auf willhaben ansehen ↗",
+ "View on Marktplaats ↗": "Auf Marktplaats ansehen ↗",
+ "View on leboncoin ↗": "Auf leboncoin ansehen ↗",
+ "View on Wallapop ↗": "Auf Wallapop ansehen ↗",
+ "View on Subito ↗": "Auf Subito ansehen ↗",
+ "View on Mercari Japan ↗": "Auf Mercari Japan ansehen ↗",
+ "View on Yahoo! Auctions Japan ↗": "Auf Yahoo! Auctions Japan ansehen ↗",
  "(Mercari Japan and Yahoo Auctions Japan, both through Buyee), or": "(Mercari Japan und Yahoo Auctions Japan, beide über Buyee), oder",
  "(no description)": "(keine Beschreibung)",
  ", studio shot": ", Studio Shot",

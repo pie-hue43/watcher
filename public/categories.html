@@ -40,7 +40,20 @@
     .cat-results .empty { text-align: center; padding: 32px 16px; }
     .cat-results .empty p { color: var(--muted); max-width: 34em; margin: 6px auto 16px; }
     .demo-note { margin: 0; padding: 8px 12px; border-radius: 10px; background: var(--green-soft); border: 1px solid #c7f0d4; font-size: 13px; }
-    .lb-row .pic { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--surface); }
+    .cat-results .lb-row { grid-template-columns: 44px 84px minmax(0, 1fr) auto auto 52px; }
+    .lb-thumb { display: block; width: 84px; height: 84px; border-radius: 10px; overflow: hidden; background: var(--surface); }
+    .lb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lb-open { align-self: flex-start; margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--green-deep); text-decoration: none; border: 1px solid #c7f0d4; background: var(--green-soft); border-radius: 999px; padding: 3px 10px; }
+    .lb-open:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+      .cat-results .lb-row { grid-template-columns: 22px 64px minmax(0, 1fr); gap: 6px 10px; padding: 12px; }
+      .lb-thumb { width: 64px; height: 64px; grid-row: 1 / span 2; grid-column: 2; }
+      .cat-results .lb-row .lb-rank { grid-row: 1 / span 2; font-size: 16px; }
+      .cat-results .podium .lb-rank { font-size: 20px; }
+      .cat-results .lb-row .lb-name { grid-column: 3; grid-row: 1; }
+      .cat-results .lb-row .verdict { grid-column: 3; grid-row: 2; justify-self: start; align-self: center; }
+      .cat-results .lb-row .lb-profit { grid-column: 3; grid-row: 2; justify-self: end; font-size: 17px; }
+    }
     .cat-archive { background: radial-gradient(circle at 50% 40%, #fff, #c7f0d4); }
     .cat:hover, .cat:focus-visible { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(21,128,61,.18); }
     .cat svg { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 46px; height: 46px; stroke-width: 3; }
