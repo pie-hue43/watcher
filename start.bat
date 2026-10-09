@@ -14,7 +14,7 @@ if defined NODEDIR (
   if errorlevel 1 (
     echo.
     echo Node.js fehlt noch. So geht es ohne Installation:
-    echo  1. Auf der Seite, die sich gleich oeffnet, "Windows Binary ^(.zip^)" herunterladen, Version 22 oder neuer.
+    echo  1. Auf der Seite, die sich gleich oeffnet, "Windows Binary (.zip)" herunterladen, Version 22 oder neuer.
     echo  2. Die ZIP direkt in diesen Ordner entpacken: %~dp0
     echo  3. start.bat noch einmal doppelklicken.
     echo.
