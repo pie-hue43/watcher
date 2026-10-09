@@ -18,6 +18,8 @@ Vinted → Watcher → Backend/API → SQLite + WebSocket → Dashboard (Browser
 
 Voraussetzung: Node.js 22.13 oder neuer (nutzt das eingebaute `node:sqlite`).
 
+**Windows ohne Installation:** Die Node.js-ZIP (nodejs.org, „Windows Binary (.zip)“, Version 22 oder neuer) in den watchr-Ordner entpacken und `start.bat` doppelklicken. Das Skript richtet beim ersten Mal alles ein, legt `.env` mit eigenem Token an und öffnet Live Sniper im Browser.
+
 ```bash
 npm install
 cp .env.example .env      # WATCHER_TOKEN ändern!
