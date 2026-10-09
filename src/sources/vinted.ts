@@ -69,6 +69,7 @@ export class VintedSource implements Source {
   private cookie: string | null = null;
   private anonId: string | null = null;
   private cookieFetchedAt = 0;
+  private refreshBlockedUntil = 0;
 
   constructor(private domain: string) {}
 
@@ -80,6 +81,8 @@ export class VintedSource implements Source {
   }
 
   private async refreshCookie() {
+    // Nach einer Sperre nicht sofort wieder anfragen, sonst bleibt Vinted dicht
+    if (Date.now() < this.refreshBlockedUntil) throw new RateLimitError("Vinted blockiert gerade, neue Session erst in ein paar Minuten");
     const res = await fetch(`${this.site}/`, {
       headers: {
         "User-Agent": USER_AGENT,
@@ -99,6 +102,10 @@ export class VintedSource implements Source {
       if (value) jar.set(name, value);
     }
     await res.body?.cancel().catch(() => {});
+    if (!jar.has("access_token_web") && (res.status === 403 || res.status === 429)) {
+      this.refreshBlockedUntil = Date.now() + 5 * 60_000;
+      throw new RateLimitError(`Vinted blockiert gerade (HTTP ${res.status})`);
+    }
     if (!jar.has("access_token_web")) throw new Error(`Kein Session-Cookie von ${this.domain} erhalten (HTTP ${res.status})`);
     this.cookie = [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
     this.anonId = res.headers.get("x-anon-id")?.trim() || null;

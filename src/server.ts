@@ -220,6 +220,8 @@ export function createServer(
           // Nur der Watcher darf Treffer melden.
           if (req.headers.authorization !== `Bearer ${opts.watcherToken}`) throw new HttpError(401, "Not authorized");
           const input = parseHit(await readJson(req));
+          // Die Suche wurde inzwischen gelöscht: Treffer verwerfen statt mit Fehler abbrechen
+          if (!db.getSearch(input.searchId)) return send(200, { ignored: true });
           const hit = db.insertHit(input, catalog.toEur(input.price, input.currency, platforms.fx.get()));
           if (!hit) return send(200, { duplicate: true });
           if ("merged" in hit) {

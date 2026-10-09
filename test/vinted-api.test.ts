@@ -41,3 +41,22 @@ test("Vinted-Suche nutzt api.<domain>/svc-catalogue/items mit Session-Cookie und
     globalThis.fetch = real;
   }
 });
+
+test("Gesperrte Startseite pausiert statt Vinted weiter anzufragen", async () => {
+  const real = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls++;
+    return new Response("blocked", { status: 403 });
+  }) as any;
+  try {
+    const { RateLimitError } = await import("../src/sources/vinted.ts");
+    const src = new VintedSource("www.vinted.de");
+    const q = { id: 1, query: "dior" } as any;
+    await assert.rejects(src.search(q), RateLimitError);
+    await assert.rejects(src.search(q), RateLimitError);
+    assert.equal(calls, 1);
+  } finally {
+    globalThis.fetch = real;
+  }
+});
