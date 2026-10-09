@@ -16,18 +16,9 @@
   <style>
     .hero { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; align-items: start; padding-block: 8px 72px; }
     .hero h1 { font-size: clamp(40px, 5.6vw, 70px); line-height: .96; margin: 0 0 6px; letter-spacing: -.045em; }
+    .hero .lead { margin-top: 18px; }
     .hero h1 .free { display: block; color: var(--green-deep); font-size: .5em; letter-spacing: -.02em; margin-top: 14px; }
     .hero { align-items: start; }
-    /* Hashtag-Eingabe direkt im Hero */
-    .tag-form { display: flex; gap: 8px; margin: 18px 0 10px; max-width: 34em; }
-    .tag-form input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 12px 14px; border: 2px solid var(--text); border-radius: 12px; background: #fff; }
-    .tag-form .btn { flex: none; }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
-    .chips button { font: inherit; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.8); cursor: pointer; }
-    .chips button:hover { border-color: var(--green-deep); color: var(--green-deep); }
-    .syntax { font-size: 13px; color: var(--muted); margin: 0; }
-    .syntax code { font-family: inherit; font-weight: 800; color: var(--text); background: none; padding: 0; }
-    .hero-sources { margin: 0 0 10px; }
     .price-note { font-size: 14px; color: var(--muted); margin: 14px 0 0; }
     .price-note a { color: var(--text); font-weight: 700; }
     /* Großer Snipe-Knopf rechts im Hero */
@@ -124,27 +115,12 @@
       <svg class="crosshair" viewBox="0 0 400 400" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width=".6"><circle cx="200" cy="200" r="190"/><circle cx="200" cy="200" r="140"/><circle cx="200" cy="200" r="70" stroke-dasharray="2 6"/><circle cx="200" cy="200" r="6"/><path d="M200 0v150M200 250v150M0 200h150M250 200h150"/><path d="M200 10v12M200 378v12M10 200h12M378 200h12M66 66l8 8M326 66l-8 8M66 334l8-8M326 334l-8-8" stroke-width="1.4"/></g></svg>
       <div>
         <h1>Every Vinted <span class="outline">listing</span> you want. <em class="mark">Within a minute of going live.</em> <span class="free">Free to snipe.</span></h1>
-        <form class="tag-form" action="monitor.html" method="get">
-          <label class="sr-only" for="hero-tags">What are you looking for?</label>
-          <input id="hero-tags" name="tags" value="#nike #dunk #size43 #max80" autocomplete="off" spellcheck="false" />
-          <button class="btn snipe-now" type="submit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>Snipe now</button>
-        </form>
-        <div class="src-chips hero-sources" id="hero-sources" aria-live="polite"></div>
-        <div class="chips" aria-label="Examples">
-          <button type="button" data-tags="#nike #dunk #size43 #max80">Nike Dunks</button>
-          <button type="button" data-tags="#archive #max300">Archive grails</button>
-          <button type="button" data-tags="#carhartt #jacket #sizeL #verygood">Carhartt jackets</button>
-          <button type="button" data-tags="#ralphlauren #polo #max20">Cheap polos</button>
-          <button type="button" data-tags="#accessories #max40">Accessories</button>
-          <button type="button" data-tags="#rafsimons #max400 #all">Raf Simons everywhere</button>
-        </div>
-        <p class="syntax">Words are keywords. Add <code>#size43</code>, <code>#min20</code> / <code>#max80</code>, <code>#verygood</code> or <code>#archive</code>, and <code>#ebay</code>, <code>#kleinanzeigen</code> or <code>#all</code> for more platforms. <a href="faq.html#hashtags">All hashtags</a></p>
         <p class="lead">watchr checks Vinted for you about once a minute, from sneakers and streetwear to vintage, with an Archive mode for designer pieces. Every match lands in Live Sniper with photos, a resale estimate and the expected profit.</p>
         <p class="price-note">Live Sniper, Flips and Categories are free. <a href="upgrades.html">Upgrades</a> add optional extras like Autobuy.</p>
       </div>
 
       <div class="snipe-big-wrap">
-        <a class="snipe-big" id="snipe-big" href="monitor.html" aria-label="Snipe now: open Live Sniper with these hashtags">
+        <a class="snipe-big" id="snipe-big" href="monitor.html" aria-label="Snipe now: open Live Sniper">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
           <span>Snipe now</span>
         </a>
@@ -323,38 +299,6 @@
       <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
     </div>
   </footer>
-  <script src="platforms.js"></script>
-  <script src="tags.js"></script>
-  <script>
-    // Beispiel-Chips füllen das Hashtag-Feld
-    document.querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () => {
-      const i = document.getElementById("hero-tags");
-      i.value = b.dataset.tags;
-      i.focus();
-    }));
-    // Gewählte Plattformen als Chips unter dem Feld (ohne Plattform-Hashtag nur Vinted)
-    (() => {
-      const input = document.getElementById("hero-tags");
-      const box = document.getElementById("hero-sources");
-      const chip = (t, cls) => Object.assign(document.createElement("span"), { className: cls || "", textContent: t });
-      const show = () => {
-        const names = watchrTags.sourceNames(watchrTags.parse(input.value).sources);
-        box.replaceChildren(chip("Platforms:"), ...names.slice(0, 5).map((n) => chip(n, "chip static")), ...(names.length > 5 ? [chip(`+${names.length - 5} more`)] : []));
-      };
-      input.addEventListener("input", show);
-      document.querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", show));
-      show();
-    })();
-    // Der große Knopf nimmt die Hashtags aus dem Feld mit
-    (() => {
-      const big = document.getElementById("snipe-big");
-      const input = document.getElementById("hero-tags");
-      const sync = () => (big.href = "monitor.html" + (input.value.trim() ? "?tags=" + encodeURIComponent(input.value.trim()) : ""));
-      input.addEventListener("input", sync);
-      document.querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", sync));
-      sync();
-    })();
-  </script>
   <script src="site.js"></script>
   <script src="motion.js"></script>
   <script>
