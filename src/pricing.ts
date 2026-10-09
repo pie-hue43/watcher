@@ -47,6 +47,21 @@ export function productKey(l: { title: string; brand: string | null }): { key: s
   return { key: `${b}|${type ?? "item"}`, query: type ? `${b} ${TYPE_QUERY[type] ?? type}` : b };
 }
 
+/** Häufige Resell-Marken (Designer stehen in designers.ts). Für Angebote ohne eigenes Markenfeld, z. B. von eBay oder Kleinanzeigen. */
+const BRANDS = [
+  "Nike", "Jordan", "Adidas", "New Balance", "Asics", "Salomon", "Converse", "Vans", "Puma", "Reebok", "On Running", "Hoka",
+  "Ralph Lauren", "Polo Ralph Lauren", "Tommy Hilfiger", "Lacoste", "Fred Perry", "Carhartt", "Dickies", "Levi's", "Levis", "Wrangler", "Lee",
+  "Stone Island", "C.P. Company", "CP Company", "Stüssy", "Stussy", "Supreme", "Palace", "Patagonia", "The North Face", "North Face", "Arc'teryx", "Arcteryx",
+  "Barbour", "Burberry", "Moncler", "Canada Goose", "Champion", "Nautica", "Timberland", "Dr. Martens", "Birkenstock", "Diesel", "Boss", "Hugo Boss",
+];
+const brandRe = (b: string) => new RegExp(`(^|[^\\p{L}])${b.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/'/g, "['’]?")}($|[^\\p{L}])`, "iu");
+const BRAND_RES = BRANDS.map((b) => [b.replace(/^Polo /, "").replace(/^North Face$/, "The North Face").replace(/^Levis$/, "Levi's").replace(/^Stussy$/, "Stüssy").replace(/^Arcteryx$/, "Arc'teryx").replace(/^CP Company$/, "C.P. Company"), brandRe(b)] as const);
+export function brandFromTitle(title: string): string | null {
+  const d = findDesigner(title);
+  if (d) return d.name;
+  return BRAND_RES.find(([, re]) => re.test(title))?.[0] ?? null;
+}
+
 /** Marke aus einer freien Beschreibung: alles vor der Artikelart, z. B. „Ralph Lauren“ aus „Ralph Lauren polo“. */
 export function guessBrand(title: string): string | null {
   const t = title.trim();

@@ -28,16 +28,16 @@
   addEventListener("hashchange", open);
 })();
 
-// Stock im Menü: Anzahl offener "Next up"-Aufgaben (nur wenn watchr läuft; die Stock-Seite setzt sie selbst)
+// Stock liegt unter My Charts: Anzahl offener "Next up"-Aufgaben am Knopf My Charts (nur wenn watchr läuft; Stock und My Charts setzen sie selbst)
 window.watchrSetStockCount = (n) => {
-  for (const b of document.querySelectorAll(".site-nav .nav-count")) {
+  for (const b of document.querySelectorAll(".nav-count")) {
     b.textContent = String(n);
     b.hidden = !n;
     b.title = n ? `${n} open task${n === 1 ? "" : "s"} in Stock` : "";
   }
 };
 (() => {
-  if (!document.querySelector(".site-nav .nav-count") || /stock(\.html)?$/.test(location.pathname)) return;
+  if (!document.querySelector(".nav-count") || /(stock|charts)(\.html)?$/.test(location.pathname)) return;
   const backend = (window.WATCHER_BACKEND || location.origin).replace(/\/$/, "");
   fetch(backend + "/api/stock/next")
     .then((r) => (r.ok && (r.headers.get("content-type") || "").includes("json") ? r.json() : null))

@@ -4,7 +4,7 @@ import { findDesigner } from "./designers.ts";
 import { guessBrand, productKey, type PriceEstimator } from "./pricing.ts";
 import { plan } from "./stock.ts";
 import { CONDITIONS, type Condition, type ServerMessage, type Tracked } from "./types.ts";
-import { RateLimitError, itemIdFromUrl, userIdFromUrl, type Source, type Wardrobe } from "./vinted.ts";
+import { RateLimitError, itemIdFromUrl, userIdFromUrl, type Source, type Wardrobe } from "./sources/vinted.ts";
 
 /**
  * AI Tools: zehn Werkzeuge rund um Vinted. Jedes Tool arbeitet mit echten Daten

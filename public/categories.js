@@ -86,5 +86,5 @@ async function load() {
   }
   render();
 }
-load();
+watchrPlatforms.loadContext(BACKEND).finally(load);
 setInterval(load, 60_000);

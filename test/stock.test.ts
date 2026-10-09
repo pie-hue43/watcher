@@ -5,7 +5,7 @@ import { openDb } from "../src/db.ts";
 import { createServer } from "../src/server.ts";
 import { plan } from "../src/stock.ts";
 import { PriceEstimator } from "../src/pricing.ts";
-import { MockSource } from "../src/vinted.ts";
+import { MockSource } from "../src/sources/vinted.ts";
 
 const DAY = 864e5;
 const ago = (d: number) => new Date(Date.now() - d * DAY).toISOString();

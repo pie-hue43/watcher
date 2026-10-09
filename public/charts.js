@@ -242,6 +242,81 @@ async function loadStock() {
   const sel = $("from-stock");
   sel.replaceChildren(Object.assign(el("option", null, "No, enter it myself"), { value: "" }), ...open.map((it) => Object.assign(el("option", null, `${it.title} · cost ${eur(watchrStock.totalCost(it))}`), { value: it.id })));
   $("from-stock-wrap").hidden = !open.length;
+  renderStockSide();
+}
+
+// Stock-Tabelle an der Seite: zuerst die offenen Aufgaben, dann alles, was noch im Bestand ist
+const STATUS = { bought: "Bought", arrived: "Arrived", listed: "Listed", sold: "Sold", kept: "Kept" };
+function renderStockSide() {
+  const S = watchrStock;
+  const tasks = S.tasks(stock);
+  const withTask = new Set(tasks.map((t) => t.item.id));
+  const rest = stock.filter((it) => !withTask.has(it.id) && it.status !== "kept" && !(it.status === "sold" && it.shippedAt));
+  const rows = [...tasks, ...rest.map((item) => ({ kind: null, item }))];
+  window.watchrSetStockCount?.(tasks.length);
+  $("sk-sub").textContent = tasks.length ? `${tasks.length} open task${tasks.length === 1 ? "" : "s"} · ${rest.length} waiting` : rest.length ? `${rest.length} in stock, nothing to do right now` : "What you bought and what to do next.";
+  $("sk-empty").hidden = rows.length > 0;
+  $("sk-rows").replaceChildren(...rows.map(stockRow));
+}
+function stockRow(t) {
+  const it = t.item;
+  const tr = el("tr", t.kind ? "k-" + t.kind : "idle");
+  const item = el("td", "item");
+  const a = Object.assign(el("a", null, it.title), { href: `stock.html#item-${it.id}`, title: it.title });
+  const label = t.kind ? t.label : it.status === "listed" ? `Listed · next price check ${nextCheck(it)}` : STATUS[it.status];
+  const cost = watchrStock.totalCost(it);
+  item.append(a, el("span", "what", label), el("span", "meta", [it.size && `Size ${it.size}`, `cost ${eur(Math.round(cost))}`, it.status !== "sold" && `floor ${eur(it.pricePlan.floor)}`].filter(Boolean).join(" · ")));
+  const acts = sideActions(t);
+  if (acts) item.append(acts);
+  const price = el("td", "num", eur(it.status === "sold" ? it.soldPrice : it.price));
+  const profit = it.status === "sold" ? watchrStock.realProfit(it) : watchrStock.expectedProfit(it);
+  price.append(el("small", null, `${it.status === "sold" ? "profit" : "exp."} ${profit >= 0 ? "+" : "−"}${eur(Math.abs(Math.round(profit)))}`));
+  tr.append(item, price);
+  return tr;
+}
+const nextCheck = (it) => {
+  const due = Date.parse(watchrStock.lastPriceChange(it)) + it.pricePlan.everyDays * DAY;
+  const d = Math.ceil((due - Date.now()) / DAY);
+  return d <= 0 ? "today" : d === 1 ? "tomorrow" : `in ${d} days`;
+};
+// Dieselben Knöpfe wie unter "Next up" auf der Stock-Seite; auf Vinted ändert der Nutzer selbst
+function sideActions(t) {
+  if (!t.kind) return null;
+  const it = t.item;
+  const box = el("div", "side-acts");
+  const err = el("p", "error");
+  err.hidden = true;
+  const now = () => new Date().toISOString();
+  const act = (label, primary, fn) => {
+    const b = el("button", primary ? "btn small" : "btn small ghost", label);
+    b.type = "button";
+    b.onclick = async () => {
+      b.disabled = true;
+      err.hidden = true;
+      try {
+        await fn();
+        await loadStock();
+      } catch (e) {
+        b.disabled = false;
+        err.textContent = e.message;
+        err.hidden = false;
+      }
+    };
+    return b;
+  };
+  const link = (label, href, primary) => Object.assign(el("a", primary ? "btn small" : "btn small ghost", label), { href });
+  const A = watchrStockApi;
+  if (t.kind === "ship") box.append(act("Shipped", true, () => A.patch(it.id, { shippedAt: now() })));
+  if (t.kind === "write") box.append(link("Write listing", `stock.html#item-${it.id}`, true));
+  if (t.kind === "arrived") box.append(act("Arrived", true, () => A.patch(it.id, { status: "arrived" })));
+  if (t.kind === "price") {
+    if (it.vintedUrl) box.append(Object.assign(link("Open on Vinted", it.vintedUrl), { target: "_blank", rel: "noopener" }));
+    box.append(act("Done", true, () => A.patch(it.id, { price: t.price })));
+  }
+  if (t.kind === "refresh") box.append(link("Refresh", `tools.html?stock=${it.id}#vinted-repost`, true), act("Done", false, () => A.patch(it.id, { refreshedAt: now() })));
+  if (t.kind === "floor") box.append(act("Keep listed", true, () => A.patch(it.id, { floorAckAt: now() })), act("Kept for myself", false, () => A.patch(it.id, { status: "kept" })));
+  box.append(err);
+  return box;
 }
 $("from-stock").addEventListener("change", (e) => {
   const it = stock.find((x) => String(x.id) === e.target.value);

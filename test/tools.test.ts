@@ -5,7 +5,7 @@ import { openDb } from "../src/db.ts";
 import { createServer } from "../src/server.ts";
 import { PriceEstimator, guessBrand } from "../src/pricing.ts";
 import { ruleFilters, startSaleChecker, startTracker } from "../src/tools.ts";
-import { MockSource } from "../src/vinted.ts";
+import { MockSource } from "../src/sources/vinted.ts";
 
 async function setup() {
   const db = openDb(":memory:");

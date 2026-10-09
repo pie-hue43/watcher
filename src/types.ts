@@ -14,6 +14,8 @@ export interface Search {
   size: string | null;
   /** archive: der Watcher sucht reihum nach Designern und meldet nur Teile mit hohem Archive-Score */
   kind: SearchKind;
+  /** Plattformen (IDs aus public/platforms.js oder "all"); leer = nur Vinted wie bisher */
+  sources: string[];
   active: boolean;
   createdAt: string;
 }
@@ -38,6 +40,19 @@ export interface HitInput {
   /** 0–100, wie stark das Teil nach Designer-/Archivstück aussieht */
   archiveScore: number | null;
   designer: string | null;
+  /** Plattform (Standard vinted) und ID dort; vintedId bleibt aus Kompatibilität die Vinted-ID */
+  source?: string;
+  sourceId?: string;
+  condition?: string | null;
+  /** Versand zu dir in der Währung des Angebots, null = unbekannt */
+  shipping?: number | null;
+  location?: string | null;
+  /** Ländercode des Angebots (für Einfuhrabgaben) */
+  country?: string | null;
+  /** SHA-1 des ersten Fotos (Dubletten über Plattformen hinweg) */
+  photoHash?: string | null;
+  /** Wiederverkaufswerte je Plattform aus echten Vergleichspreisen */
+  resaleBy?: Record<string, { median: number; low: number; high: number; samples: number }> | null;
 }
 
 export interface Hit extends HitInput {
@@ -51,6 +66,10 @@ export interface Hit extends HitInput {
   saleStatus: "active" | "sold" | "gone";
   /** Wann watchr den Verkauf bemerkt hat */
   soldAt: string | null;
+  source: string;
+  sourceId: string;
+  /** Dasselbe Teil auf anderen Plattformen */
+  alsoOn: { source: string; url: string; price: number; currency: string }[];
 }
 
 /** Ein Artikel im Wardrobe Tracker. */
@@ -76,7 +95,10 @@ export type ServerMessage =
   | { type: "hit"; hit: Hit }
   | { type: "searches"; searches: Search[] }
   | { type: "sold"; item: Tracked }
-  | { type: "hitSold"; hit: Hit };
+  | { type: "hitSold"; hit: Hit }
+  /** Treffer hat ein "Also on" von einer anderen Plattform bekommen */
+  | { type: "hitUpdate"; hit: Hit }
+  | { type: "sources"; sources: unknown };
 
 /** Eigener Verkauf (für My Charts), vom Nutzer eingetragen */
 export interface Sale {

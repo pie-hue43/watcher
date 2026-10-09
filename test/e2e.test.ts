@@ -5,7 +5,7 @@ import WebSocket from "ws";
 import { openDb } from "../src/db.ts";
 import { createServer } from "../src/server.ts";
 import { Watcher } from "../src/watcher.ts";
-import { matches, type Listing, type Source } from "../src/vinted.ts";
+import { matches, type Listing, type Source } from "../src/sources/vinted.ts";
 import type { Search, ServerMessage } from "../src/types.ts";
 
 const listing = (id: string, price: number, size: string | null): Listing => ({
@@ -15,7 +15,7 @@ const listing = (id: string, price: number, size: string | null): Listing => ({
 });
 
 test("matches: Preis und Größe", () => {
-  const s: Search = { id: 1, query: "nike", minPrice: null, maxPrice: 80, size: "43", condition: null, kind: "standard", active: true, createdAt: "" };
+  const s: Search = { id: 1, query: "nike", minPrice: null, maxPrice: 80, size: "43", condition: null, kind: "standard", sources: [], active: true, createdAt: "" };
   assert.equal(matches(s, listing("1", 65, "43")), true);
   assert.equal(matches(s, listing("2", 85, "43")), false);
   assert.equal(matches(s, listing("3", 65, "42")), false);

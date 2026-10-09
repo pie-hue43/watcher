@@ -1,13 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { keywordMatches, missingKeywords } from "../src/tags.ts";
-import { matches, type Listing } from "../src/vinted.ts";
+import { matches, type Listing } from "../src/sources/vinted.ts";
 import type { Search } from "../src/types.ts";
 
 const l = (title: string, brand: string | null = null, extra: Partial<Listing> = {}): Listing => ({
   id: "1", title, price: 50, currency: "EUR", size: "M", brand, url: "", photoUrls: [], ...extra,
 });
-const s: Search = { id: 1, query: "", minPrice: null, maxPrice: null, size: null, condition: null, kind: "standard", active: true, createdAt: "" };
+const s: Search = { id: 1, query: "", minPrice: null, maxPrice: null, size: null, condition: null, kind: "standard", sources: [], active: true, createdAt: "" };
 
 test("jeder Hashtag muss zum Artikel passen", () => {
   assert.deepEqual(missingKeywords("#ralph #lauren #polo", l("Polo Ralph Lauren Poloshirt navy")), []);

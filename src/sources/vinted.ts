@@ -1,5 +1,6 @@
-import type { Condition, Search } from "./types.ts";
-import { missingKeywords } from "./tags.ts";
+import type { Condition, Search } from "../types.ts";
+import { baseAdapter, type Adapter, type SearchPref, type SourceHit } from "./catalog.ts";
+import { missingKeywords } from "../tags.ts";
 
 /** Vinted-Zustands-IDs: 6 = neu mit Etikett, 1 = neu ohne Etikett, 2 = sehr gut, 3 = gut. */
 const STATUS_IDS: Record<Condition, number[]> = {
@@ -296,3 +297,18 @@ export function matches(s: Search, l: Listing, keywords: string = s.query): bool
 }
 
 const normSize = (s: string) => s.trim().toLowerCase().replace(",", ".").replace(/^eu\s*/, "");
+
+/** Vinted mit der gemeinsamen Adapter-Schnittstelle (der Watcher nutzt weiter direkt VintedSource). */
+export function vintedAdapter(source: Source): Adapter {
+  return {
+    ...baseAdapter("vinted", "api"),
+    async search(p: SearchPref): Promise<SourceHit[]> {
+      const s: Search = { id: 0, kind: "standard", sources: [], active: true, createdAt: "", minPrice: null, maxPrice: null, size: null, condition: null, ...p };
+      return (await source.search(s)).map((l) => ({
+        source: "vinted", sourceId: l.id, url: l.url, title: l.title, brand: l.brand, size: l.size, condition: l.condition ?? null,
+        price: l.price, currency: l.currency, shipping: null, location: null, country: null, photoUrls: l.photoUrls, detectedAt: new Date().toISOString(),
+      }));
+    },
+    comparables: source.comparables ? (q: string) => source.comparables!(q) : undefined,
+  };
+}

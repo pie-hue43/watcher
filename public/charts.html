@@ -14,9 +14,6 @@
     .page-head h1 span { display: block; color: var(--muted); font-weight: 600; }
     .page-head p { margin: 8px 0 0; color: var(--muted); max-width: 36em; }
     .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
-    .seg button { font: inherit; font-size: 14px; font-weight: 700; border: 0; background: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: var(--muted); }
-    .seg button[aria-pressed="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
     .demo-note { margin: 0 0 16px; padding: 8px 12px; border-radius: 10px; background: var(--green-soft); border: 1px solid #c7f0d4; font-size: 13px; }
     /* Kennzahlen: Umsatz groß links, die anderen als Raster rechts */
     .kpis { display: grid; grid-template-columns: 1.3fr 2fr; gap: 12px; }
@@ -62,6 +59,33 @@
     .form-msg { margin: 8px 0 0; font-size: 13px; color: var(--danger); min-height: 1em; }
     .stack { display: flex; flex-direction: column; gap: 12px; padding-bottom: 72px; }
     .note { color: var(--muted); font-size: 13px; margin: 0; }
+    /* Stock an der Seite: bleibt beim Scrollen stehen, scrollt nur in sich hoch und runter */
+    .charts-wrap { max-width: 1440px; }
+    .charts-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; padding-bottom: 72px; }
+    .charts-layout .stack { padding-bottom: 0; }
+    .stock-side { position: sticky; top: 84px; max-height: calc(100vh - 100px); display: flex; flex-direction: column; padding: 16px 0 0; overflow: hidden; }
+    .stock-side .panel-head { padding-inline: 18px; margin-bottom: 6px; }
+    .stock-side .side-sub { padding: 0 18px 10px; margin: 0; }
+    .side-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; border-top: 1px solid var(--line); }
+    table.side { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+    table.side thead th { position: sticky; top: 0; z-index: 1; background: var(--bg); text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 8px 10px; box-shadow: inset 0 -1px 0 var(--line); }
+    table.side td { padding: 10px; border-top: 1px solid var(--line); vertical-align: top; }
+    table.side tr:first-child td { border-top: 0; }
+    table.side td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; white-space: nowrap; }
+    table.side td.num small { display: block; font-weight: 600; color: var(--muted); font-size: 12px; }
+    table.side .item a { font-weight: 700; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    table.side .item a:hover { text-decoration: underline; }
+    table.side .what { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
+    table.side .meta { display: block; font-size: 12px; color: var(--muted); }
+    table.side tr.k-ship td:first-child, table.side tr.k-floor td:first-child { box-shadow: inset 4px 0 0 var(--r-legendary); }
+    table.side tr.k-write td:first-child, table.side tr.k-arrived td:first-child { box-shadow: inset 4px 0 0 var(--r-rare); }
+    table.side tr.k-price td:first-child, table.side tr.k-refresh td:first-child { box-shadow: inset 4px 0 0 var(--r-good); }
+    table.side tr.idle .what { color: var(--muted); font-weight: 600; }
+    .side-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .side-acts .btn { padding: 4px 10px; font-size: 12px; }
+    .side-acts .error { margin: 4px 0 0; font-size: 12px; color: var(--danger); flex-basis: 100%; }
+    .side-empty { padding: 16px 18px; color: var(--muted); font-size: 14px; margin: 0; }
+    @media (max-width: 1100px) { .charts-layout { grid-template-columns: minmax(0, 1fr); } .stock-side { position: static; max-height: 70vh; } }
     @media (max-width: 900px) { .kpis, .two { grid-template-columns: 1fr; } .add-form { grid-template-columns: 1fr 1fr; } .add-form label.title { grid-column: 1 / -1; } }
     @media (max-width: 560px) { .add-form { grid-template-columns: 1fr; } .table-scroll { overflow-x: auto; } .chart-wrap svg { height: 220px; } }
   </style>
@@ -71,12 +95,12 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="stock.html">Stock<span class="badge nav-count" hidden></span></a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
-      <div class="head-btns"><a class="btn small charts-btn" href="charts.html" aria-current="page"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn"  href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <div class="head-btns"><a class="btn small charts-btn" href="charts.html" aria-current="page"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts<span class="badge nav-count" hidden></span></a><a class="btn small upgrades-btn"  href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
   <main>
-    <div class="wrap">
+    <div class="wrap charts-wrap">
       <div class="page-head">
         <div>
           <span class="eyebrow">My Charts · your resale business</span>
@@ -89,6 +113,7 @@
         </div>
       </div>
       <p id="demo-note" class="demo-note" hidden>Example data: watchr isn't running here. Start it with npm start and your own sales show up.</p>
+      <div class="charts-layout">
       <div class="stack">
         <div class="kpis">
           <div class="hero-kpi">
@@ -138,6 +163,19 @@
           <p class="form-msg" id="form-msg" role="status"></p>
         </section>
         <p class="note">Vinted doesn't share your shop statistics with other apps, so My Charts uses the sales you log here. Profit is sale price minus buy price; Vinted's buyer protection is paid by the buyer, and selling has no fee.</p>
+      </div>
+      <aside class="panel stock-side" id="stock-side" aria-labelledby="sk-title">
+        <div class="panel-head"><h2 id="sk-title">Stock</h2><a class="btn small ghost" href="stock.html">Open Stock</a></div>
+        <p class="note side-sub" id="sk-sub">What you bought and what to do next.</p>
+        <div class="side-scroll" tabindex="0" aria-label="Stock list, scrolls up and down">
+          <table class="side">
+            <colgroup><col /><col style="width: 84px" /></colgroup>
+            <thead><tr><th>Item · next step</th><th style="text-align:right">Price</th></tr></thead>
+            <tbody id="sk-rows"></tbody>
+          </table>
+          <p class="side-empty" id="sk-empty" hidden>Nothing in stock yet. Press Bought it on a snipe in Live Sniper and it shows up here.</p>
+        </div>
+      </aside>
       </div>
     </div>
   </main>

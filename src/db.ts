@@ -1,7 +1,13 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { norm } from "./tags.ts";
 import type { Hit, HitInput, Sale, Search, StockItem, StockPhoto, Tracked } from "./types.ts";
+
+/** Titel für den Dubletten-Vergleich: Kleinbuchstaben, ohne Akzente, Satzzeichen und Füllwörter wie "Gr." oder "neu", Wörter sortiert */
+const TITLE_NOISE = new Set(["gr", "grosse", "groesse", "size", "eu", "us", "uk", "neu", "new", "top", "ovp", "vb", "und", "and", "mit", "with", "the", "der", "die", "das"]);
+export const normTitle = (t: string) =>
+  [...new Set(norm(t.replace(/\(VB\)$/i, "")).split(" ").filter((w) => w.length > 1 && !TITLE_NOISE.has(w)))].sort().join(" ");
 
 export function openDb(path: string) {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
@@ -80,12 +86,17 @@ export function openDb(path: string) {
   if (!searchCols.includes("min_price")) db.exec("ALTER TABLE searches ADD COLUMN min_price REAL");
   if (!searchCols.includes("condition")) db.exec("ALTER TABLE searches ADD COLUMN condition TEXT");
   if (!searchCols.includes("kind")) db.exec("ALTER TABLE searches ADD COLUMN kind TEXT NOT NULL DEFAULT 'standard'");
+  // Mehrere Plattformen: Quellen je Präferenz (JSON, leer = nur Vinted)
+  if (!searchCols.includes("sources")) db.exec("ALTER TABLE searches ADD COLUMN sources TEXT");
   // Ältere Datenbanken: Spalte für mehrere Bilder nachrüsten
   const cols = db.prepare("PRAGMA table_info(hits)").all() as { name: string }[];
   if (!cols.some((c) => c.name === "photo_urls")) db.exec("ALTER TABLE hits ADD COLUMN photo_urls TEXT");
   if (!cols.some((c) => c.name === "opened_at")) db.exec("ALTER TABLE hits ADD COLUMN opened_at TEXT");
   for (const [col, type] of [["resale_estimate", "REAL"], ["resale_low", "REAL"], ["resale_high", "REAL"], ["resale_samples", "INTEGER"], ["archive_score", "INTEGER"], ["designer", "TEXT"],
-    ["sale_status", "TEXT NOT NULL DEFAULT 'active'"], ["sale_checked_at", "TEXT"], ["sold_at", "TEXT"]])
+    ["sale_status", "TEXT NOT NULL DEFAULT 'active'"], ["sale_checked_at", "TEXT"], ["sold_at", "TEXT"],
+    // Mehrere Plattformen; vinted_id bleibt der eindeutige Schlüssel ("ebay:123" für andere Quellen)
+    ["source", "TEXT NOT NULL DEFAULT 'vinted'"], ["source_id", "TEXT"], ["condition", "TEXT"], ["shipping", "REAL"], ["location", "TEXT"], ["country", "TEXT"],
+    ["photo_hash", "TEXT"], ["resale_by", "TEXT"], ["also_on", "TEXT"], ["price_eur", "REAL"], ["title_norm", "TEXT"]])
     if (!cols.some((c) => c.name === col)) db.exec(`ALTER TABLE hits ADD COLUMN ${col} ${type}`);
 
   const toSearch = (r: any): Search => ({
@@ -96,6 +107,7 @@ export function openDb(path: string) {
     condition: r.condition ?? null,
     size: r.size,
     kind: r.kind === "archive" ? "archive" : "standard",
+    sources: r.sources ? JSON.parse(r.sources) : [],
     active: !!r.active,
     createdAt: r.created_at,
   });
@@ -123,6 +135,15 @@ export function openDb(path: string) {
     designer: r.designer ?? null,
     saleStatus: r.sale_status === "sold" || r.sale_status === "gone" ? r.sale_status : "active",
     soldAt: r.sold_at ?? null,
+    source: r.source ?? "vinted",
+    sourceId: r.source_id ?? r.vinted_id,
+    condition: r.condition ?? null,
+    shipping: r.shipping ?? null,
+    location: r.location ?? null,
+    country: r.country ?? null,
+    photoHash: r.photo_hash ?? null,
+    resaleBy: r.resale_by ? JSON.parse(r.resale_by) : null,
+    alsoOn: r.also_on ? JSON.parse(r.also_on) : [],
   });
 
   const toTracked = (r: any): Tracked => ({
@@ -149,23 +170,24 @@ export function openDb(path: string) {
       const r = db.prepare("SELECT * FROM searches WHERE id = ?").get(id);
       return r ? toSearch(r) : null;
     },
-    createSearch(f: Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition"> & { kind?: Search["kind"] }): Search {
+    createSearch(f: Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition"> & { kind?: Search["kind"]; sources?: string[] }): Search {
       const res = db
-        .prepare("INSERT INTO searches (query, min_price, max_price, size, condition, kind, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-        .run(f.query, f.minPrice, f.maxPrice, f.size, f.condition, f.kind ?? "standard", new Date().toISOString());
+        .prepare("INSERT INTO searches (query, min_price, max_price, size, condition, kind, sources, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        .run(f.query, f.minPrice, f.maxPrice, f.size, f.condition, f.kind ?? "standard", f.sources?.length ? JSON.stringify(f.sources) : null, new Date().toISOString());
       return this.getSearch(Number(res.lastInsertRowid))!;
     },
-    updateSearch(id: number, patch: Partial<Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition" | "kind" | "active">>): Search | null {
+    updateSearch(id: number, patch: Partial<Pick<Search, "query" | "minPrice" | "maxPrice" | "size" | "condition" | "kind" | "active" | "sources">>): Search | null {
       const cur = this.getSearch(id);
       if (!cur) return null;
       const next = { ...cur, ...patch };
-      db.prepare("UPDATE searches SET query = ?, min_price = ?, max_price = ?, size = ?, condition = ?, kind = ?, active = ? WHERE id = ?").run(
+      db.prepare("UPDATE searches SET query = ?, min_price = ?, max_price = ?, size = ?, condition = ?, kind = ?, sources = ?, active = ? WHERE id = ?").run(
         next.query,
         next.minPrice,
         next.maxPrice,
         next.size,
         next.condition,
         next.kind,
+        next.sources.length ? JSON.stringify(next.sources) : null,
         next.active ? 1 : 0,
         id,
       );
@@ -174,19 +196,44 @@ export function openDb(path: string) {
     deleteSearch(id: number): boolean {
       return db.prepare("DELETE FROM searches WHERE id = ?").run(id).changes > 0;
     },
-    /** Speichert einen Treffer. Gibt null zurück, wenn das Listing schon bekannt ist. */
-    insertHit(h: HitInput): Hit | null {
+    /**
+     * Speichert einen Treffer. Gibt null zurück, wenn das Listing schon bekannt ist.
+     * Dubletten von anderen Plattformen (gleicher Titel und Preis innerhalb von 10 % oder gleiches Foto)
+     * werden nicht neu angelegt, sondern beim ersten Treffer als "Also on" vermerkt ({ merged }).
+     */
+    insertHit(h: HitInput, priceEur: number | null = h.currency === "EUR" ? h.price : null): Hit | { merged: Hit } | null {
+      const source = h.source ?? "vinted";
+      const key = source === "vinted" ? h.vintedId : `${source}:${h.sourceId ?? h.vintedId}`;
+      if (db.prepare("SELECT 1 FROM hits WHERE vinted_id = ?").get(key)) return null;
+      const tnorm = normTitle(h.title);
+      const since = new Date(Date.now() - 14 * 864e5).toISOString();
+      const dup = db
+        .prepare(
+          `SELECT id, also_on FROM hits WHERE source != ? AND detected_at >= ? AND (
+             (title_norm = ? AND price_eur IS NOT NULL AND ? IS NOT NULL AND ABS(price_eur - ?) <= 0.1 * MAX(price_eur, ?))
+             OR (photo_hash IS NOT NULL AND photo_hash = ?)) ORDER BY id LIMIT 1`,
+        )
+        .get(source, since, tnorm, priceEur, priceEur, priceEur, h.photoHash ?? null) as { id: number; also_on: string | null } | undefined;
+      if (dup) {
+        const also: Hit["alsoOn"] = dup.also_on ? JSON.parse(dup.also_on) : [];
+        if (!also.some((a) => a.source === source && a.url === h.url)) also.push({ source, url: h.url, price: h.price, currency: h.currency });
+        db.prepare("UPDATE hits SET also_on = ? WHERE id = ?").run(JSON.stringify(also), dup.id);
+        return { merged: toHit(db.prepare(`${hitSelect} WHERE h.id = ?`).get(dup.id)) };
+      }
       const res = db
         .prepare(
           `INSERT OR IGNORE INTO hits
              (vinted_id, search_id, title, price, currency, size, brand, url, photo_url, photo_urls, detected_at,
-              resale_estimate, resale_low, resale_high, resale_samples, archive_score, designer)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              resale_estimate, resale_low, resale_high, resale_samples, archive_score, designer,
+              source, source_id, condition, shipping, location, country, photo_hash, resale_by, price_eur, title_norm)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
-          h.vintedId, h.searchId, h.title, h.price, h.currency, h.size, h.brand, h.url, h.photoUrls[0] ?? null,
+          key, h.searchId, h.title, h.price, h.currency, h.size, h.brand, h.url, h.photoUrls[0] ?? null,
           JSON.stringify(h.photoUrls.slice(0, 3)), new Date().toISOString(),
           h.resaleEstimate, h.resaleLow, h.resaleHigh, h.resaleSamples, h.archiveScore, h.designer,
+          source, h.sourceId ?? h.vintedId, h.condition ?? null, h.shipping ?? null, h.location ?? null, h.country ?? null, h.photoHash ?? null,
+          h.resaleBy ? JSON.stringify(h.resaleBy) : null, priceEur, tnorm,
         );
       if (res.changes === 0) return null;
       return toHit(db.prepare(`${hitSelect} WHERE h.id = ?`).get(Number(res.lastInsertRowid)));
@@ -203,7 +250,7 @@ export function openDb(path: string) {
       const before = new Date(Date.now() - minGapMin * 60_000).toISOString();
       return db
         .prepare(
-          `${hitSelect} WHERE h.sale_status = 'active' AND (h.resale_estimate IS NOT NULL OR h.archive_score >= 65) AND h.detected_at >= ?
+          `${hitSelect} WHERE h.sale_status = 'active' AND h.source = 'vinted' AND (h.resale_estimate IS NOT NULL OR h.archive_score >= 65) AND h.detected_at >= ?
              AND (h.sale_checked_at IS NULL OR h.sale_checked_at <= ?) ORDER BY h.sale_checked_at IS NOT NULL, h.sale_checked_at, h.id DESC LIMIT ?`,
         )
         .all(since, before, limit)

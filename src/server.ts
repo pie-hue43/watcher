@@ -8,8 +8,13 @@ import { openDb, type Db } from "./db.ts";
 import { makeAi } from "./ai.ts";
 import { PriceEstimator } from "./pricing.ts";
 import { ToolError, startSaleChecker, startTracker, toolRoutes, type ToolDeps } from "./tools.ts";
-import { MockSource, VintedSource } from "./vinted.ts";
+import { MockSource, VintedSource } from "./sources/vinted.ts";
 import { StockError, stockRoutes } from "./stock.ts";
+import { FeeError, FeeStore } from "./fees.ts";
+import { FxRates } from "./fx.ts";
+import { catalog, describe, makeAdapters } from "./sources/index.ts";
+import type { Adapter } from "./sources/catalog.ts";
+import { imapOptions, type InboxStatus } from "./alerts/inbox.ts";
 import { CONDITIONS, KINDS, type Condition, type HitInput, type SearchKind, type ServerMessage } from "./types.ts";
 
 const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
@@ -42,7 +47,7 @@ async function readJson(req: http.IncomingMessage, limit = 100_000): Promise<any
 function parseSearchBody(b: any, partial: boolean) {
   const out: {
     query?: string; minPrice?: number | null; maxPrice?: number | null;
-    size?: string | null; condition?: Condition | null; kind?: SearchKind; active?: boolean;
+    size?: string | null; condition?: Condition | null; kind?: SearchKind; active?: boolean; sources?: string[];
   } = {};
   if (b.kind !== undefined || !partial) {
     const k = b.kind ?? "standard";
@@ -71,6 +76,12 @@ function parseSearchBody(b: any, partial: boolean) {
   }
   if (b.size !== undefined) out.size = typeof b.size === "string" && b.size.trim() ? b.size.trim().slice(0, 40) : null;
   if (b.active !== undefined) out.active = !!b.active;
+  if (b.sources !== undefined) {
+    const list = Array.isArray(b.sources) ? b.sources.map((x: unknown) => String(x)) : [];
+    const bad = list.filter((x: string) => x !== "all" && !catalog.IDS.includes(x));
+    if (bad.length) throw new HttpError(400, `Unknown platform: ${bad.join(", ")}`);
+    out.sources = list.includes("all") ? ["all"] : [...new Set(list as string[])];
+  }
   return out;
 }
 
@@ -80,6 +91,8 @@ function parseHit(b: any): HitInput {
   if (!b || (typeof b.vintedId !== "string" && typeof b.vintedId !== "number")) throw new HttpError(400, "vintedId fehlt");
   if (typeof b.title !== "string" || typeof b.url !== "string" || !Number.isFinite(Number(b.price)))
     throw new HttpError(400, "title, url und price sind Pflicht");
+  const source = b.source == null ? "vinted" : String(b.source);
+  if (!catalog.IDS.includes(source)) throw new HttpError(400, "Unbekannte Quelle");
   return {
     vintedId: String(b.vintedId),
     searchId: Number(b.searchId),
@@ -98,14 +111,41 @@ function parseHit(b: any): HitInput {
     resaleSamples: num(b.resaleSamples),
     archiveScore: b.archiveScore == null ? null : Math.max(0, Math.min(100, Math.round(Number(b.archiveScore)) || 0)),
     designer: str(b.designer),
+    source,
+    sourceId: b.sourceId != null ? String(b.sourceId).slice(0, 80) : String(b.vintedId),
+    condition: str(b.condition),
+    shipping: b.shipping != null && Number.isFinite(Number(b.shipping)) && Number(b.shipping) >= 0 ? Number(b.shipping) : null,
+    location: str(b.location),
+    country: typeof b.country === "string" && /^[A-Za-z]{2}$/.test(b.country) ? b.country.toUpperCase() : null,
+    photoHash: typeof b.photoHash === "string" && /^[0-9a-f]{40}$/.test(b.photoHash) ? b.photoHash : null,
+    resaleBy: parseResaleBy(b.resaleBy),
   };
+}
+
+function parseResaleBy(v: any): HitInput["resaleBy"] {
+  if (!v || typeof v !== "object") return null;
+  const out: NonNullable<HitInput["resaleBy"]> = {};
+  for (const [id, r] of Object.entries<any>(v))
+    if (catalog.IDS.includes(id) && r && Number(r.median) > 0)
+      out[id] = { median: Number(r.median), low: Number(r.low) || Number(r.median), high: Number(r.high) || Number(r.median), samples: Number(r.samples) || 0 };
+  return Object.keys(out).length ? out : null;
+}
+
+export interface PlatformDeps {
+  adapters: Map<string, Adapter>;
+  fees: FeeStore;
+  fx: FxRates;
 }
 
 export function createServer(
   db: Db,
   opts = { watcherToken: config.watcherToken, allowedOrigins: config.allowedOrigins },
   toolDeps: Omit<ToolDeps, "db" | "broadcast"> | null = null,
+  platformDeps: PlatformDeps | null = null,
 ) {
+  const platforms: PlatformDeps = platformDeps ?? { adapters: makeAdapters(new MockSource(), {}), fees: new FeeStore(null), fx: new FxRates(null) };
+  // Status der Alert inbox meldet der Watcher (er liest die Mails)
+  let inbox: InboxStatus = { configured: !!imapOptions(), host: imapOptions()?.host ?? null, user: imapOptions()?.user ?? null, lastCheck: null, lastError: null, lastMails: 0, lastHits: 0 };
   const server = http.createServer();
   const wss = new WebSocketServer({ noServer: true });
 
@@ -149,7 +189,7 @@ export function createServer(
           const b = parseSearchBody(await readJson(req), false);
           const s = db.createSearch({
             query: b.query!, minPrice: b.minPrice ?? null, maxPrice: b.maxPrice ?? null,
-            size: b.size ?? null, condition: b.condition ?? null, kind: b.kind,
+            size: b.size ?? null, condition: b.condition ?? null, kind: b.kind, sources: b.sources,
           });
           broadcastSearches();
           return send(201, s);
@@ -179,10 +219,28 @@ export function createServer(
         if (path === "/hits" && req.method === "POST") {
           // Nur der Watcher darf Treffer melden.
           if (req.headers.authorization !== `Bearer ${opts.watcherToken}`) throw new HttpError(401, "Not authorized");
-          const hit = db.insertHit(parseHit(await readJson(req)));
+          const input = parseHit(await readJson(req));
+          const hit = db.insertHit(input, catalog.toEur(input.price, input.currency, platforms.fx.get()));
           if (!hit) return send(200, { duplicate: true });
+          if ("merged" in hit) {
+            broadcast({ type: "hitUpdate", hit: hit.merged });
+            return send(200, { duplicate: true, mergedInto: hit.merged.id });
+          }
           broadcast({ type: "hit", hit });
           return send(201, hit);
+        }
+        // Plattformen, Gebühren und Wechselkurse
+        if (path === "/sources" && req.method === "GET")
+          return send(200, { platforms: describe(platforms.adapters), feesNotSet: platforms.fees.notSet(), alertInbox: inbox });
+        if (path === "/fees" && req.method === "GET") return send(200, platforms.fees.fees);
+        const feeMatch = path.match(/^\/fees\/([a-z0-9-]+)$/);
+        if (feeMatch && req.method === "PATCH") return send(200, platforms.fees.update(feeMatch[1], await readJson(req)));
+        if (path === "/fx" && req.method === "GET") return send(200, platforms.fx.get());
+        if (path === "/alerts/status" && req.method === "POST") {
+          if (req.headers.authorization !== `Bearer ${opts.watcherToken}`) throw new HttpError(401, "Not authorized");
+          const b = await readJson(req);
+          inbox = { ...inbox, ...b, configured: !!b.configured };
+          return send(204);
         }
         // My Charts: eigene Verkäufe
         if (path === "/sales" && req.method === "GET") return send(200, db.listSales());
@@ -239,7 +297,7 @@ export function createServer(
       res.writeHead(200, { "Content-Type": MIME[extname(file) || ".html"] ?? "application/octet-stream" });
       res.end(data);
     } catch (err) {
-      if (err instanceof HttpError || err instanceof ToolError || err instanceof StockError) return send(err.status, { error: err.message });
+      if (err instanceof HttpError || err instanceof ToolError || err instanceof StockError || err instanceof FeeError) return send(err.status, { error: err.message });
       console.error(err);
       send(500, { error: "Internal error" });
     }
@@ -289,7 +347,14 @@ export function startServer() {
   const db = openDb(config.dbPath);
   const source = config.source === "mock" ? new MockSource() : new VintedSource(config.vintedDomain);
   const estimator = new PriceEstimator((q) => source.comparables(q), join(dirname(config.dbPath), "price-cache.json"));
-  const app = createServer(db, undefined, { source, estimator, ai: makeAi(), vintedDomain: config.vintedDomain });
+  const dataDir = dirname(config.dbPath);
+  const fees = new FeeStore(join(dataDir, "fees.json"));
+  const notSet = fees.notSet();
+  if (notSet.length) console.warn(`[fees] fees not set: ${notSet.join(", ")}. Edit ${join(dataDir, "fees.json")} (set "set": true once the values are right).`);
+  const adapters = makeAdapters(source);
+  const live = [...adapters.values()].filter((a) => a.mode === "api").map((a) => a.name);
+  console.log(`[sources] live: ${live.join(", ")} · alerts: ${imapOptions() ? "Kleinanzeigen via " + imapOptions()!.host : "off (IMAP_HOST not set)"} · everything else as search links`);
+  const app = createServer(db, undefined, { source, estimator, ai: makeAi(), vintedDomain: config.vintedDomain }, { adapters, fees, fx: new FxRates(join(dataDir, "fx.json")) });
   if (app.deps) {
     startTracker(app.deps);
     startSaleChecker(app.deps);

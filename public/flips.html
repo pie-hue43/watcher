@@ -14,6 +14,8 @@
     .page-head h1 span { display: block; color: var(--muted); font-weight: 600; }
     .page-head p { margin: 0; color: var(--muted); max-width: 40em; }
     .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-block: 28px 12px; }
+    .source-seg { margin-top: 28px; }
+    .source-seg + .filters { padding-top: 12px; }
     .filters button { font: inherit; font-size: 14px; font-weight: 700; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; }
     .filters button[aria-pressed="true"] { background: var(--text); color: #fff; border-color: var(--text); }
     .filters label { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
@@ -60,8 +62,8 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html" aria-current="page">Flips</a><a href="stock.html">Stock<span class="badge nav-count" hidden></span></a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
-      <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html" aria-current="page">Flips</a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts<span class="badge nav-count" hidden></span></a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
   <main>
@@ -81,11 +83,12 @@
       </section>
       <div class="stats" aria-label="Ledger totals">
         <div class="stat"><b id="m-total">0</b><span>Listings found</span></div>
-        <div class="stat"><b id="m-sold">0</b><span>Sold on Vinted</span></div>
+        <div class="stat"><b id="m-sold">0</b><span>Sold</span></div>
         <div class="stat"><b id="m-missed">0</b><span>Missed · <span id="m-opened">0</span> opened</span></div>
         <div class="stat"><b id="m-value">€0</b><span>Asking prices missed</span></div>
         <div class="stat"><b id="m-margin">€0</b><span>Est. resale margin missed</span></div>
       </div>
+      <div class="seg source-seg" id="source-seg" role="group" aria-label="Filter by platform" hidden></div>
       <div class="filters" id="filters" aria-label="Filter by preference"></div>
       <div class="ledger" id="ledger"></div>
       <div class="card empty-state" id="ledger-empty" hidden>
@@ -119,6 +122,7 @@
       <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
     </div>
   </footer>
+  <script src="platforms.js"></script>
   <script src="tags.js"></script>
   <script src="flip-eval.js"></script>
   <script src="demo-hits.js"></script>

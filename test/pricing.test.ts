@@ -9,7 +9,7 @@ import { archiveScore, findDesigner } from "../src/designers.ts";
 import { openDb } from "../src/db.ts";
 import { createServer } from "../src/server.ts";
 import { Watcher } from "../src/watcher.ts";
-import type { Listing, Source } from "../src/vinted.ts";
+import type { Listing, Source } from "../src/sources/vinted.ts";
 
 test("productKey fasst gleiche Produkte zusammen", () => {
   assert.deepEqual(productKey({ title: "Ralph Lauren Polo Shirt blau M", brand: "Ralph Lauren" }), { key: "ralph lauren|polo", query: "ralph lauren polo" });

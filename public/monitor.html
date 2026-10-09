@@ -23,9 +23,39 @@
     .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
     .error { color: var(--danger); font-size: 14px; margin: 8px 0 0; }
     .saved { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-    .saved li { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
-    .saved li.paused { opacity: .55; }
+    .saved > li { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+    .saved > li.paused { opacity: .55; }
+    .pref-row { display: flex; align-items: center; gap: 8px; }
     .saved .chips { flex: 1; min-width: 0; }
+    .pref-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .pref-tools .alert-how { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+    .pref-tools .alert-how summary { cursor: pointer; font-weight: 700; color: var(--green-deep); }
+    .pref-tools .alert-how ol { margin: 6px 0 0; padding-left: 18px; list-style: decimal; }
+    .everywhere { flex-basis: 100%; }
+    .everywhere .hint { margin: 0 0 8px; }
+    .plat-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .plat-link { display: flex; flex-direction: column; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; background: var(--bg); min-width: 0; }
+    .plat-link:hover, .plat-link:focus-visible { border-color: var(--green-deep); }
+    .plat-link b { font-size: 14px; }
+    .plat-link small { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+    .tag-sources { margin-top: 8px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+    .filters .seg button { font-size: 13px; padding: 4px 10px; }
+    .arbitrage { margin: 8px 0 0; }
+    .best-sell { margin: 0; font-size: 14px; }
+    .best-sell b { color: var(--green-deep); }
+    .sell-targets { margin: 2px 0 0; padding-left: 18px; color: var(--muted); }
+    .platforms { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; }
+    .platforms h3 { font-size: 16px; margin: 0 0 6px; }
+    .platform-list { list-style: none; margin: 0; padding: 0; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+    .platform-list li { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
+    .platform-list .mode { margin-left: auto; font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+    .platform-list .mode.m-api { color: var(--green-deep); }
+    .platform-list .small { flex-basis: 100%; font-size: 12px; }
+    .fees-warn { font-size: 11px; font-weight: 800; color: var(--danger); }
+    .inbox-status { font-size: 13px; margin: 10px 0 0; color: var(--muted); }
+    .inbox-status.error { color: var(--danger); }
+    @media (max-width: 560px) { .plat-links { grid-template-columns: minmax(0, 1fr); } }
     .demo-note { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--green-soft); border: 1px solid #c7f0d4; font-size: 13px; }
     .flip-check { margin-top: 6px; font-size: 13px; border: 0; padding: 0; background: none; border-radius: 0; }
     .listing > .flip-check { grid-column: 2 / -1; margin-top: -4px; }
@@ -65,8 +95,8 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live" aria-current="page">Live Sniper</a><a href="flips.html">Flips</a><a href="stock.html">Stock<span class="badge nav-count" hidden></span></a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
-      <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live" aria-current="page">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts<span class="badge nav-count" hidden></span></a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
   <main>
@@ -90,7 +120,10 @@
       <div class="mon-grid">
         <section class="monitor" aria-labelledby="live-title">
           <div class="monitor-head"><h2 id="live-title">New matches <span id="hit-count" class="count"></span></h2><a class="btn ghost small" href="flips.html">Flips</a></div>
-          <div class="rarity-filter" id="rarity-filter" role="group" aria-label="Show rarities"></div>
+          <div class="filters">
+            <div class="rarity-filter" id="rarity-filter" role="group" aria-label="Show rarities"></div>
+            <div class="seg" id="source-filter" role="group" aria-label="Filter by platform" hidden></div>
+          </div>
           <p id="demo-note" class="demo-note" hidden>Example data: watchr isn't running here. Start it with npm start to see your real snipes.</p>
           <ul id="hits" class="listings"></ul>
           <p id="hits-empty" class="empty">No matches yet. As soon as watchr finds a listing for your preferences with at least 20% estimated return in the rarities you picked, it shows up here.</p>
@@ -103,11 +136,19 @@
               <input id="f-tags" name="tags" placeholder="#archive #max300 or #nike #dunk #size43" required maxlength="300" autocomplete="off" spellcheck="false" />
               <button class="btn" type="submit">Add</button>
             </div>
+            <div class="src-chips tag-sources" id="tag-sources" aria-live="polite"></div>
           </form>
-          <p class="hint">Words become keywords. Add #size43 or #sizeM, #min20, #max80 and #newtags, #new, #verygood or #good. Category tags like #accessories or #tops cover a whole group. Use <b>#archive</b> to let watchr hunt designer and archive pieces on its own. Every hashtag is checked against each listing, so you only see items that fit all of them.</p>
+          <p class="hint">Words become keywords. Add #size43 or #sizeM, #min20, #max80 and #newtags, #new, #verygood or #good. Category tags like #accessories or #tops cover a whole group. Use <b>#archive</b> to let watchr hunt designer and archive pieces on its own. Every hashtag is checked against each listing, so you only see items that fit all of them. Add <b>#ebay</b>, <b>#kleinanzeigen</b>, <b>#grailed</b> or <b>#all</b> for more platforms; without one, watchr checks Vinted only.</p>
           <p id="form-error" class="error" hidden></p>
           <ul id="searches" class="saved"></ul>
           <p id="searches-empty" class="empty">No preferences yet. Add your first hashtags above.</p>
+          <section class="platforms" aria-labelledby="plat-title">
+            <h3 id="plat-title">Platforms</h3>
+            <ul class="platform-list" id="platform-list"></ul>
+            <p class="inbox-status" id="inbox-status"></p>
+            <p class="hint" id="fees-note" hidden></p>
+            <p class="hint"><a href="faq.html#links-only">Why are some platforms links only?</a></p>
+          </section>
         </aside>
       </div>
       <section id="analysis" class="analysis" aria-labelledby="an-title" hidden>
@@ -125,7 +166,7 @@
             <tbody id="an-top"></tbody>
           </table>
         </div>
-        <p class="note">Costs: Vinted buyer protection (0.70 € + 5% of the price) and about 4.50 € shipping to you. Expected sale is the median of comparable listings minus 10%, because most items sell after an offer. The range uses the typical low and high prices. Selling on Vinted has no seller fee. All values are estimates from asking prices, not guaranteed profit.</p>
+        <p class="note">Costs on Vinted: buyer protection (0.70 € + 5% of the price) and about 4.50 € shipping to you. Other platforms use their fees from data/fees.json, today's exchange rate and, outside the EU, import VAT and customs duty. Expected sale is the median of comparable listings minus 10%, because most items sell after an offer. The range uses the typical low and high prices. Selling on Vinted has no seller fee. All values are estimates from asking prices, not guaranteed profit.</p>
       </section>
     </div>
   </main>
@@ -152,6 +193,7 @@
       <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
     </div>
   </footer>
+  <script src="platforms.js"></script>
   <script src="tags.js"></script>
   <script src="flip-eval.js"></script>
   <script src="demo-hits.js"></script>
