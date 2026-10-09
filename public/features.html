@@ -41,7 +41,7 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="stock.html">Stock<span class="badge nav-count" hidden></span></a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
       <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
@@ -182,6 +182,7 @@
     <section>
       <div class="wrap">
         <div class="grid-3">
+          <div class="card mini" style="display:flex;flex-direction:column;gap:10px;grid-column:1 / -1"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M10 22 32 10l22 12v24L32 58 10 46z"/><path d="M10 22l22 12 22-12M32 34v24"/></svg></div><h3>Stock</h3><p class="muted" style="margin:0">Everything you bought, from snipe to sold: a Next up list, listings with measurements, a price plan with a floor, and real profit in My Charts. <a href="stock.html">Open Stock</a></p></div>
           <div class="card mini" style="display:flex;flex-direction:column;gap:10px"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="8" y="14" width="48" height="36" rx="5"/><circle cx="24" cy="28" r="5"/><path d="M8 44l14-10 10 8 10-6 14 10"/></svg></div><h3>Up to 3 photos</h3><p class="muted" style="margin:0">watchr fetches up to three photos for each new match, so you can judge an item without opening it.</p></div>
           <div class="card mini" style="display:flex;flex-direction:column;gap:10px"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 44V30a12 12 0 0 1 24 0v14l4 4H16z"/><path d="M28 54a4 4 0 0 0 8 0"/></svg></div><h3>Browser alerts</h3><p class="muted" style="margin:0">Turn on alerts once and get a notification for every new match, even with the tab in the background.</p></div>
           <div class="card mini" style="display:flex;flex-direction:column;gap:10px"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="8" width="40" height="48" rx="5"/><path d="M20 20h24M20 30h24M20 40h14"/></svg></div><h3>Flips</h3><p class="muted" style="margin:0">A ledger of everything watchr found, with the listings you never opened marked as missed.</p></div>
@@ -219,7 +220,7 @@ ws.onmessage = (e) =&gt; {
         </div>
         <div>
           <h4>Product</h4>
-          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
+          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="stock.html">Stock</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
         </div>
         <div>
           <h4>Help</h4>

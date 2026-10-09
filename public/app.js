@@ -19,6 +19,50 @@ const isToday = (iso) => new Date(iso).toDateString() === new Date().toDateStrin
 
 let hits = [];
 let searches = [];
+// Snipes, die schon im Stock sind (hitId -> Stock-Eintrag)
+let stockByHit = new Map();
+function loadStock() {
+  return watchrStockApi.list().then(
+    (list) => {
+      stockByHit = new Map(list.filter((it) => it.hitId != null).map((it) => [it.hitId, it]));
+      renderHits();
+    },
+    () => {},
+  );
+}
+
+// "Bought it": Snipe als gekauft in Stock übernehmen (ohne Fotos, die macht der Nutzer selbst)
+function boughtBtn(h) {
+  const inStock = stockByHit.get(h.id);
+  if (inStock) {
+    const a = el("a", "btn small ghost", "In stock ✓");
+    a.href = `stock.html#item-${inStock.id}`;
+    return a;
+  }
+  const b = el("button", "btn small ghost", "Bought it");
+  b.type = "button";
+  b.title = "Add to Stock with the price, fees and resale estimate";
+  b.onclick = async () => {
+    b.disabled = true;
+    b.textContent = "Adding…";
+    const e = watchrEval.evaluate(h);
+    try {
+      const it = await watchrStockApi.create({
+        hitId: h.id, title: h.title, brand: h.brand, size: h.size, buyPrice: h.price,
+        buyFees: e ? Math.round((e.fee + e.shipping) * 100) / 100 : watchrStock.buyFees(h.price),
+        resaleLow: h.resaleLow ?? null, resaleHigh: h.resaleHigh ?? null, resaleEstimate: h.resaleEstimate ?? null,
+      });
+      stockByHit.set(h.id, it);
+      renderHits();
+    } catch (err) {
+      b.disabled = false;
+      b.textContent = "Try again";
+      b.title = `Couldn't add it to Stock: ${err.message}`;
+      if (/already/i.test(err.message)) loadStock();
+    }
+  };
+  return b;
+}
 
 // Geöffnete Treffer ans Backend melden (für Flips)
 function markOpened(h) {
@@ -56,7 +100,9 @@ function hitNode(h, fresh) {
   );
   if (h.archiveScore >= 50) info.append(archBadge(h));
   if (h.saleStatus === "sold") info.append(el("span", "sold-tag", "Sold · in Flips"));
-  li.append(pics, info, pricing(h), link("btn small", "View"));
+  const acts = el("div", "hit-acts");
+  acts.append(link("btn small", "View"), boughtBtn(h));
+  li.append(pics, info, pricing(h), acts);
   const check = flipCheck(h);
   if (check) li.append(check);
   return li;
@@ -116,7 +162,9 @@ function flipCheck(h) {
     tr.append(el("th", null, k), el("td", null, v));
     t.append(tr);
   }
-  d.append(sum, t, ...e.notes.map((n) => el("p", "muted", n)));
+  const buy = el("p", "flip-buy");
+  buy.append(boughtBtn(h));
+  d.append(sum, t, ...e.notes.map((n) => el("p", "muted", n)), buy);
   return d;
 }
 
@@ -363,3 +411,4 @@ function showDemo() {
   $("demo-note").hidden = false;
 }
 connect();
+loadStock();

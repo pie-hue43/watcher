@@ -40,6 +40,9 @@
     .flip-check td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .flip-check tr.strong th, .flip-check tr.strong td { font-weight: 800; color: var(--text); }
     .flip-check p { margin: 6px 0 0; }
+    .hit-acts { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+    .flip-buy { margin-top: 8px; }
+    @media (max-width: 560px) { .listing .hit-acts { grid-column: 1 / -1; flex-direction: row; } .listing .hit-acts .btn { flex: 1; } }
     .analysis { padding-block: 0 64px; border: 0; display: flex; flex-direction: column; gap: 16px; }
     .analysis .monitor-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .an-mix { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
@@ -62,7 +65,7 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live" aria-current="page">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live" aria-current="page">Live Sniper</a><a href="flips.html">Flips</a><a href="stock.html">Stock<span class="badge nav-count" hidden></span></a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
       <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
@@ -135,7 +138,7 @@
         </div>
         <div>
           <h4>Product</h4>
-          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
+          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="stock.html">Stock</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
         </div>
         <div>
           <h4>Help</h4>
@@ -152,6 +155,8 @@
   <script src="tags.js"></script>
   <script src="flip-eval.js"></script>
   <script src="demo-hits.js"></script>
+  <script src="stock-plan.js"></script>
+  <script src="stock-api.js"></script>
   <script src="app.js"></script>
   <script src="site.js"></script>
   <script src="motion.js"></script>

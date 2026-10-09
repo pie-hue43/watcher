@@ -111,6 +111,7 @@ function render() {
     ...cur.slice(0, 8).map((s) => {
       const tr = el("tr");
       const name = el("td", null, s.title);
+      if (s.stockId != null) name.append(Object.assign(el("a", "badge stock-tag", "Stock"), { href: `stock.html#item-${s.stockId}`, title: "Logged from Stock" }));
       name.append(el("div", "note", new Date(s.soldAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })));
       const p = s.buyPrice != null ? s.price - s.buyPrice : null;
       const del = el("td");
@@ -208,6 +209,19 @@ $("add-form").addEventListener("submit", async (ev) => {
   const f = new FormData(ev.target);
   const body = Object.fromEntries(f.entries());
   const msg = $("form-msg");
+  // Aus Stock: als verkauft markieren, das legt den Verkauf mit den vollen Kosten an
+  if (body.stockId) {
+    try {
+      const r = await watchrStockApi.sold(Number(body.stockId), { soldPrice: body.price, buyerCountry: body.country || null, soldAt: body.soldAt || undefined });
+      msg.textContent = "";
+      ev.target.reset();
+      if (demo) sales.unshift(r.sale);
+      await loadStock();
+      return demo ? render() : load();
+    } catch (e) {
+      return void (msg.textContent = `Couldn't save: ${e.message}`);
+    }
+  }
   if (demo) return void (msg.textContent = "watchr isn't running here, so sales can't be saved. Start it with npm start.");
   try {
     const res = await fetch(`${BACKEND}/api/sales`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -220,6 +234,25 @@ $("add-form").addEventListener("submit", async (ev) => {
   }
 });
 
+// "From stock": noch nicht verkaufte Teile füllen Titel und Einkaufspreis (Preis + Gebühren)
+let stock = [];
+async function loadStock() {
+  stock = await watchrStockApi.list().catch(() => []);
+  const open = stock.filter((it) => it.status !== "sold" && it.status !== "kept");
+  const sel = $("from-stock");
+  sel.replaceChildren(Object.assign(el("option", null, "No, enter it myself"), { value: "" }), ...open.map((it) => Object.assign(el("option", null, `${it.title} · cost ${eur(watchrStock.totalCost(it))}`), { value: it.id })));
+  $("from-stock-wrap").hidden = !open.length;
+}
+$("from-stock").addEventListener("change", (e) => {
+  const it = stock.find((x) => String(x.id) === e.target.value);
+  const f = $("add-form");
+  f.buyPrice.readOnly = !!it;
+  if (!it) return;
+  f.title.value = it.title;
+  f.buyPrice.value = watchrStock.totalCost(it);
+  if (it.status === "listed") f.price.value = it.price;
+});
+
 async function load() {
   try {
     const res = await fetch(`${BACKEND}/api/sales`);
@@ -227,10 +260,12 @@ async function load() {
     sales = await res.json();
     demo = false;
   } catch {
-    sales = demoSales();
+    // Beispiel-Monat plus die Verkäufe aus dem Beispiel-Stock
+    sales = [...watchrStockApi.demoSales(), ...demoSales()].sort((a, b) => Date.parse(b.soldAt) - Date.parse(a.soldAt));
     demo = true;
   }
   $("demo-note").hidden = !demo;
   render();
 }
 load();
+loadStock();

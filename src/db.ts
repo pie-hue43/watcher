@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import type { Hit, HitInput, Sale, Search, Tracked } from "./types.ts";
+import type { Hit, HitInput, Sale, Search, StockItem, StockPhoto, Tracked } from "./types.ts";
 
 export function openDb(path: string) {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
@@ -56,6 +56,26 @@ export function openDb(path: string) {
       sold_at   TEXT NOT NULL
     );
   `);
+  // Stock: gekaufte Teile bis zum Verkauf; Fotos lädt nur der Nutzer selbst hoch
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS stock (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      hit_id     INTEGER,
+      status     TEXT NOT NULL DEFAULT 'bought',
+      bought_at  TEXT NOT NULL,
+      data       TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS stock_photos (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      stock_id   INTEGER NOT NULL REFERENCES stock(id) ON DELETE CASCADE,
+      type       TEXT NOT NULL,
+      bytes      BLOB NOT NULL,
+      studio     INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+  `);
+  const saleCols = (db.prepare("PRAGMA table_info(sales)").all() as { name: string }[]).map((c) => c.name);
+  if (!saleCols.includes("stock_id")) db.exec("ALTER TABLE sales ADD COLUMN stock_id INTEGER");
   const searchCols = (db.prepare("PRAGMA table_info(searches)").all() as { name: string }[]).map((c) => c.name);
   if (!searchCols.includes("min_price")) db.exec("ALTER TABLE searches ADD COLUMN min_price REAL");
   if (!searchCols.includes("condition")) db.exec("ALTER TABLE searches ADD COLUMN condition TEXT");
@@ -110,7 +130,14 @@ export function openDb(path: string) {
     photoUrl: r.photo_url, seller: r.seller, status: r.status, addedAt: r.added_at, checkedAt: r.checked_at, soldAt: r.sold_at,
   });
 
-  const toSale = (r: any): Sale => ({ id: r.id, title: r.title, price: r.price, buyPrice: r.buy_price ?? null, country: r.country ?? null, soldAt: r.sold_at });
+  const toSale = (r: any): Sale => ({ id: r.id, title: r.title, price: r.price, buyPrice: r.buy_price ?? null, country: r.country ?? null, soldAt: r.sold_at, stockId: r.stock_id ?? null });
+
+  // Stock-Einträge: feste Spalten für Abfragen, der Rest als JSON
+  const photosOf = (stockId: number): StockPhoto[] =>
+    (db.prepare("SELECT id, studio FROM stock_photos WHERE stock_id = ? ORDER BY studio DESC, id").all(stockId) as any[]).map((p) => ({
+      id: p.id, url: `/api/stock/photos/${p.id}`, studio: !!p.studio,
+    }));
+  const toStock = (r: any): StockItem => ({ ...JSON.parse(r.data), id: r.id, hitId: r.hit_id ?? null, status: r.status, boughtAt: r.bought_at, photos: photosOf(r.id) });
 
   const hitSelect = `SELECT h.*, s.query AS search_query, s.kind AS search_kind FROM hits h LEFT JOIN searches s ON s.id = h.search_id`;
 
@@ -222,12 +249,47 @@ export function openDb(path: string) {
     listSales(): Sale[] {
       return db.prepare("SELECT * FROM sales ORDER BY sold_at DESC, id DESC").all().map(toSale);
     },
-    addSale(x: Omit<Sale, "id">): Sale {
-      const r = db.prepare("INSERT INTO sales (title, price, buy_price, country, sold_at) VALUES (?, ?, ?, ?, ?)").run(x.title, x.price, x.buyPrice, x.country, x.soldAt);
+    addSale(x: Omit<Sale, "id" | "stockId"> & { stockId?: number | null }): Sale {
+      const r = db
+        .prepare("INSERT INTO sales (title, price, buy_price, country, sold_at, stock_id) VALUES (?, ?, ?, ?, ?, ?)")
+        .run(x.title, x.price, x.buyPrice, x.country, x.soldAt, x.stockId ?? null);
       return toSale(db.prepare("SELECT * FROM sales WHERE id = ?").get(Number(r.lastInsertRowid)));
     },
     deleteSale(id: number): boolean {
       return db.prepare("DELETE FROM sales WHERE id = ?").run(id).changes > 0;
+    },
+    listStock(): StockItem[] {
+      return db.prepare("SELECT * FROM stock ORDER BY bought_at DESC, id DESC").all().map(toStock);
+    },
+    getStock(id: number): StockItem | null {
+      const r = db.prepare("SELECT * FROM stock WHERE id = ?").get(id);
+      return r ? toStock(r) : null;
+    },
+    /** Speichert einen Eintrag (neu, wenn keine id). Fotos und id stehen nicht im JSON. */
+    saveStock(it: Omit<StockItem, "id" | "photos"> & { id?: number }): StockItem {
+      const { id, photos: _p, hitId, status, boughtAt, ...rest } = it as any;
+      const data = JSON.stringify(rest);
+      if (id == null) {
+        const r = db.prepare("INSERT INTO stock (hit_id, status, bought_at, data) VALUES (?, ?, ?, ?)").run(hitId ?? null, status, boughtAt, data);
+        return this.getStock(Number(r.lastInsertRowid))!;
+      }
+      db.prepare("UPDATE stock SET hit_id = ?, status = ?, bought_at = ?, data = ? WHERE id = ?").run(hitId ?? null, status, boughtAt, data, id);
+      return this.getStock(id)!;
+    },
+    deleteStock(id: number): boolean {
+      db.prepare("DELETE FROM stock_photos WHERE stock_id = ?").run(id);
+      return db.prepare("DELETE FROM stock WHERE id = ?").run(id).changes > 0;
+    },
+    addStockPhoto(stockId: number, type: string, bytes: Buffer, studio: boolean): number {
+      const r = db.prepare("INSERT INTO stock_photos (stock_id, type, bytes, studio, created_at) VALUES (?, ?, ?, ?, ?)").run(stockId, type, bytes, studio ? 1 : 0, new Date().toISOString());
+      return Number(r.lastInsertRowid);
+    },
+    getStockPhoto(id: number): { type: string; bytes: Buffer } | null {
+      const r = db.prepare("SELECT type, bytes FROM stock_photos WHERE id = ?").get(id) as any;
+      return r ? { type: r.type, bytes: Buffer.from(r.bytes) } : null;
+    },
+    deleteStockPhoto(stockId: number, id: number): boolean {
+      return db.prepare("DELETE FROM stock_photos WHERE id = ? AND stock_id = ?").run(id, stockId).changes > 0;
     },
     close() {
       db.close();

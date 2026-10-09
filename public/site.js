@@ -27,3 +27,20 @@
   open();
   addEventListener("hashchange", open);
 })();
+
+// Stock im Menü: Anzahl offener "Next up"-Aufgaben (nur wenn watchr läuft; die Stock-Seite setzt sie selbst)
+window.watchrSetStockCount = (n) => {
+  for (const b of document.querySelectorAll(".site-nav .nav-count")) {
+    b.textContent = String(n);
+    b.hidden = !n;
+    b.title = n ? `${n} open task${n === 1 ? "" : "s"} in Stock` : "";
+  }
+};
+(() => {
+  if (!document.querySelector(".site-nav .nav-count") || /stock(\.html)?$/.test(location.pathname)) return;
+  const backend = (window.WATCHER_BACKEND || location.origin).replace(/\/$/, "");
+  fetch(backend + "/api/stock/next")
+    .then((r) => (r.ok && (r.headers.get("content-type") || "").includes("json") ? r.json() : null))
+    .then((list) => Array.isArray(list) && window.watchrSetStockCount(list.length))
+    .catch(() => {});
+})();

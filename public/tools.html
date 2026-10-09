@@ -56,7 +56,13 @@
     .table-wrap th, .table-wrap td { text-align: left; padding: 10px 12px; border-top: 1px solid var(--line); white-space: nowrap; }
     .table-wrap th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-top: 0; }
     .table-wrap td.strong { font-weight: 800; }
-    .ctas { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ctas { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .meas { flex-basis: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; border: 0; padding: 0; margin: 0; min-width: 0; }
+    .meas legend { font-size: 13px; font-weight: 700; color: var(--muted); padding: 0; margin-bottom: 6px; }
+    @media (max-width: 640px) { .meas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .stock-note { padding: 10px 14px; border-radius: 12px; background: var(--green-soft); border: 1px solid #c7f0d4; }
+    .stock-photo { flex-basis: 100%; display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+    .stock-photo img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
     @media (max-width: 760px) { #tool-panel .listing { grid-template-columns: auto minmax(0, 1fr); } #tool-panel .listing > :last-child { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; text-align: left; } }
     @media (max-width: 640px) { .photo-out { grid-template-columns: minmax(0, 1fr); } #tool-panel { padding: 18px; border-radius: 16px; } #tool-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .tool-card { padding: 14px; } .tool-card p { font-size: 13px; } }
   </style>
@@ -66,7 +72,7 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="tools.html" aria-current="page">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="stock.html">Stock<span class="badge nav-count" hidden></span></a><a href="categories.html">Categories</a><a href="tools.html" aria-current="page">AI Tools</a><a href="faq.html">FAQ</a></nav>
       <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
@@ -97,7 +103,7 @@
         </div>
         <div>
           <h4>Product</h4>
-          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
+          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="stock.html">Stock</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
         </div>
         <div>
           <h4>Help</h4>
@@ -112,6 +118,8 @@
     </div>
   </footer>
   <script>window.ICONS = {"photo-enhancer": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><rect x=\"8\" y=\"14\" width=\"48\" height=\"36\" rx=\"5\"/><circle cx=\"24\" cy=\"28\" r=\"5\"/><path d=\"M8 44l14-10 10 8 10-6 14 10\"/><path d=\"M50 4v8M46 8h8\"/></svg>", "price-estimator": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M34 8H52v18L28 50 10 32z\"/><circle cx=\"43\" cy=\"17\" r=\"3\"/></svg>", "niche-finder": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"28\" cy=\"28\" r=\"16\"/><path d=\"M40 40l14 14\"/><path d=\"M22 32l5-6 4 4 6-8\"/></svg>", "deal-finder": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M10 50h44\"/><path d=\"M14 42l12-12 8 8 16-18\"/><path d=\"M40 20h10v10\"/></svg>", "offer-finder": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M10 16h44v26H30l-12 10V42h-8z\"/><path d=\"M24 29h16\"/></svg>", "seller-intel": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"32\" cy=\"22\" r=\"10\"/><path d=\"M12 54c2-10 10-16 20-16s18 6 20 16\"/></svg>", "ai-listings": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><rect x=\"12\" y=\"8\" width=\"40\" height=\"48\" rx=\"5\"/><path d=\"M20 20h24M20 30h24M20 40h12\"/><path d=\"M42 40l4 4 6-8\"/></svg>", "vinted-repost": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M14 26a18 18 0 0 1 32-8l4 4\"/><path d=\"M50 12v10H40\"/><path d=\"M50 38a18 18 0 0 1-32 8l-4-4\"/><path d=\"M14 52V42h10\"/></svg>", "wardrobe-tracker": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M20 44V30a12 12 0 0 1 24 0v14l4 4H16z\"/><path d=\"M28 54a4 4 0 0 0 8 0\"/></svg>", "ai-filters": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#000\" stroke-width=\"3.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M10 12h44L38 32v16l-12 6V32z\"/></svg>"};</script>
+  <script src="stock-plan.js"></script>
+  <script src="stock-api.js"></script>
   <script src="tools-demo.js"></script>
   <script src="tools.js"></script>
   <script src="site.js"></script>

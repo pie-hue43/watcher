@@ -97,9 +97,12 @@
       if (!title) throw new Error("Describe the item or add a photo.");
       const description = [[body.brand, body.item].filter(Boolean).join(" "), cond && `${de ? "Zustand" : "Condition"}: ${cond}`, body.size && `${de ? "Größe" : "Size"}: ${body.size}`, body.notes,
         de ? "Bei Fragen gerne schreiben, Bündel möglich." : "Feel free to ask, bundles welcome."].filter(Boolean).join("\n");
+      // Maße und Mängel als eigene Zeilen, wie im Backend
+      const extras = window.watchrStock ? window.watchrStock.listingExtras({ measurements: body.measurements, flaws: body.flaws }, de ? "de" : "en") : [];
+      const full = [description, ...extras].join("\n\n");
       const words = `${body.brand || ""} ${body.item || ""}`.toLowerCase().split(/[^a-zà-ÿ0-9]+/).filter((w) => w.length > 2);
       const hashtags = [...new Set([...words, (body.brand || "").toLowerCase().replace(/\s+/g, ""), "vintage"].filter(Boolean))].slice(0, 10).map((t) => "#" + t);
-      return { title, description, hashtags, ai: false };
+      return { title, description: full, hashtags, ai: false };
     }
     if (path === "/repost")
       return { title: "Raf Simons AW02 bomber jacket", price: 340, currency: "EUR", description: "Raf Simons bomber jacket from AW02.\nSize M, very good condition.\nPit to pit 58 cm, length 66 cm.", photos: [] };

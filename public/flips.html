@@ -52,6 +52,7 @@
     .note { color: var(--muted); font-size: 14px; border-left: 3px solid var(--green); padding-left: 12px; margin: 32px 0 64px; }
     .empty-state { text-align: center; padding: 48px 16px; }
     .empty-state p { color: var(--muted); max-width: 36em; margin: 8px auto 20px; }
+    .badge.in-stock { text-decoration: none; margin-top: 4px; width: fit-content; font-size: 10px; padding: 1px 7px; }
   </style>
 </head>
 <body>
@@ -59,7 +60,7 @@
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html" aria-current="page">Flips</a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html" aria-current="page">Flips</a><a href="stock.html">Stock<span class="badge nav-count" hidden></span></a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
       <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
@@ -104,7 +105,7 @@
         </div>
         <div>
           <h4>Product</h4>
-          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
+          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="stock.html">Stock</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
         </div>
         <div>
           <h4>Help</h4>
@@ -121,6 +122,8 @@
   <script src="tags.js"></script>
   <script src="flip-eval.js"></script>
   <script src="demo-hits.js"></script>
+  <script src="stock-plan.js"></script>
+  <script src="stock-api.js"></script>
   <script src="missed.js"></script>
   <script src="site.js"></script>
   <script src="motion.js"></script>

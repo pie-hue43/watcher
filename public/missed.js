@@ -22,6 +22,7 @@ const fmtDay = (iso) => {
 const fmtTime = (iso) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
 let hits = [];
+let stockHits = new Map(); // Snipes, die im Stock sind (hitId -> Stock-Eintrag)
 let filter = null; // searchQuery oder null = alle
 let missedOnly = false;
 
@@ -110,6 +111,7 @@ function render() {
         const text = el("div");
         const a = Object.assign(el("a", null, h.title), { href: h.url, target: "_blank", rel: "noopener" });
         text.append(a, el("small", null, [h.size && `Size ${h.size}`, h.brand].filter(Boolean).join(" · ")));
+        if (stockHits.has(h.id)) text.append(Object.assign(el("a", "badge in-stock", "In stock"), { href: `stock.html#item-${stockHits.get(h.id)}` }));
         if (h.archiveScore >= 50) {
           const b = el("span", "arch");
           b.append("Archive ", el("b", null, String(h.archiveScore)), h.designer ? ` · ${h.designer}` : "");
@@ -169,3 +171,7 @@ async function load() {
 }
 load();
 setInterval(load, 60_000);
+window.watchrStockApi?.list().then((list) => {
+  stockHits = new Map(list.filter((it) => it.hitId != null).map((it) => [it.hitId, it.id]));
+  if (stockHits.size) render();
+}, () => {});

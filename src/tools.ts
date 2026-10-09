@@ -2,6 +2,7 @@ import type { Ai } from "./ai.ts";
 import type { Db } from "./db.ts";
 import { findDesigner } from "./designers.ts";
 import { guessBrand, productKey, type PriceEstimator } from "./pricing.ts";
+import { plan } from "./stock.ts";
 import { CONDITIONS, type Condition, type ServerMessage, type Tracked } from "./types.ts";
 import { RateLimitError, itemIdFromUrl, userIdFromUrl, type Source, type Wardrobe } from "./vinted.ts";
 
@@ -182,6 +183,9 @@ export function toolRoutes(d: ToolDeps) {
       language: b.language === "en" ? "English" : "German",
     };
     if (!f.item && !b.photo) throw new ToolError(400, "Describe the item or add a photo.");
+    // Maße und Mängel stehen immer als eigene Zeilen in der Beschreibung (weniger „nicht wie beschrieben“)
+    const extras = plan.listingExtras({ measurements: b.measurements, flaws: b.flaws === undefined ? undefined : String(b.flaws ?? "").slice(0, 1000) }, b.language === "en" ? "en" : "de");
+    const withExtras = (text: string) => [text.trim(), ...extras].filter(Boolean).join("\n\n");
     const photo = typeof b.photo === "string" ? b.photo.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/) : null;
     if (d.ai) {
       const content: any[] = [];
@@ -189,7 +193,7 @@ export function toolRoutes(d: ToolDeps) {
       content.push({ type: "text", text: JSON.stringify(f) });
       const r = await d.ai
         .json<{ title: string; description: string; hashtags: string[] }>(
-          `You write Vinted listings in ${f.language}. Title: at most 60 characters, brand + item + key detail. Description: 3 to 6 short lines covering condition, size and fit, material, measurements if given, honest flaws from the notes. Never invent details that are not in the input or clearly visible in the photo. Hashtags: 8 to 12 lowercase tags without spaces that buyers search for.`,
+          `You write Vinted listings in ${f.language}. Title: at most 60 characters, brand + item + key detail. Description: 3 to 6 short lines covering condition, size and fit, material, honest flaws from the notes.${extras.length ? " Don't list measurements or a flaws line, watchr adds those itself." : ""} Never invent details that are not in the input or clearly visible in the photo. Hashtags: 8 to 12 lowercase tags without spaces that buyers search for.`,
           content,
           {
             type: "object",
@@ -199,7 +203,7 @@ export function toolRoutes(d: ToolDeps) {
           },
         )
         .catch(() => null);
-      if (r) return { status: 200, body: { ...r, hashtags: r.hashtags.map((t) => "#" + t.replace(/^#/, "").replace(/\s+/g, "")), ai: true } };
+      if (r) return { status: 200, body: { ...r, description: withExtras(r.description), hashtags: r.hashtags.map((t) => "#" + t.replace(/^#/, "").replace(/\s+/g, "")), ai: true } };
     }
     // Ohne KI: Vorlage aus den Angaben
     const de = f.language === "German";
@@ -215,7 +219,7 @@ export function toolRoutes(d: ToolDeps) {
     const hashtags = [...new Set([...words, f.brand.toLowerCase().replace(/\s+/g, ""), findDesigner(f.brand + " " + f.item) ? "designer" : "", "vintage"].filter(Boolean))]
       .slice(0, 10)
       .map((t) => "#" + t);
-    return { status: 200, body: { title, description: lines.join("\n"), hashtags, ai: false } };
+    return { status: 200, body: { title, description: withExtras(lines.join("\n")), hashtags, ai: false } };
   }
 
   // 7. Vinted Repost: eigenes Listing auslesen, um es neu einzustellen

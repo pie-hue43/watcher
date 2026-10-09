@@ -235,3 +235,7 @@ em.mark, .mark { font-style: normal; background: linear-gradient(var(--green), v
 
 /* keep decorative overflow (crosshair) from widening the page */
 html, body { overflow-x: clip; }
+
+/* Stock im Menü: Zahl offener "Next up"-Aufgaben */
+.site-nav .nav-count { margin-left: 6px; padding: 0 7px; font-size: 11px; letter-spacing: 0; vertical-align: 1px; font-variant-numeric: tabular-nums; }
+.site-nav .nav-count[hidden] { display: none; }

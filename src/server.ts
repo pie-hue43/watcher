@@ -9,6 +9,7 @@ import { makeAi } from "./ai.ts";
 import { PriceEstimator } from "./pricing.ts";
 import { ToolError, startSaleChecker, startTracker, toolRoutes, type ToolDeps } from "./tools.ts";
 import { MockSource, VintedSource } from "./vinted.ts";
+import { StockError, stockRoutes } from "./stock.ts";
 import { CONDITIONS, KINDS, type Condition, type HitInput, type SearchKind, type ServerMessage } from "./types.ts";
 
 const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
@@ -115,6 +116,7 @@ export function createServer(
   const broadcastSearches = () => broadcast({ type: "searches", searches: db.listSearches() });
   const deps: ToolDeps | null = toolDeps ? { ...toolDeps, db, broadcast } : null;
   const tools = deps ? toolRoutes(deps) : null;
+  const stock = stockRoutes(db);
 
   const originAllowed = (origin: string | undefined, host: string | undefined) =>
     !origin || opts.allowedOrigins.includes("*") || opts.allowedOrigins.includes(origin) || origin === `http://${host}` || origin === `https://${host}`;
@@ -201,6 +203,13 @@ export function createServer(
           if (!db.deleteSale(Number(saleMatch[1]))) throw new HttpError(404, "Sale not found");
           return send(204);
         }
+        // Stock: gekaufte Teile bis zum Verkauf (Fotos dürfen größer sein)
+        const st = await stock(req.method ?? "GET", path, () => readJson(req, /^\/stock\/\d+\/photos$/.test(path) ? 12_000_000 : 200_000));
+        if (st?.raw) {
+          res.writeHead(st.status, { "Content-Type": st.raw.type, "Cache-Control": "private, max-age=86400" });
+          return void res.end(st.raw.data);
+        }
+        if (st) return send(st.status, st.body);
         // AI Tools (Fotos für den AI Listings-Upload dürfen größer sein)
         if (tools) {
           const r = await tools(req.method ?? "GET", path, url.searchParams, () => readJson(req, path === "/tools/listing" || path === "/tools/cutout" ? 12_000_000 : 100_000));
@@ -230,7 +239,7 @@ export function createServer(
       res.writeHead(200, { "Content-Type": MIME[extname(file) || ".html"] ?? "application/octet-stream" });
       res.end(data);
     } catch (err) {
-      if (err instanceof HttpError || err instanceof ToolError) return send(err.status, { error: err.message });
+      if (err instanceof HttpError || err instanceof ToolError || err instanceof StockError) return send(err.status, { error: err.message });
       console.error(err);
       send(500, { error: "Internal error" });
     }

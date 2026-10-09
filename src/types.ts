@@ -86,4 +86,52 @@ export interface Sale {
   buyPrice: number | null;
   country: string | null;
   soldAt: string;
+  /** Verkauf kam aus Stock (Mark as sold) */
+  stockId: number | null;
+}
+
+export const STOCK_STATUSES = ["bought", "arrived", "listed", "sold", "kept"] as const;
+export type StockStatus = (typeof STOCK_STATUSES)[number];
+
+export interface StockPhoto {
+  id: number;
+  url: string;
+  /** Ergebnis aus Studio Shot */
+  studio: boolean;
+}
+
+/** Ein gekauftes Teil auf dem Weg bis zum Verkauf (Stock). Beträge in Euro. */
+export interface StockItem {
+  id: number;
+  hitId: number | null;
+  title: string;
+  brand: string | null;
+  size: string | null;
+  category: string | null;
+  condition: string | null;
+  buyPrice: number;
+  /** Käuferschutz + Versand */
+  buyFees: number;
+  boughtAt: string;
+  status: StockStatus;
+  arrivedAt: string | null;
+  measurements: { pitToPit?: number; length?: number; sleeve?: number; waist?: number; inseam?: number };
+  flaws: string;
+  photos: StockPhoto[];
+  listing: { title: string; description: string; hashtags: string; language: "de" | "en" } | null;
+  vintedUrl: string | null;
+  listedAt: string | null;
+  price: number;
+  pricePlan: { start: number; floor: number; stepPercent: number; everyDays: number; minProfit: number; custom?: boolean };
+  priceHistory: { price: number; at: string }[];
+  refreshedAt: string | null;
+  floorAckAt: string | null;
+  resaleLow: number | null;
+  resaleHigh: number | null;
+  resaleEstimate: number | null;
+  soldAt: string | null;
+  soldPrice: number | null;
+  buyerCountry: string | null;
+  shippedAt: string | null;
+  saleId: number | null;
 }

@@ -124,6 +124,37 @@ const loadImage = (src) =>
     img.src = src;
   });
 
+// ---------- Aufruf aus Stock (?stock=<id>) ----------
+// Listing Writer, Studio Shot und Relist füllen sich mit dem Eintrag vor und speichern ihr Ergebnis dort.
+const stockParams = new URLSearchParams(location.search);
+const stockId = stockParams.get("stock") && window.watchrStockApi ? Number(stockParams.get("stock")) : null;
+let stockItem = null;
+const stockReady = stockId != null ? watchrStockApi.get(stockId).then((it) => (stockItem = it), () => null) : Promise.resolve(null);
+function stockNote() {
+  const p = el("p", "tool-note stock-note");
+  p.append("Prefilled from your stock item ", el("b", null, stockItem.title), ". ", Object.assign(el("a", null, "Back to Stock"), { href: `stock.html#item-${stockItem.id}` }));
+  return p;
+}
+function saveToItem(save, label = "Save to item") {
+  const wrap = el("div", "ctas");
+  const msg = el("p", "tool-note");
+  const b = el("button", "btn", label);
+  b.type = "button";
+  b.onclick = async () => {
+    b.disabled = true;
+    try {
+      await save();
+      msg.replaceChildren("Saved to ", el("b", null, stockItem.title), ". ", Object.assign(el("a", null, "Back to Stock"), { href: `stock.html#item-${stockItem.id}` }));
+    } catch (e) {
+      msg.textContent = `Couldn't save: ${e.message}`;
+    } finally {
+      b.disabled = false;
+    }
+  };
+  wrap.append(b, msg);
+  return wrap;
+}
+
 // ---------- Die zehn Tools ----------
 const TOOLS = [
   {
@@ -134,9 +165,23 @@ const TOOLS = [
       bg.name = "bg";
       for (const [v, t] of [["white", "Clean white"], ["studio", "Studio grey"], ["green", "Soft green"]]) bg.append(Object.assign(el("option", null, t), { value: v }));
       const out = el("div", "photo-out");
+      // aus Stock: gewähltes eigenes Foto statt Datei-Auswahl (eine eigene Datei geht trotzdem)
+      const fromStock = stockItem && (stockItem.photos.find((p) => p.id === Number(stockParams.get("photo"))) || stockItem.photos[0]);
+      const fields = [field("Photo", file), field("Background", bg)];
+      if (fromStock) {
+        file.required = false;
+        const prev = el("div", "stock-photo");
+        prev.append(Object.assign(el("img"), { src: watchrStockApi.photoUrl(fromStock), alt: "Photo from your stock item" }), el("span", null, "Uses this photo unless you pick another file."));
+        fields.unshift(prev);
+      }
+      if (stockItem) box.append(stockNote());
       box.append(
-        form([field("Photo", file), field("Background", bg)], "Enhance photo", async (fd) => {
-          const dataUrl = await readFileAsDataUrl(fd.get("photo"), 2000);
+        form(fields, "Enhance photo", async (fd) => {
+          const f = fd.get("photo");
+          let dataUrl;
+          if (f && f.size) dataUrl = await readFileAsDataUrl(f, 2000);
+          else if (fromStock) dataUrl = await fetch(watchrStockApi.photoUrl(fromStock)).then((r) => r.blob()).then((b) => readFileAsDataUrl(b, 2000));
+          else throw new Error("Add a photo.");
           let cut = null;
           if (status.cutout) {
             const res = await fetch(BACKEND + "/api/tools/cutout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ photo: dataUrl }) });
@@ -147,6 +192,7 @@ const TOOLS = [
           const link = Object.assign(el("a", "btn", "Download photo"), { href: canvas.toDataURL("image/jpeg", 0.92), download: "watchr-photo.jpg" });
           const side = el("div", "photo-side");
           side.append(link, note(cut ? "Background removed and placed on a studio backdrop." : "Light, contrast and framing improved. Background removal needs a remove.bg key on the server."));
+          if (stockItem) side.append(saveToItem(() => watchrStockApi.addPhoto(stockItem.id, canvas.toDataURL("image/jpeg", 0.9), true)));
           out.replaceChildren(canvas, side);
         }),
         out,
@@ -281,22 +327,36 @@ const TOOLS = [
       lang.append(Object.assign(el("option", null, "German"), { value: "de" }), Object.assign(el("option", null, "English"), { value: "en" }));
       const photo = Object.assign(el("input"), { type: "file", accept: "image/*", name: "photo" });
       const out = el("div");
+      const item = inp("item", "Bomber jacket"), brand = inp("brand", "Raf Simons"), size = inp("size", "M");
+      const notes = inp("notes", "AW02, small mark on left sleeve", "textarea");
+      // optionale Maße, erscheinen als eigene Zeile in der Beschreibung
+      const MEAS = [["pitToPit", "Pit to pit"], ["length", "Length"], ["sleeve", "Sleeve"], ["waist", "Waist"], ["inseam", "Inseam"]];
+      const meas = el("fieldset", "meas");
+      meas.append(el("legend", null, "Measurements in cm, laid flat (optional)"));
+      for (const [k, label] of MEAS) meas.append(field(label, Object.assign(inp("m_" + k, "", "number"), { min: 1, max: 400, step: 0.5, inputMode: "decimal" })));
+      const fields = [field("Item", item), field("Brand", brand), field("Size", size), field("Condition", cond), field("Details", notes), meas, field("Language", lang), field("Photo (optional)", photo)];
+      let flaws = null;
+      if (stockItem) {
+        const b = stockItem.brand || "";
+        item.value = b && stockItem.title.toLowerCase().startsWith(b.toLowerCase() + " ") ? stockItem.title.slice(b.length + 1) : stockItem.title;
+        brand.value = stockItem.brand || "";
+        size.value = stockItem.size || "";
+        if (stockItem.condition) cond.value = stockItem.condition;
+        if (stockItem.listing) lang.value = stockItem.listing.language;
+        for (const [k] of MEAS) if (stockItem.measurements?.[k]) meas.querySelector(`[name="m_${k}"]`).value = stockItem.measurements[k];
+        flaws = inp("flaws", "Leave empty if there are none", "textarea");
+        flaws.value = stockItem.flaws || "";
+        fields.splice(5, 0, field("Flaws", flaws));
+        box.append(stockNote());
+      }
       box.append(
         form(
-          [
-            el("div", "grid-2", null),
-            field("Item", inp("item", "Bomber jacket")),
-            field("Brand", inp("brand", "Raf Simons")),
-            field("Size", inp("size", "M")),
-            field("Condition", cond),
-            field("Details and flaws", inp("notes", "AW02, small mark on left sleeve, pit to pit 58 cm", "textarea")),
-            field("Language", lang),
-            field("Photo (optional)", photo),
-          ].filter((n) => n.className !== "grid-2"),
+          fields,
           "Write listing",
           async (fd) => {
             const file = fd.get("photo");
-            const body = Object.fromEntries([...fd.entries()].filter(([k]) => k !== "photo"));
+            const body = Object.fromEntries([...fd.entries()].filter(([k]) => k !== "photo" && !k.startsWith("m_")));
+            body.measurements = Object.fromEntries(MEAS.map(([k]) => [k, fd.get("m_" + k)]).filter(([, v]) => v));
             if (file && file.size) body.photo = await readFileAsDataUrl(file, 1200);
             const r = await api("/listing", body);
             const block = (label, text) => {
@@ -312,6 +372,8 @@ const TOOLS = [
               block("Hashtags", r.hashtags.join(" ")),
               note(r.ai ? "Written by AI from your details. Check it before posting." : "Template from your details. Add an ANTHROPIC_API_KEY on the server for AI-written listings."),
             );
+            if (stockItem)
+              out.append(saveToItem(() => watchrStockApi.patch(stockItem.id, { listing: { title: r.title, description: r.description, hashtags: r.hashtags.join(" "), language: body.language === "en" ? "en" : "de" } })));
           },
         ),
         out,
@@ -324,7 +386,8 @@ const TOOLS = [
       const out = el("div");
       box.append(
         note("For your own listings only. Reposting other people's photos or texts isn't allowed."),
-        form([field("Your listing link", inp("url", "https://www.vinted.de/items/…"))], "Load listing", async (fd) => {
+        ...(stockItem ? [stockNote()] : []),
+        form([field("Your listing link", Object.assign(inp("url", "https://www.vinted.de/items/…"), { value: stockItem?.vintedUrl || "" }))], "Load listing", async (fd) => {
           const r = await api("/repost", { url: String(fd.get("url")) });
           const text = `${r.title}\n\n${r.description}`;
           const pics = el("div", "repost-pics");
@@ -344,6 +407,14 @@ const TOOLS = [
           const head = el("div", "copy-head");
           head.append(el("h3", null, `${r.title} · ${eur(r.price, r.currency)}`), copyBtn(() => text));
           out.replaceChildren(head, el("pre", null, r.description || "(no description)"), pics, note("Each photo is cropped by 3% and saved as a new file, ready to upload as a fresh listing."));
+          if (stockItem) {
+            // nach dem Neu-Einstellen: Erinnerung zurücksetzen und den neuen Link merken
+            const newUrl = inp("newUrl", "https://www.vinted.de/items/… (new listing, optional)");
+            const f = el("div", "tool-form");
+            f.append(field("New listing link", newUrl));
+            out.append(note("Post it as a new listing on Vinted yourself and delete the old one there. Then save it here."), f,
+              saveToItem(() => watchrStockApi.patch(stockItem.id, { refreshedAt: new Date().toISOString(), ...(newUrl.value.trim() ? { vintedUrl: newUrl.value.trim() } : {}) })));
+          }
         }),
         out,
       );
@@ -525,4 +596,7 @@ api("/status").then(
     $("tools-status").hidden = false;
   },
 );
-open(location.hash.slice(1));
+stockReady.then(() => {
+  open(location.hash.slice(1));
+  if (stockItem && location.hash) $("tool-panel").scrollIntoView({ block: "start" });
+});
