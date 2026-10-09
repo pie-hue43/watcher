@@ -44,18 +44,11 @@
     .countries .bar span { display: block; height: 100%; border-radius: 4px; background: var(--green-deep); }
     .countries .val { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
     .countries .val small { color: var(--muted); font-weight: 600; margin-left: 6px; }
-    table.sales { width: 100%; border-collapse: collapse; font-size: 14px; }
-    table.sales th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 6px 8px; }
-    table.sales td { padding: 9px 8px; border-top: 1px solid var(--line); }
-    table.sales td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
-    table.sales .pos { color: var(--green-deep); }
-    table.sales button { font: inherit; font-size: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 3px 8px; cursor: pointer; color: var(--muted); }
     .add-form { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr auto; gap: 8px; align-items: end; }
     .add-form label { min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
     .add-form input, .add-form select { font: inherit; font-size: 15px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); min-width: 0; }
     .add-form .from-stock { grid-column: 1 / -1; max-width: 420px; }
     .add-form .from-stock[hidden] { display: none; }
-    .stock-tag { margin-left: 6px; font-size: 10px; padding: 0 6px; vertical-align: 1px; text-decoration: none; }
     .form-msg { margin: 8px 0 0; font-size: 13px; color: var(--danger); min-height: 1em; }
     .stack { display: flex; flex-direction: column; gap: 12px; padding-bottom: 72px; }
     .note { color: var(--muted); font-size: 13px; margin: 0; }
@@ -73,7 +66,7 @@
     table.side tr:first-child td { border-top: 0; }
     table.side td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; white-space: nowrap; }
     table.side td.num small { display: block; font-weight: 600; color: var(--muted); font-size: 12px; }
-    table.side .item a { font-weight: 700; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    table.side .item a, table.side .item .name { font-weight: 700; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     table.side .item a:hover { text-decoration: underline; }
     table.side .what { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
     table.side .meta { display: block; font-size: 12px; color: var(--muted); }
@@ -81,6 +74,12 @@
     table.side tr.k-write td:first-child, table.side tr.k-arrived td:first-child { box-shadow: inset 4px 0 0 var(--r-rare); }
     table.side tr.k-price td:first-child, table.side tr.k-refresh td:first-child { box-shadow: inset 4px 0 0 var(--r-good); }
     table.side tr.idle .what { color: var(--muted); font-weight: 600; }
+    table.side tr.group th { position: static; background: var(--surface); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 6px 10px; text-align: left; box-shadow: none; border-top: 1px solid var(--line); }
+    table.side tr.group th small { font-weight: 600; letter-spacing: 0; margin-left: 4px; }
+    table.side tr.group + tr td { border-top: 0; }
+    table.side tr.sold .what { color: var(--muted); font-weight: 600; }
+    table.side tr.sold td.num small.pos { color: var(--green-deep); }
+    table.side .remove { font: inherit; font-size: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 2px 8px; cursor: pointer; color: var(--muted); margin-top: 6px; }
     .side-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .side-acts .btn { padding: 4px 10px; font-size: 12px; }
     .side-acts .error { margin: 4px 0 0; font-size: 12px; color: var(--danger); flex-basis: 100%; }
@@ -138,16 +137,10 @@
           <div class="chart-foot"><span id="c-peak"></span><span id="c-avg"></span></div>
         </section>
 
-        <div class="two">
-          <section class="panel" aria-labelledby="w-title">
-            <div class="panel-head"><h2 id="w-title">Where your buyers are</h2><span class="note" id="w-sub"></span></div>
-            <ol class="countries" id="countries"></ol>
-          </section>
-          <section class="panel" aria-labelledby="t-title">
-            <div class="panel-head"><h2 id="t-title">Recent sales</h2><span class="note" id="t-sub"></span></div>
-            <div class="table-scroll"><table class="sales"><thead><tr><th>Item</th><th>Country</th><th style="text-align:right">Price</th><th style="text-align:right">Profit</th><th></th></tr></thead><tbody id="sales"></tbody></table></div>
-          </section>
-        </div>
+        <section class="panel" aria-labelledby="w-title">
+          <div class="panel-head"><h2 id="w-title">Where your buyers are</h2><span class="note" id="w-sub"></span></div>
+          <ol class="countries" id="countries"></ol>
+        </section>
 
         <section class="panel" id="add" aria-labelledby="a-title">
           <div class="panel-head"><h2 id="a-title">Add a sale</h2><span class="note">Stays on your computer, in watchr's database.</span></div>
@@ -166,14 +159,14 @@
       </div>
       <aside class="panel stock-side" id="stock-side" aria-labelledby="sk-title">
         <div class="panel-head"><h2 id="sk-title">Stock</h2><a class="btn small ghost" href="stock.html">Open Stock</a></div>
-        <p class="note side-sub" id="sk-sub">What you bought and what to do next.</p>
+        <p class="note side-sub" id="sk-sub">What you bought, what to do next and what you sold.</p>
         <div class="side-scroll" tabindex="0" aria-label="Stock list, scrolls up and down">
           <table class="side">
             <colgroup><col /><col style="width: 84px" /></colgroup>
-            <thead><tr><th>Item · next step</th><th style="text-align:right">Price</th></tr></thead>
+            <thead><tr><th>Item</th><th style="text-align:right">Price</th></tr></thead>
             <tbody id="sk-rows"></tbody>
           </table>
-          <p class="side-empty" id="sk-empty" hidden>Nothing in stock yet. Press Bought it on a snipe in Live Sniper and it shows up here.</p>
+          <p class="side-empty" id="sk-empty" hidden>Nothing here yet. Press Bought it on a snipe in Live Sniper or add a sale, and it shows up here.</p>
         </div>
       </aside>
       </div>

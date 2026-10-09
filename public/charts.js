@@ -105,30 +105,8 @@ function render() {
       : [el("li", "note", "Add the buyer country to your sales to see this.")]),
   );
 
-  // Letzte Verkäufe
-  $("t-sub").textContent = `${cur.length} in ${days} days`;
-  $("sales").replaceChildren(
-    ...cur.slice(0, 8).map((s) => {
-      const tr = el("tr");
-      const name = el("td", null, s.title);
-      if (s.stockId != null) name.append(Object.assign(el("a", "badge stock-tag", "Stock"), { href: `stock.html#item-${s.stockId}`, title: "Logged from Stock" }));
-      name.append(el("div", "note", new Date(s.soldAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })));
-      const p = s.buyPrice != null ? s.price - s.buyPrice : null;
-      const del = el("td");
-      if (!demo) {
-        const b = el("button", null, "Remove");
-        b.type = "button";
-        b.onclick = async () => {
-          await fetch(`${BACKEND}/api/sales/${s.id}`, { method: "DELETE" }).catch(() => {});
-          load();
-        };
-        del.append(b);
-      }
-      tr.append(name, el("td", null, s.country || "–"), el("td", "num", eur(s.price)), el("td", "num " + (p > 0 ? "pos" : ""), p == null ? "–" : (p >= 0 ? "+" : "−") + eur(Math.abs(p))), del);
-      return tr;
-    }),
-  );
-  if (!cur.length) $("sales").replaceChildren(Object.assign(el("tr"), { innerHTML: '<td colspan="5" class="note">No sales in this period yet. Add your first one below.</td>' }));
+  // Verkäufe stehen in der Stock-Tabelle an der Seite
+  renderStockSide();
 
   renderChart(cur, prev, now);
 }
@@ -251,19 +229,64 @@ function renderStockSide() {
   const S = watchrStock;
   const tasks = S.tasks(stock);
   const withTask = new Set(tasks.map((t) => t.item.id));
-  const rest = stock.filter((it) => !withTask.has(it.id) && it.status !== "kept" && !(it.status === "sold" && it.shippedAt));
-  const rows = [...tasks, ...rest.map((item) => ({ kind: null, item }))];
+  const open = stock.filter((it) => !withTask.has(it.id) && it.status !== "sold");
+  const soldStock = stock.filter((it) => !withTask.has(it.id) && it.status === "sold");
+  // Alle Verkäufe aus My Charts; die aus Stock stehen schon als Stock-Eintrag da
+  const stockIds = new Set(stock.map((it) => it.id));
+  const sold = [
+    ...soldStock.map((item) => ({ at: item.soldAt, row: () => stockRow({ kind: null, item }) })),
+    ...sales.filter((x) => x.stockId == null || !stockIds.has(x.stockId)).map((x) => ({ at: x.soldAt, row: () => saleRow(x) })),
+  ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   window.watchrSetStockCount?.(tasks.length);
-  $("sk-sub").textContent = tasks.length ? `${tasks.length} open task${tasks.length === 1 ? "" : "s"} · ${rest.length} waiting` : rest.length ? `${rest.length} in stock, nothing to do right now` : "What you bought and what to do next.";
+  $("sk-sub").textContent = [tasks.length && `${tasks.length} to do`, open.length && `${open.length} in stock`, sold.length && `${sold.length} sold`].filter(Boolean).join(" · ") || "What you bought, what to do next and what you sold.";
+  const group = (label, n) => {
+    const tr = el("tr", "group");
+    const th = el("th", null, label);
+    th.colSpan = 2;
+    th.append(el("small", null, String(n)));
+    tr.append(th);
+    return tr;
+  };
+  const rows = [];
+  if (tasks.length) rows.push(group("To do", tasks.length), ...tasks.map(stockRow));
+  if (open.length) rows.push(group("In stock", open.length), ...open.map((item) => stockRow({ kind: null, item })));
+  if (sold.length) rows.push(group("Sold", sold.length), ...sold.map((x) => x.row()));
   $("sk-empty").hidden = rows.length > 0;
-  $("sk-rows").replaceChildren(...rows.map(stockRow));
+  $("sk-rows").replaceChildren(...rows);
+}
+// Verkauf, der von Hand in My Charts eingetragen wurde
+function saleRow(x) {
+  const tr = el("tr", "sold");
+  const item = el("td", "item");
+  const date = new Date(x.soldAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  item.append(Object.assign(el("span", "name", x.title), { title: x.title }), el("span", "what", `Sold ${date}${x.country ? ` · ${x.country}` : ""}`));
+  if (!demo) {
+    const b = el("button", "remove", "Remove");
+    b.type = "button";
+    b.onclick = async () => {
+      if (!b.dataset.armed) {
+        b.dataset.armed = "1";
+        b.textContent = "Remove?";
+        return setTimeout(() => { delete b.dataset.armed; b.textContent = "Remove"; }, 3000);
+      }
+      await fetch(`${BACKEND}/api/sales/${x.id}`, { method: "DELETE" }).catch(() => {});
+      load();
+    };
+    item.append(b);
+  }
+  const price = el("td", "num", eur(x.price));
+  const p = x.buyPrice != null ? x.price - x.buyPrice : null;
+  price.append(el("small", p > 0 ? "pos" : null, p == null ? "no buy price" : `profit ${p >= 0 ? "+" : "−"}${eur(Math.abs(Math.round(p)))}`));
+  tr.append(item, price);
+  return tr;
 }
 function stockRow(t) {
   const it = t.item;
-  const tr = el("tr", t.kind ? "k-" + t.kind : "idle");
+  const tr = el("tr", t.kind ? "k-" + t.kind : it.status === "sold" ? "sold" : "idle");
   const item = el("td", "item");
   const a = Object.assign(el("a", null, it.title), { href: `stock.html#item-${it.id}`, title: it.title });
-  const label = t.kind ? t.label : it.status === "listed" ? `Listed · next price check ${nextCheck(it)}` : STATUS[it.status];
+  const soldOn = it.soldAt && new Date(it.soldAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const label = t.kind ? t.label : it.status === "listed" ? `Listed · next price check ${nextCheck(it)}` : it.status === "sold" ? `Sold ${soldOn}${it.buyerCountry ? ` · ${it.buyerCountry}` : ""}` : STATUS[it.status];
   const cost = watchrStock.totalCost(it);
   item.append(a, el("span", "what", label), el("span", "meta", [it.size && `Size ${it.size}`, `cost ${eur(Math.round(cost))}`, it.status !== "sold" && `floor ${eur(it.pricePlan.floor)}`].filter(Boolean).join(" · ")));
   const acts = sideActions(t);
