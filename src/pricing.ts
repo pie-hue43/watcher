@@ -40,7 +40,8 @@ export interface PriceRef {
 
 /** Produktschlüssel aus Marke und Artikelart, z. B. „ralph lauren|polo“. */
 export function productKey(l: { title: string; brand: string | null }): { key: string; query: string } | null {
-  const brand = (l.brand && l.brand.trim()) || findDesigner(l.title)?.name;
+  // Marke aus dem Markenfeld, sonst aus dem Titel (die neue Vinted-Suche liefert sie nicht immer mit)
+  const brand = (l.brand && l.brand.trim()) || brandFromTitle(l.title);
   if (!brand) return null;
   const type = TYPES.find(([re]) => re.test(l.title))?.[1] ?? null;
   const b = brand.toLowerCase();

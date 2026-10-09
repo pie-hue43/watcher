@@ -158,12 +158,22 @@ export class VintedSource implements Source {
 
   /** Preise der relevantesten Listings zu einer Suche (z. B. „ralph lauren polo“). */
   async comparables(query: string): Promise<number[]> {
-    const params = new URLSearchParams({ search_text: query, order: "relevance", per_page: "60", page: "1" });
-    const items = await this.catalogue(params).catch((err) => {
-      if (err instanceof RateLimitError) throw err;
-      return [];
-    });
-    return items.map((it: any) => toListing(it, this.site).price).filter((p: number) => Number.isFinite(p) && p > 0);
+    // erst nach Relevanz, und falls die Schnittstelle das ablehnt, ohne Sortierung
+    for (const order of ["relevance", null]) {
+      const params = new URLSearchParams({ search_text: query, per_page: "60", page: "1" });
+      if (order) params.set("order", order);
+      try {
+        const items = await this.catalogue(params);
+        const prices = items.map((it: any) => toListing(it, this.site).price).filter((p: number) => Number.isFinite(p) && p > 0);
+        if (!prices.length && order) continue;
+        if (prices.length < 5) console.log(`[pricing] nur ${prices.length} Vergleichspreise für "${query}"`);
+        return prices;
+      } catch (err) {
+        if (err instanceof RateLimitError) throw err;
+        console.log(`[pricing] Vergleichspreise für "${query}" fehlgeschlagen: ${(err as Error).message}`);
+      }
+    }
+    return [];
   }
 
   private async getJson(path: string): Promise<any | null> {
@@ -240,8 +250,8 @@ function toListing(it: any, site = "https://www.vinted.de"): Listing {
     title: String(it.title ?? ""),
     price,
     currency,
-    size: it.size_title || null,
-    brand: it.brand_title || null,
+    size: it.size_title || it.size?.title || null,
+    brand: it.brand_title || it.brand_dto?.title || it.brand?.title || null,
     url: absolute(it.url || it.path, site) || `${site}/items/${it.id}`,
     photoUrls: photoList(it),
     condition: parseCondition(it.status),
