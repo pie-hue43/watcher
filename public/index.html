@@ -4,30 +4,53 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>watchr – Live Sniper for Vinted</title>
-  <meta name="description" content="watchr monitors Vinted for you and shows new listings that match your hashtag preferences the moment they go live." />
+  <meta name="description" content="watchr checks Vinted about once a minute for the listings you describe with hashtags, with a resale estimate and expected profit for every find. Free to use." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="watchr – Live Sniper for Vinted" />
+  <meta property="og:description" content="New Vinted listings that match your hashtags, within about a minute, with resale estimate and expected profit. Free to use." />
+  <meta property="og:image" content="og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="logo.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="fonts/fonts.css" />
   <link rel="stylesheet" href="site.css" />
   <style>
     .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: start; padding-block: 24px 64px; }
     .hero h1 { font-size: clamp(34px, 4.6vw, 56px); margin: 0 0 20px; letter-spacing: -.02em; }
-    .hero h1 .free { display: block; color: var(--green-deep); }
+    .hero h1 .free { display: block; color: var(--green-deep); font-size: .62em; margin-top: 10px; }
     .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--green) 62%); }
     .hero { align-items: center; }
-    .snipe-big-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 56px; min-height: 420px; }
-    .how-btn { min-width: 220px; background: rgba(255,255,255,.7); }
-    .ctas.ctas-mobile { display: none; }
-    .snipe-big { position: relative; width: 300px; height: 300px; border-radius: 50%; background: var(--green); color: #000; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-      font-family: var(--font-display); font-weight: 800; font-size: 34px; letter-spacing: -.01em; box-shadow: 0 0 0 14px rgba(134,239,172,.35), 0 0 0 30px rgba(134,239,172,.15), 0 24px 50px rgba(21,128,61,.25); transition: transform .2s, box-shadow .2s; }
-    .snipe-big svg { width: 84px; height: 84px; }
-    .snipe-big:hover, .snipe-big:focus-visible { transform: scale(1.04); background: var(--green-hover); }
-    .snipe-big::after { content: ""; position: absolute; inset: -30px; border-radius: 50%; border: 2px solid rgba(21,128,61,.35); animation: ping 2.4s ease-out infinite; }
-    @keyframes ping { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.15); opacity: 0; } }
-    .snipe-mobile { display: none; margin-top: 0 !important; }
-    @media (max-width: 860px) { .snipe-big-wrap { display: none; } .snipe-mobile { display: inline-flex; } .ctas.ctas-mobile { display: flex; } }
-    @media (prefers-reduced-motion: reduce) { .snipe-big::after { animation: none; } }
+    /* Hashtag-Eingabe direkt im Hero */
+    .tag-form { display: flex; gap: 8px; margin: 24px 0 10px; max-width: 34em; }
+    .tag-form input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 12px 14px; border: 2px solid var(--text); border-radius: 12px; background: #fff; }
+    .tag-form .btn { flex: none; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+    .chips button { font: inherit; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.8); cursor: pointer; }
+    .chips button:hover { border-color: var(--green-deep); color: var(--green-deep); }
+    .syntax { font-size: 13px; color: var(--muted); margin: 0; }
+    .syntax code { font-family: inherit; font-weight: 800; color: var(--text); background: none; padding: 0; }
+    .price-note { font-size: 14px; color: var(--muted); margin: 14px 0 0; }
+    .price-note a { color: var(--text); font-weight: 700; }
+    /* Animierte Mini-Demo des Live Snipers */
+    .demo { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: 0 24px 60px rgba(21,128,61,.14); }
+    .demo-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .demo-head b { font-family: var(--font-display); font-size: 18px; }
+    .demo-head .conn { font-size: 12px; font-weight: 800; color: var(--green-deep); display: inline-flex; align-items: center; gap: 6px; }
+    .demo-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .demo-tags span { font-size: 12px; font-weight: 700; background: var(--green-soft); border: 1px solid #c7f0d4; padding: 2px 8px; border-radius: 999px; }
+    .demo-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-height: 316px; }
+    .demo-item { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-left-width: 5px; border-radius: 12px; background: #fff; animation: pop .5s ease-out both; }
+    .demo-item .ph { width: 42px; height: 42px; border-radius: 8px; display: grid; place-items: center; font-size: 10px; font-weight: 800; background: var(--surface); color: var(--muted); }
+    .demo-item .t { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .demo-item .m { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .demo-item .p { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .demo-item .p small { display: block; font-size: 12px; color: var(--green-deep); }
+    .demo-item.r-legendary { border-left-color: var(--r-legendary); } .demo-item.r-epic { border-left-color: var(--r-epic); } .demo-item.r-rare { border-left-color: var(--r-rare); } .demo-item.r-good { border-left-color: var(--r-good); } .demo-item.r-archive { border-left-color: var(--r-archive); }
+    .demo-item.new { box-shadow: 0 0 0 2px var(--green); }
+    .demo-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 12px; color: var(--muted); gap: 8px; flex-wrap: wrap; }
+    @keyframes pop { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .demo-item { animation: none; } }
+    .finds .lb-list { max-width: 860px; margin: 0 auto; }
+    .finds .note { text-align: center; color: var(--muted); font-size: 13px; margin: 14px auto 0; max-width: 40em; }
     .lead { font-size: 18px; color: var(--muted); max-width: 32em; margin: 0; }
     .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 0 20px; }
     .trust { display: flex; gap: 8px 20px; flex-wrap: wrap; list-style: none; padding: 0; margin: 24px 0 0; color: var(--muted); font-size: 14px; font-weight: 600; }
@@ -74,62 +97,86 @@
     .final .card { background: var(--text); color: #fff; border: 0; padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .final h2 { font-size: clamp(30px, 4vw, 46px); }
     .final h2 span { display: block; color: var(--green); }
-    @media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); padding-top: 16px; } .hub { grid-template-columns: minmax(0, 1fr); } .cat { width: 88px; height: 88px; } .cat svg { width: 38px; height: 38px; top: 11px; } .cat span { font-size: 10px; } .cats { gap: 10px; } }
+    @media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); padding-top: 16px; } .hub { grid-template-columns: minmax(0, 1fr); } .cat { width: 96px; height: 96px; } .cat svg { width: 40px; height: 40px; top: 12px; } .cat span { font-size: 12px; letter-spacing: .02em; } .cats { gap: 10px; } }
     @media (prefers-reduced-motion: reduce) { .cat { transition: none; } }
   </style>
 </head>
 <body>
-  <div class="ticker" role="marquee" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings in real time</span><span>Individual preferences with hashtags</span><span>Designer &amp; archive pieces</span><span>Resale estimate on every listing</span><span>Flips ledger</span><span>Browser notifications</span><span>No duplicates</span><span aria-hidden="true">New Vinted listings in real time</span><span aria-hidden="true">Individual preferences with hashtags</span><span aria-hidden="true">Designer &amp; archive pieces</span><span aria-hidden="true">Resale estimate on every listing</span><span aria-hidden="true">Flips ledger</span><span aria-hidden="true">Browser notifications</span><span aria-hidden="true">No duplicates</span></div></div>
+  <div class="ticker" aria-label="What watchr does"><div class="ticker-track"><span>New Vinted listings within ~60 seconds</span><span>Hashtag preferences</span><span>Archive mode for designer pieces</span><span>Resale estimate on every listing</span><span>Sold flips ranking</span><span>Browser alerts</span><span aria-hidden="true">New Vinted listings within ~60 seconds</span><span aria-hidden="true">Hashtag preferences</span><span aria-hidden="true">Archive mode for designer pieces</span><span aria-hidden="true">Resale estimate on every listing</span><span aria-hidden="true">Sold flips ranking</span><span aria-hidden="true">Browser alerts</span></div><button class="ticker-pause" type="button" aria-pressed="false" aria-label="Pause the moving banner"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path class="i-pause" d="M7 5h3v14H7zM14 5h3v14h-3z"/><path class="i-play" d="M8 5l11 7-11 7z"/></svg></button></div>
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="features.html">Features</a><a href="how-it-works.html">How it works</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
+      <nav class="site-nav" aria-label="Main"><a href="monitor.html" class="live">Live Sniper</a><a href="flips.html">Flips</a><a href="categories.html">Categories</a><a href="tools.html">AI Tools</a><a href="faq.html">FAQ</a></nav>
       <div class="head-btns"><a class="btn small charts-btn" href="charts.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Charts</a><a class="btn small upgrades-btn" href="upgrades.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Upgrades</a></div>
     </div>
   </header>
   <main>
     <div class="wrap hero">
       <div>
-        <h1>Every Vinted listing you want. <em>The moment it goes live.</em> <span class="free">Completely for free.</span></h1>
-        <div class="ctas ctas-mobile">
-          <a class="btn snipe-now snipe-mobile" href="monitor.html"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>Snipe now</a>
-          <a class="btn ghost" href="#how-it-works">See how it works</a>
+        <h1>Every Vinted listing you want. <em>Within a minute of going live.</em> <span class="free">Free to snipe.</span></h1>
+        <p class="lead">watchr checks Vinted for you about once a minute, from sneakers and streetwear to vintage, with an Archive mode for designer pieces. Every match lands in Live Sniper with photos, a resale estimate and the expected profit.</p>
+        <form class="tag-form" action="monitor.html" method="get">
+          <label class="sr-only" for="hero-tags">What are you looking for?</label>
+          <input id="hero-tags" name="tags" value="#nike #dunk #size43 #max80" autocomplete="off" spellcheck="false" />
+          <button class="btn snipe-now" type="submit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>Snipe now</button>
+        </form>
+        <div class="chips" aria-label="Examples">
+          <button type="button" data-tags="#nike #dunk #size43 #max80">Nike Dunks</button>
+          <button type="button" data-tags="#archive #max300">Archive grails</button>
+          <button type="button" data-tags="#carhartt #jacket #sizeL #verygood">Carhartt jackets</button>
+          <button type="button" data-tags="#ralphlauren #polo #max20">Cheap polos</button>
+          <button type="button" data-tags="#accessories #max40">Accessories</button>
         </div>
-        <p class="lead">watchr watches Vinted around the clock, specialised in high fashion designers and rare archive pieces. Every new listing that fits lands in Live Sniper in seconds, with photos, an estimated resale price and the difference to the asking price.</p>
-        <ul class="trust"><li>Designer &amp; Archive mode</li><li>Resale estimate on every listing</li><li>Instant browser alerts</li></ul>
+        <p class="syntax">Words are keywords. Add <code>#size43</code>, <code>#min20</code> / <code>#max80</code>, <code>#verygood</code> or <code>#archive</code>. <a href="faq.html#hashtags">All hashtags</a></p>
+        <p class="price-note">Live Sniper, Flips and Categories are free. <a href="upgrades.html">Upgrades</a> add optional extras like Autobuy.</p>
       </div>
 
-      <div class="snipe-big-wrap">
-        <a class="snipe-big" href="monitor.html" aria-label="Snipe now: open Live Sniper">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
-          <span>Snipe now</span>
-        </a>
-        <a class="btn ghost how-btn" href="#how-it-works">See how it works</a>
+      <div class="demo" aria-label="Example of Live Sniper">
+        <div class="demo-head"><b>Live Sniper</b><span class="conn"><span class="dot"></span>Example</span></div>
+        <div class="demo-tags"><span>#archive</span><span>#max300</span><span>#ralphlauren #polo</span></div>
+        <ol class="demo-list" id="demo-list"></ol>
+        <div class="demo-foot"><span>Net profit after buyer protection and shipping</span><a href="monitor.html">Open Live Sniper →</a></div>
       </div>
     </div>
 
     <section class="cats-band" id="categories" aria-label="Snipe categories">
       <div class="wrap">
-        <h2>Snipe categories</h2>
+        <h2>Or start with a category</h2>
         <div class="cats"><a class="cat cat-archive" href="monitor.html?tags=%23archive"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M27 15a5 5 0 1 1 5 5v4"/><path d="M32 24 7 42h50z"/><path d="M45 42v5l4 5 4-5v-5"/></svg><span>Archive</span></a><a class="cat" href="monitor.html?tags=%23sneakers"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 43V26c0-1.7 1.3-3 3-3h7c2 0 3 1.5 3 3.5 0 3 3 4.5 6 3.5l6-3c3 4.5 8.5 6.5 14.5 7.5C53 36.5 57 39 58 43z"/><path d="M4 43h56v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M45 43c0-3.5 3.5-6 9-5.5"/><path d="M26 31l3 4M31 28.5l3 4"/><path d="M12 38c8 1.5 17 0 25-5"/></svg><span>Sneakers</span></a><a class="cat" href="monitor.html?tags=%23jacket"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 9 11 14 5 49l8 2 4-20v25h30V31l4 20 8-2-6-35-11-5-10 8z"/><path d="M22 9l4 10 6-2 6 2 4-10"/><path d="M32 17v39"/><path d="M21 42h6M37 42h6"/></svg><span>Jackets</span></a><a class="cat" href="monitor.html?tags=%23pants"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 8h24l4 48H36l-4-32-4 32H16z"/><path d="M20 15h24"/></svg><span>Pants</span></a><a class="cat" href="monitor.html?tags=%23tops"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M22 12l-12 9 5 9 7-3v25h20V27l7 3 5-9-12-9c-3 5-7 5-10 5s-7 0-10-5z"/></svg><span>Tops</span></a><a class="cat" href="monitor.html?tags=%23accessories"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M5 20h54v10H5z"/><rect x="20" y="16" width="13" height="18" rx="2"/><path d="M26 25h11"/><circle cx="44" cy="25" r="1"/><circle cx="51" cy="25" r="1"/><circle cx="22" cy="49" r="6"/><path d="M19 41.5l3-3 3 3z"/><path d="M38 40c0 8 4 13 9 13s9-5 9-13"/><circle cx="47" cy="53" r="2"/></svg><span>Accessories</span></a><a class="cat" href="monitor.html"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="12" width="16" height="16" rx="3"/><rect x="36" y="12" width="16" height="16" rx="3"/><rect x="12" y="36" width="16" height="16" rx="3"/><rect x="36" y="36" width="16" height="16" rx="3"/></svg><span>All</span></a></div>
+      </div>
+    </section>
+
+    <section class="finds" aria-labelledby="finds-title">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">What a find looks like</span>
+          <h2 id="finds-title">Bought low. Ranked by profit.<span>This is how watchr scores a find.</span></h2>
+        </div>
+        <ol class="lb-list">
+          <li class="lb-row r-legendary podium p1"><span class="lb-rank">🥇</span><div class="lb-name"><b>Raf Simons AW02 bomber jacket</b><span class="meta">Listed for €340 · comparable pieces ~€900</span></div><span class="verdict v-legendary">Legendary</span><span class="lb-profit">+€448</span><span class="lb-roi">124%</span></li>
+          <li class="lb-row r-epic podium p2"><span class="lb-rank">🥈</span><div class="lb-name"><b>Nike Air Max 95 Neon OG</b><span class="meta">Listed for €70 · comparable pairs ~€160</span></div><span class="verdict v-epic">Epic</span><span class="lb-profit">+€65</span><span class="lb-roi">83%</span></li>
+          <li class="lb-row r-rare podium p3"><span class="lb-rank">🥉</span><div class="lb-name"><b>Carhartt Detroit jacket</b><span class="meta">Listed for €60 · comparable jackets ~€110</span></div><span class="verdict v-rare">Rare</span><span class="lb-profit">+€31</span><span class="lb-roi">45%</span></li>
+          <li class="lb-row r-good"><span class="lb-rank">4</span><div class="lb-name"><b>Ralph Lauren polo</b><span class="meta">Listed for €12 · comparable polos ~€30</span></div><span class="verdict v-good">Good</span><span class="lb-profit">+€9</span><span class="lb-roi">52%</span></li>
+        </ol>
+        <p class="note">Example listings to show the scoring, not real results. Profit is the expected sale minus price, buyer protection and shipping. Anything under 20% return is never shown, rare archive pieces always are.</p>
       </div>
     </section>
 
     <section id="archive">
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Designer &amp; Archive</span>
-          <h2>Trained on high fashion.<span>Knows what a grail looks like.</span></h2>
+          <span class="eyebrow">Special mode · Designer &amp; Archive</span>
+          <h2>Hunting grails?<span>Archive mode knows what they look like.</span></h2>
         </div>
         <div class="hub">
           <article class="card main dark">
             <div class="hub-top"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M27 15a5 5 0 1 1 5 5v4"/><path d="M32 24 7 42h50z"/><path d="M45 42v5l4 5 4-5v-5"/></svg></div><span class="badge">#archive</span></div>
             <h3>Archive score</h3>
-            <p>Add <b>#archive</b> and watchr hunts on its own, rotating through 40+ designers like Raf Simons, Helmut Lang, Rick Owens, Maison Margiela, Comme des Garçons, Yohji Yamamoto and Jean Paul Gaultier.</p>
+            <p>Add <b>#archive</b> and watchr hunts on its own, rotating through 50+ designers like Raf Simons, Helmut Lang, Rick Owens, Maison Margiela, Comme des Garçons, Yohji Yamamoto and Jean Paul Gaultier.</p>
             <ul>
               <li>Each listing gets a score from 0 to 100</li>
               <li>Points for the designer, for signals like archive, runway, sample, AW02 or 90s, and for a price far below resale</li>
-              <li>Only pieces scoring 50 or more reach your monitor</li>
+              <li>Only pieces scoring 50 or more reach your Live Sniper</li>
             </ul>
             <a class="btn" href="monitor.html?tags=%23archive">Hunt archive pieces</a>
           </article>
@@ -159,7 +206,7 @@
             <div class="hub-top"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="8" y="12" width="48" height="34" rx="5"/><path d="M24 54h16M32 46v8"/><path d="M16 30h8l4-8 6 14 4-6h10"/></svg></div><span class="badge"><span class="dot"></span>Live</span></div>
             <h3>Live Sniper</h3>
             <ul>
-              <li>New listings appear the second watchr finds them, no reloading</li>
+              <li>Matches appear without reloading, usually within a minute of being listed</li>
               <li>Individual Preferences as hashtags: keywords, size, price range, condition</li>
               <li>Up to three photos, price, size and an estimated resale price at a glance</li>
               <li>One click takes you straight to the listing on Vinted</li>
@@ -167,13 +214,13 @@
             <a class="btn" href="monitor.html">Open Live Sniper</a>
           </article>
           <article class="card">
-            <div class="hub-top"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="8" width="40" height="48" rx="5"/><path d="M20 20h24M20 30h24M20 40h14"/></svg></div><span class="badge">Your ledger</span></div>
+            <div class="hub-top"><div class="icon-box"><svg viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="8" width="40" height="48" rx="5"/><path d="M20 20h24M20 30h24M20 40h14"/></svg></div><span class="badge">Your finds</span></div>
             <h3>Flips</h3>
             <ul>
-              <li>Every listing watchr found, grouped by day</li>
-              <li>See at a glance which ones you never opened</li>
-              <li>Filter by preference to learn where the deals are</li>
-              <li>Built from your own data, nothing made up</li>
+              <li>Every find, grouped by day, with the ones you missed</li>
+              <li>watchr notices when a find sells on Vinted</li>
+              <li>Sold flips ranked by estimated net profit</li>
+              <li>Estimates from asking prices, not your real sale price</li>
             </ul>
             <a class="btn ghost" href="flips.html">View Flips</a>
           </article>
@@ -195,7 +242,7 @@
         <div class="grid-3 steps">
           <div class="card"><h3>Set your preferences</h3><p>Type hashtags for what you want, like #nike #dunk #size43 #max80 #verygood. Add as many sets as you like.</p></div>
           <div class="card"><h3>watchr monitors Vinted</h3><p>It checks the newest listings for every set of preferences and filters out everything that doesn't fit.</p></div>
-          <div class="card"><h3>Strike first</h3><p>Matches pop into Live Sniper with photos and an alert. Open the listing and decide on Vinted yourself.</p><a class="btn small" href="monitor.html" style="align-self: flex-start; margin-top: 4px">Start now</a></div>
+          <div class="card"><h3>Strike first</h3><p>Matches pop into Live Sniper with photos and an alert, usually within a minute. Open the listing and decide on Vinted yourself.</p><a class="btn small" href="monitor.html" style="align-self: flex-start; margin-top: 4px">Start now</a></div>
         </div>
       </div>
     </section>
@@ -206,10 +253,10 @@
           <span class="eyebrow">FAQ</span>
           <h2>Questions people ask.</h2>
         </div>
-        <details><summary>How quickly will I see new listings?</summary><p>watchr checks each set of preferences about once a minute. A match shows up in Live Sniper right after that, without reloading.</p></details>
-        <details><summary>Which hashtags can I use?</summary><p>Any word becomes a keyword, like #nike or #dunk. Add #size43 or #sizeM for the size, #min20 and #max80 for the price range, and #newtags, #new, #verygood or #good for the minimum condition. #archive switches on Designer &amp; Archive mode. The snipebot checks every hashtag against each listing (title, brand, size and condition) and only shows listings that fit all of them. English and German words both work, so #jacket also finds “Jacke”. Category hashtags cover a whole group: #accessories finds belts, jewellery, bags, sunglasses, caps and more, #tops finds shirts, polos, hoodies and sweaters.</p></details>
+        <details><summary>How quickly will I see new listings?</summary><p>Usually within about a minute. watchr checks each set of preferences roughly once a minute and a match shows up in Live Sniper right after that, without reloading. With many preferences a round can take a little longer.</p></details>
+        <details><summary>Which hashtags can I use?</summary><p>Any word becomes a keyword, like #nike or #dunk. Add #size43 or #sizeM for the size, #min20 and #max80 for the price range, and #newtags, #new, #verygood or #good for the minimum condition. #archive switches on Designer &amp; Archive mode. watchr checks every hashtag against each listing (title, brand, size and condition) and only shows listings that fit all of them. English and German words both work, so #jacket also finds “Jacke”. Category hashtags cover a whole group: #accessories finds belts, jewellery, bags, sunglasses, caps and more, #tops finds shirts, polos, hoodies and sweaters.</p></details>
         <details><summary>How is the resale estimate calculated?</summary><p>watchr looks up comparable listings on Vinted (same brand, same type of item, for example Ralph Lauren polos), removes outliers and takes the median. That value is kept for 24 hours, so frequent items are always priced the same way. It's based on asking prices, so treat it as a guide, not a promise.</p></details>
-        <details><summary>What are Flips?</summary><p>A ledger of every listing watchr found for you, marked by whether you opened it in Live Sniper. It shows asking prices only. watchr doesn't know whether or for how much an item sold.</p></details>
+        <details><summary>What are Flips?</summary><p>Everything watchr found for you, marked by whether you opened it. watchr keeps checking your finds and ranks the ones that sold by estimated net profit. Vinted doesn't show final sale prices, so the profit is an estimate from asking prices.</p></details>
         <details><summary>Does watchr buy items for me?</summary><p>No. watchr finds the listings. You decide and buy on Vinted yourself.</p></details>
         <p class="faq-more"><a class="btn ghost" href="faq.html">All questions</a></p>
       </div>
@@ -230,19 +277,60 @@
       <div class="footer-grid">
         <div>
           <a class="logo" href="index.html"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="18" fill="#86efac"/><path d="M15 24 L28 58 L40 33 L52 58 L65 24" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>watch<span class="hl">r</span></span></a>
-          <p class="muted">The live sniper for Vinted, built for designer and archive fashion. watchr spots new listings that match your preferences and shows them the moment they go live.</p>
+          <p class="muted">The live sniper for Vinted resellers. watchr checks Vinted about once a minute for your hashtag preferences, with an Archive mode for designer pieces.</p>
         </div>
         <div>
           <h4>Product</h4>
-          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="features.html">Features</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
+          <ul><li><a href="monitor.html">Live Sniper</a></li><li><a href="flips.html">Flips</a></li><li><a href="categories.html">Categories</a></li><li><a href="tools.html">AI Tools</a></li><li><a href="charts.html">My Charts</a></li><li><a href="upgrades.html">Upgrades</a></li></ul>
         </div>
         <div>
           <h4>Help</h4>
-          <ul><li><a href="how-it-works.html">How it works</a></li><li><a href="faq.html">FAQ</a></li><li><a href="features.html#embed">Use it on your website</a></li></ul>
+          <ul><li><a href="how-it-works.html">How it works</a></li><li><a href="features.html">Features</a></li><li><a href="faq.html">FAQ</a></li><li><a href="features.html#embed">Use it on your website</a></li></ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul><li><a href="impressum.html">Imprint</a></li><li><a href="datenschutz.html">Privacy</a></li><li><a href="impressum.html#kontakt">Contact</a></li></ul>
         </div>
       </div>
       <p class="footer-note">© 2026 watchr. An independent project, not affiliated with or endorsed by Vinted. "Vinted" is a trademark of Vinted UAB.</p>
     </div>
   </footer>
+  <script>
+    // Beispiel-Chips füllen das Hashtag-Feld
+    document.querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () => {
+      const i = document.getElementById("hero-tags");
+      i.value = b.dataset.tags;
+      i.focus();
+    }));
+    // Mini-Demo: neue Funde erscheinen nacheinander oben
+    (() => {
+      const FINDS = [
+        ["Raf Simons AW02 bomber jacket", "M", 340, "€700–1,150", 448, "legendary", "Legendary", "Raf"],
+        ["Ralph Lauren polo slim fit", "M", 12, "€25–35", 9, "good", "Good", "RL"],
+        ["Helmut Lang 1999 painter jeans", "W31", 120, "€210–320", 103, "epic", "Epic", "HL"],
+        ["Carol Christian Poell drip boots", "42", 690, "too rare to price", null, "archive", "Archive", "CCP"],
+        ["Ralph Lauren cable knit", "L", 18, "€38–55", 17, "rare", "Rare", "RL"],
+        ["Maison Margiela Tabi boots", "41", 210, "€290–470", 116, "epic", "Epic", "MM"],
+      ];
+      const list = document.getElementById("demo-list");
+      const fmt = (n) => "€" + n.toLocaleString("en-IE");
+      const node = ([title, size, price, range, net, r, label, ph], fresh) => {
+        const li = document.createElement("li");
+        li.className = `demo-item r-${r}` + (fresh ? " new" : "");
+        li.innerHTML = `<span class="ph">${ph}</span><div><div class="t"></div><div class="m"><span class="verdict v-${r}">${label}</span><span>Size ${size} · ${range}</span></div></div><div class="p">${fmt(price)}<small>${net == null ? "always shown" : "Net +" + fmt(net)}</small></div>`;
+        li.querySelector(".t").textContent = title;
+        return li;
+      };
+      let i = 0;
+      for (; i < 4; i++) list.append(node(FINDS[i], false));
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      setInterval(() => {
+        list.querySelector(".new")?.classList.remove("new");
+        list.prepend(node(FINDS[i++ % FINDS.length], true));
+        while (list.children.length > 4) list.lastElementChild.remove();
+      }, 3500);
+    })();
+  </script>
+  <script src="site.js"></script>
 </body>
 </html>
