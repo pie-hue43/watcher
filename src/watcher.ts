@@ -269,7 +269,10 @@ export class Watcher {
           this.backoffMs = Math.min(30 * 60_000, this.backoffMs ? this.backoffMs * 2 : 2 * 60_000);
           this.log(`${err.message}, pausiere ${Math.round(this.backoffMs / 60_000)} min`);
         } else {
-          this.log(`Fehler: ${(err as Error).message}`);
+          // "fetch failed" allein sagt nichts, der eigentliche Grund steht in err.cause
+          const cause = (err as any)?.cause;
+          const why = cause ? ` (${cause.code || cause.message || cause})` : "";
+          this.log(`Fehler: ${(err as Error).message}${why}, neuer Versuch in einer Minute`);
         }
       }
       await sleep(this.backoffMs || jitter(this.intervalMs));
